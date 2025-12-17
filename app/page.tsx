@@ -1,10 +1,13 @@
+import { Server, Database, Cpu, HardDrive, Activity, Globe } from "lucide-react";
+import { motion } from "framer-motion";
 import { pnodeClient } from "@/lib/pnode-client";
 import { analyzeNetwork } from "@/lib/network-analytics";
 import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
-import { StatCard } from "@/components/dashboard/stat-card";
+import { MetricCard } from "@/components/dashboard/metric-card";
 import { NodesTable } from "@/components/dashboard/nodes-table";
 import { VersionDistribution } from "@/components/dashboard/version-distribution";
 import { AutoRefresh } from "@/components/dashboard/auto-refresh";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { formatBytes } from "@/lib/utils";
 
 async function getNetworkData() {
@@ -42,81 +45,120 @@ export default async function HomePage() {
   }
 
   return (
-    <main className="min-h-screen p-4 md:p-8">
+    <main className="min-h-screen">
       <AutoRefresh interval={60000} />
 
-      <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="text-center space-y-4 py-8">
-          <h1 className="text-5xl md:text-7xl font-bold gradient-text">
-            Xandeum Analytics
-          </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-            Real-time monitoring and visualization of the Xandeum distributed
-            storage network
-          </p>
+      {/* Premium Glass Header */}
+      <div className="glass-header sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 py-5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl border border-primary/30 glow-primary">
+                <Activity className="w-7 h-7 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold gradient-text-vibrant">
+                  Xandeum Analytics
+                </h1>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Real-time Network Monitoring • {new Date().toLocaleDateString()}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg bg-card/40 border border-border/50">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-sm font-medium">Live</span>
+              </div>
+              <ThemeToggle />
+            </div>
+          </div>
         </div>
+      </div>
 
-        {/* Network Health Card */}
-        <div className="max-w-2xl mx-auto">
-          <NetworkHealthCard
-            score={analytics.health.score}
-            totals={analytics.totals}
-            health={analytics.health}
-          />
-        </div>
-
-        {/* Stats Grid */}
+      <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
+        {/* Top Metrics Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <StatCard
+          <MetricCard
             title="Total Nodes"
             value={analytics.totals.total}
-            subtitle="Active pNodes"
-            iconName="Server"
+            icon={<Server className="w-6 h-6" />}
+            colorClass="chart1"
             delay={0}
           />
-          <StatCard
-            title="Network Storage"
-            value={formatBytes(analytics.storage.totalCapacity)}
-            subtitle={`${analytics.storage.utilizationPercentage.toFixed(1)}% utilized`}
-            iconName="Database"
+          <MetricCard
+            title="Health Score"
+            value={`${analytics.health.score}/100`}
+            icon={<Activity className="w-6 h-6" />}
+            colorClass="accent"
             delay={0.1}
           />
-          <StatCard
-            title="Avg CPU Usage"
-            value={`${analytics.performance.averageCPU.toFixed(1)}%`}
-            subtitle="Across all nodes"
-            iconName="Cpu"
+          <MetricCard
+            title="Network Storage"
+            value={formatBytes(analytics.storage.totalCapacity)}
+            icon={<Database className="w-6 h-6" />}
+            colorClass="chart2"
             delay={0.2}
           />
-          <StatCard
-            title="Avg Storage/Node"
-            value={formatBytes(analytics.storage.averagePerNode)}
-            subtitle="Per node capacity"
-            iconName="HardDrive"
+          <MetricCard
+            title="Avg CPU Usage"
+            value={`${analytics.performance.averageCPU.toFixed(1)}%`}
+            icon={<Cpu className="w-6 h-6" />}
+            colorClass="chart3"
             delay={0.3}
           />
         </div>
 
-        {/* Version Distribution */}
-        <div className="max-w-2xl mx-auto">
-          <VersionDistribution
-            distribution={analytics.versions.distribution}
-            latest={analytics.versions.latest}
-            outdatedCount={analytics.versions.outdatedCount}
-            outdatedPercentage={analytics.versions.outdatedPercentage}
-            total={analytics.totals.total}
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left column - Network Health (Larger) */}
+          <div className="lg:col-span-2">
+            <NetworkHealthCard
+              score={analytics.health.score}
+              totals={analytics.totals}
+              health={analytics.health}
+            />
+          </div>
+
+          {/* Right column - Version Distribution */}
+          <div>
+            <VersionDistribution
+              distribution={analytics.versions.distribution}
+              latest={analytics.versions.latest}
+              outdatedCount={analytics.versions.outdatedCount}
+              outdatedPercentage={analytics.versions.outdatedPercentage}
+              total={analytics.totals.total}
+            />
+          </div>
+        </div>
+
+        {/* Additional Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <MetricCard
+            title="Avg Storage/Node"
+            value={formatBytes(analytics.storage.averagePerNode)}
+            icon={<HardDrive className="w-6 h-6" />}
+            colorClass="chart4"
+            delay={0}
+          />
+          <MetricCard
+            title="Storage Utilization"
+            value={`${analytics.storage.utilizationPercentage.toFixed(1)}%`}
+            icon={<Database className="w-6 h-6" />}
+            colorClass="chart5"
+            delay={0.1}
+          />
+          <MetricCard
+            title="Avg RAM Usage"
+            value={`${analytics.performance.averageRAM.toFixed(1)}%`}
+            icon={<Cpu className="w-6 h-6" />}
+            colorClass="primary"
+            delay={0.2}
           />
         </div>
 
         {/* Nodes Table */}
         <NodesTable nodes={pnodes} />
-
-        {/* Footer */}
-        <div className="text-center text-sm text-muted-foreground py-8">
-          <p>Last updated: {new Date().toLocaleString()}</p>
-          <p className="mt-2">Auto-refreshing every 60 seconds</p>
-        </div>
       </div>
     </main>
   );

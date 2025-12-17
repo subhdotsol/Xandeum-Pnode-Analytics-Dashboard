@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { PackageCheck, AlertCircle } from "lucide-react";
@@ -13,7 +14,26 @@ interface VersionDistributionProps {
     total: number;
 }
 
-const COLORS = ["#14F1C6", "#3B82F6", "#F59E0B", "#EF4444", "#8B5CF6"];
+// Use CSS variables for dynamic theming
+const getChartColors = () => {
+    if (typeof window === "undefined") return [];
+    const styles = getComputedStyle(document.documentElement);
+    return [
+        styles.getPropertyValue("--chart-1").trim() || "217 91% 60%",
+        styles.getPropertyValue("--chart-2").trim() || "25 95% 53%",
+        styles.getPropertyValue("--chart-3").trim() || "142 71% 45%",
+        styles.getPropertyValue("--chart-4").trim() || "280 65% 60%",
+        styles.getPropertyValue("--chart-5").trim() || "340 82% 52%",
+    ].map(hsl => `hsl(${hsl})`);
+};
+
+const FALLBACK_COLORS = [
+    "hsl(217 91% 60%)",  // Blue
+    "hsl(25 95% 53%)",   // Orange
+    "hsl(142 71% 45%)",  // Green
+    "hsl(280 65% 60%)",  // Purple
+    "hsl(340 82% 52%)",  // Pink
+];
 
 export function VersionDistribution({
     distribution,
@@ -22,6 +42,15 @@ export function VersionDistribution({
     outdatedPercentage,
     total,
 }: VersionDistributionProps) {
+    const [colors, setColors] = React.useState(FALLBACK_COLORS);
+
+    React.useEffect(() => {
+        const chartColors = getChartColors();
+        if (chartColors.length > 0) {
+            setColors(chartColors);
+        }
+    }, []);
+
     const data = Object.entries(distribution).map(([version, count]) => ({
         name: version,
         value: count,
@@ -29,11 +58,11 @@ export function VersionDistribution({
     }));
 
     return (
-        <Card className="glass-card border-space-border">
+        <Card className="glass-card-strong border-border h-full">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <PackageCheck className="w-5 h-5 text-neo-teal" />
-                    <span className="gradient-text">Version Distribution</span>
+                    <PackageCheck className="w-5 h-5 text-primary" />
+                    <span>Version Distribution</span>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -54,15 +83,16 @@ export function VersionDistribution({
                                 {data.map((entry, index) => (
                                     <Cell
                                         key={`cell-${index}`}
-                                        fill={COLORS[index % COLORS.length]}
+                                        fill={colors[index % colors.length]}
                                     />
                                 ))}
                             </Pie>
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: "rgba(13, 27, 42, 0.95)",
-                                    border: "1px solid rgba(255, 255, 255, 0.1)",
+                                    backgroundColor: "hsl(var(--card))",
+                                    border: "1px solid hsl(var(--border))",
                                     borderRadius: "8px",
+                                    color: "hsl(var(--foreground))",
                                 }}
                             />
                         </PieChart>
@@ -77,17 +107,19 @@ export function VersionDistribution({
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.1 }}
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted/20"
+                            className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                         >
                             <div className="flex items-center gap-3">
                                 <div
                                     className="w-3 h-3 rounded-full"
-                                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                                    style={{ backgroundColor: colors[index % colors.length] }}
                                 />
                                 <span className="font-mono text-sm">
                                     v{item.name}
                                     {item.name === latest && (
-                                        <span className="ml-2 text-xs text-neo-teal">(Latest)</span>
+                                        <span className="ml-2 text-xs text-primary font-semibold">
+                                            (Latest)
+                                        </span>
                                     )}
                                 </span>
                             </div>
@@ -109,7 +141,7 @@ export function VersionDistribution({
                         className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20"
                     >
                         <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5" />
+                            <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
                             <div>
                                 <p className="text-sm font-medium text-yellow-500">
                                     {outdatedCount} nodes running outdated versions
