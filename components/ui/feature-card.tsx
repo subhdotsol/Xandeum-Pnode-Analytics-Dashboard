@@ -10,7 +10,7 @@ interface FeatureCardProps {
 
 export function FeatureCard({ title, description, icon, value }: FeatureCardProps) {
     return (
-        <Card className="light-card dark:glass-card border-border/50 dark:border-border/50 hover:border-accent/50 transition-all group">
+        <Card className="glass-card border-border/50 hover:border-accent/50 transition-all group">
             <CardContent className="p-6">
                 <div className="flex flex-col gap-4">
                     {icon && (

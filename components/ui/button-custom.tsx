@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 import { ButtonHTMLAttributes } from "react";
 
-const classes = cva("border h-12 rounded-full px-6 font-medium transition-all", {
+const classes = cva("border h-12 rounded-full px-6 font-medium transition-all active:scale-95", {
     variants: {
         variant: {
             primary: "bg-accent text-background border-accent hover:bg-accent/90",
