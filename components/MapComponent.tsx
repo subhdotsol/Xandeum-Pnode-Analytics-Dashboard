@@ -248,3 +248,5 @@ export default function MapComponent({ pnodes }: { pnodes: PNode[] }) {
         </MapContainer>
     );
 }
+
+// NOTE : fixing map components 
