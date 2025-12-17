@@ -411,8 +411,8 @@
   }
 }
 
-/* Prevent scrolling on map page - without position fixed on body */
-body {
+/* Prevent scrolling ONLY on map page */
+body:has(.map-page-container) {
   overflow: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
@@ -420,7 +420,7 @@ body {
   height: 100vh !important;
 }
 
-html {
+html:has(.map-page-container) {
   overflow: hidden !important;
   height: 100vh !important;
   margin: 0 !important;

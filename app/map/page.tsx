@@ -199,7 +199,7 @@ export default function MapPage() {
     const nodesWithCoords = pnodes.filter((n) => n.lat && n.lng);
 
     return (
-        <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
+        <div className="map-page-container fixed inset-0 w-full h-full bg-black overflow-hidden">
             {/* Back Button - Upper Left */}
             <Link
                 href="/"
