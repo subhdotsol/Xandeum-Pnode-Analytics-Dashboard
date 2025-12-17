@@ -106,7 +106,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
                 <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
                         <Filter className="w-5 h-5 text-accent" />
-                        <span className="notion-text-gradient dark:text-foreground">Network Nodes</span>
+                        <span className="dark:notion-text-gradient">Network Nodes</span>
                     </CardTitle>
                     <div className="text-sm text-muted-foreground">
                         {displayedNodes.length} / {filteredAndSortedNodes.length} nodes
@@ -226,9 +226,9 @@ export function NodesTable({ nodes }: NodesTableProps) {
                                 variant="secondary"
                                 size="sm"
                                 onClick={() => setShowAll(false)}
-                                className="gap-2"
+                                className="flex items-center gap-2"
                             >
-                                Show Less
+                                <span>Show Less</span>
                                 <ChevronDown className="w-4 h-4 rotate-180" />
                             </Button>
                         </div>

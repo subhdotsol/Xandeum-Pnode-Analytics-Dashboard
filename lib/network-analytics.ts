@@ -147,6 +147,9 @@ export function analyzeNetwork(
     },
     health: {
       score: Math.round(healthScore),
+      healthy,
+      degraded,
+      offline,
       healthyPercentage: Math.round(healthyPercentage * 10) / 10,
       degradedPercentage: Math.round(degradedPercentage * 10) / 10,
       offlinePercentage: Math.round(offlinePercentage * 10) / 10,

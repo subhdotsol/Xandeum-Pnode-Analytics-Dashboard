@@ -36,18 +36,8 @@ export interface NodeHealth {
 }
 
 export interface NetworkAnalytics {
-  totals: {
-    total: number;
-    healthy: number;
-    degraded: number;
-    offline: number;
-  };
-  health: {
-    score: number;              // 0-100
-    healthyPercentage: number;
-    degradedPercentage: number;
-    offlinePercentage: number;
-  };
+  totals: NetworkTotals;
+  health: NetworkHealth;
   versions: {
     latest: string;
     distribution: Record<string, number>;
@@ -70,6 +60,23 @@ export interface NetworkAnalytics {
     lowHealthNodes: number;
     staleNodes: number;
   };
+}
+
+export interface NetworkTotals {
+  total: number;
+  healthy: number;
+  degraded: number;
+  offline: number;
+}
+
+export interface NetworkHealth {
+  score: number;              // 0-100
+  healthy: number;
+  degraded: number;
+  offline: number;
+  healthyPercentage: number;
+  degradedPercentage: number;
+  offlinePercentage: number;
 }
 
 export interface GeoLocation {

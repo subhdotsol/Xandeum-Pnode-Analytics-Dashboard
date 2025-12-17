@@ -291,13 +291,13 @@
   }
 
   /* Light mode specific - remove shadows and colors, add gradients */
-  :root .light-card {
+  :root:not(.dark) .light-card {
     background: white;
     border: 1px solid hsl(var(--border));
     box-shadow: none;
   }
 
-  :root .light-card:hover {
+  :root:not(.dark) .light-card:hover {
     background: linear-gradient(135deg,
         rgba(255, 236, 224, 0.15) 0%,
         rgba(242, 225, 255, 0.15) 50%,

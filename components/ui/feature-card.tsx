@@ -19,7 +19,7 @@ export function FeatureCard({ title, description, icon, value }: FeatureCardProp
                         </div>
                     )}
                     {value && (
-                        <div className="text-4xl font-bold notion-text-gradient dark:text-foreground">{value}</div>
+                        <div className="text-4xl font-bold dark:notion-text-gradient">{value}</div>
                     )}
                     <div>
                         <h3 className="text-lg font-semibold mb-2">{title}</h3>
