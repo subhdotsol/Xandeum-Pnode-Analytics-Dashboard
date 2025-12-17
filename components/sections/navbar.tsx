@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Activity } from "lucide-react";
+import Image from "next/image";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const navLinks = [
@@ -26,10 +26,14 @@ export function Navbar() {
                 <div className="flex items-center justify-between h-16">
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-                        <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-                            <Activity className="w-5 h-5 text-accent" />
-                        </div>
-                        <span className="font-bold text-lg">Xandeum</span>
+                        <Image
+                            src="/xandeum-logo.png"
+                            alt="Xandeum Logo"
+                            width={32}
+                            height={32}
+                            className="rounded-lg"
+                        />
+                        <span className="font-bold text-lg">Xandeum Explorer</span>
                     </Link>
 
                     {/* Desktop Nav Links */}
