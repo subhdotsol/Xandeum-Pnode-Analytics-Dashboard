@@ -119,7 +119,7 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     .attr("stroke-width", 0.5);
             });
 
-        // Add glowing nodes
+        // Add glowing nodes - THIS WILL UPDATE AS NEW NODES ARE ADDED
         if (geolocatedNodes.length > 0) {
             const nodeGroup = svg.append("g").attr("class", "nodes");
 
@@ -166,7 +166,7 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     .style("filter", `drop-shadow(0 0 10px ${color})`);
             });
         }
-    }, [geolocatedNodes]);
+    }, [geolocatedNodes]); // Re-render whenever nodes are added
 
     return (
         <div className="relative h-screen w-full">
@@ -187,14 +187,13 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                 style={{ display: 'block' }}
             />
 
+            {/* Loading indicator in corner */}
             {loading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-                    <div className="text-center">
-                        <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                        <p className="text-lg text-muted-foreground">
-                            Loading nodes... {geolocatedNodes.length} / {pnodes.length}
-                        </p>
-                    </div>
+                <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-lg border border-border/50 bg-background/90 px-4 py-3 backdrop-blur-sm">
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
+                    <p className="text-sm text-muted-foreground">
+                        Loading: {geolocatedNodes.length} / {pnodes.length}
+                    </p>
                 </div>
             )}
         </div>
