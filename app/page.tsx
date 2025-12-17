@@ -1,65 +1,123 @@
-import Image from "next/image";
+import { pnodeClient } from "@/lib/pnode-client";
+import { analyzeNetwork } from "@/lib/network-analytics";
+import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { NodesTable } from "@/components/dashboard/nodes-table";
+import { VersionDistribution } from "@/components/dashboard/version-distribution";
+import { AutoRefresh } from "@/components/dashboard/auto-refresh";
+import { formatBytes } from "@/lib/utils";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+async function getNetworkData() {
+  try {
+    const pnodes = await pnodeClient.getAllPNodes();
+    const analytics = analyzeNetwork(pnodes);
+
+    return {
+      pnodes,
+      analytics,
+    };
+  } catch (error) {
+    console.error("Error fetching network data:", error);
+    return {
+      pnodes: [],
+      analytics: null,
+    };
+  }
+}
+
+export default async function HomePage() {
+  const { pnodes, analytics } = await getNetworkData();
+
+  if (!analytics) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-bold">Failed to load network data</h2>
+          <p className="text-muted-foreground">
+            Please check your connection and try again
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </div>
+    );
+  }
+
+  return (
+    <main className="min-h-screen p-4 md:p-8">
+      <AutoRefresh interval={60000} />
+
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="text-center space-y-4 py-8">
+          <h1 className="text-5xl md:text-7xl font-bold gradient-text">
+            Xandeum Analytics
+          </h1>
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
+            Real-time monitoring and visualization of the Xandeum distributed
+            storage network
+          </p>
         </div>
-      </main>
-    </div>
+
+        {/* Network Health Card */}
+        <div className="max-w-2xl mx-auto">
+          <NetworkHealthCard
+            score={analytics.health.score}
+            totals={analytics.totals}
+            health={analytics.health}
+          />
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard
+            title="Total Nodes"
+            value={analytics.totals.total}
+            subtitle="Active pNodes"
+            iconName="Server"
+            delay={0}
+          />
+          <StatCard
+            title="Network Storage"
+            value={formatBytes(analytics.storage.totalCapacity)}
+            subtitle={`${analytics.storage.utilizationPercentage.toFixed(1)}% utilized`}
+            iconName="Database"
+            delay={0.1}
+          />
+          <StatCard
+            title="Avg CPU Usage"
+            value={`${analytics.performance.averageCPU.toFixed(1)}%`}
+            subtitle="Across all nodes"
+            iconName="Cpu"
+            delay={0.2}
+          />
+          <StatCard
+            title="Avg Storage/Node"
+            value={formatBytes(analytics.storage.averagePerNode)}
+            subtitle="Per node capacity"
+            iconName="HardDrive"
+            delay={0.3}
+          />
+        </div>
+
+        {/* Version Distribution */}
+        <div className="max-w-2xl mx-auto">
+          <VersionDistribution
+            distribution={analytics.versions.distribution}
+            latest={analytics.versions.latest}
+            outdatedCount={analytics.versions.outdatedCount}
+            outdatedPercentage={analytics.versions.outdatedPercentage}
+            total={analytics.totals.total}
+          />
+        </div>
+
+        {/* Nodes Table */}
+        <NodesTable nodes={pnodes} />
+
+        {/* Footer */}
+        <div className="text-center text-sm text-muted-foreground py-8">
+          <p>Last updated: {new Date().toLocaleString()}</p>
+          <p className="mt-2">Auto-refreshing every 60 seconds</p>
+        </div>
+      </div>
+    </main>
   );
 }

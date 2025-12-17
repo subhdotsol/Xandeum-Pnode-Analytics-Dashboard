@@ -1,36 +1,158 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Xandeum pNode Analytics Platform
 
-## Getting Started
+A premium, real-time analytics dashboard for monitoring the Xandeum distributed storage network.
 
-First, run the development server:
+![Next.js](https://img.shields.io/badge/Next.js-15.1.5-black)
+![React](https://img.shields.io/badge/React-19.2.1-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.7.3-blue)
+![TailwindCSS](https://img.shields.io/badge/Tailwind-4.1.7-38bdf8)
+![Framer Motion](https://img.shields.io/badge/Framer_Motion-12.0.0-ff0055)
+
+## ✨ Features
+
+- **Real-time Network Monitoring** - Track pNode health, performance, and distribution
+- **Premium UI Design** - Glassmorphism effects, gradient text, and smooth animations
+- **Interactive Dashboard** - Search, filter, and sort network nodes
+- **Health Scoring** - Sophisticated algorithm analyzing network status
+- **Version Analytics** - Track version distribution and outdated nodes
+- **Auto-Refresh** - Automatic data updates every 60 seconds
+
+## 🎯 Tech Stack
+
+**Core:**
+- Next.js 15.1.5 (App Router)
+- React 19.2.1
+- TypeScript 5.7.3
+- TailwindCSS 4.1.7
+
+**UI & Animations:**
+- shadcn/ui components
+- Framer Motion 12.0.0
+- Recharts 2.15.0
+- Lucide Icons
+
+**Data:**
+- D3.js 7.9.0
+- JSON-RPC client
+- Custom analytics engine
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ 
+- npm or yarn
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone <your-repo-url>
+cd pnode
+
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the dashboard.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Build for Production
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run build
+npm run start
+```
 
-## Learn More
+## 📁 Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+├── app/
+│   ├── api/              # API routes
+│   │   ├── pnodes/       # Node endpoints
+│   │   └── network/      # Network analytics
+│   ├── globals.css       # Global styles
+│   ├── layout.tsx        # Root layout
+│   └── page.tsx          # Main dashboard
+├── components/
+│   ├── ui/               # shadcn base components
+│   └── dashboard/        # Custom dashboard components
+├── lib/
+│   ├── pnode-client.ts   # JSON-RPC client
+│   ├── network-analytics.ts # Analytics engine
+│   └── utils.ts          # Utilities
+├── types/
+│   └── pnode.ts          # TypeScript interfaces
+└── tailwind.config.ts    # Tailwind configuration
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🎨 Design Features
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**Visual Excellence:**
+- Dark theme with vibrant teal-blue gradients
+- Glassmorphism card effects
+- Smooth Framer Motion animations
+- Animated circular health indicator
+- Hover lift effects
+- Custom scrollbar styling
 
-## Deploy on Vercel
+**Responsive Design:**
+- Desktop: 4-column grid layout
+- Tablet: 2-column responsive grid
+- Mobile: Single column, touch-optimized
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📊 Dashboard Components
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Network Health Card
+Large circular progress indicator showing overall network health score (0-100) with color-coded status and percentage breakdown.
+
+### Stats Grid
+Four key metrics:
+- Total Nodes
+- Network Storage
+- Average CPU Usage
+- Average Storage per Node
+
+### Version Distribution
+Pie chart visualization showing version distribution across the network with outdated node warnings.
+
+### Nodes Table
+Interactive table with:
+- Real-time search
+- Status filtering
+- Multi-column sorting
+- Health badges
+
+## 🔧 API Endpoints
+
+- `GET /api/pnodes` - Fetch all pNodes
+- `GET /api/pnodes/[address]` - Get individual node stats
+- `GET /api/network/overview` - Complete network analytics
+- `GET /api/network/health` - Health metrics only
+
+All endpoints cache for 30 seconds for optimal performance.
+
+## 🏆 Bounty Submission
+
+Built for the Xandeum pNode Analytics Platform bounty on Superteam Earn.
+
+**Improvements over requirements:**
+✅ Latest dependency versions (not outdated)  
+✅ Premium UI with shadcn, Framer Motion, Recharts  
+✅ Smooth animations and micro-interactions  
+✅ Glassmorphism and modern design trends  
+✅ Full TypeScript type safety  
+✅ Production-ready build  
+
+## 📄 License
+
+MIT
+
+## 🙏 Acknowledgments
+
+- [Xandeum Labs](https://xandeum.com) for the bounty
+- [shadcn/ui](https://ui.shadcn.com) for the component system
+- [Framer Motion](https://www.framer.com/motion/) for animations
+- [StakeWiz](https://stakewiz.com) for design inspiration
