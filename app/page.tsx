@@ -56,7 +56,7 @@ export default async function HomePage() {
 
       <main className="flex-1">
         {/* Hero Section with Tag */}
-        <div className="container mx-auto px-4 py-12 md:py-16">
+        <div id="dashboard" className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-4xl mx-auto text-center space-y-6">
             <Tag>Real-time Network Monitoring</Tag>
             <h1 className="text-4xl md:text-6xl font-bold gradient-text-vibrant">
@@ -76,7 +76,7 @@ export default async function HomePage() {
         </div>
 
         {/* Stats Overview - Feature Cards */}
-        <div className="container mx-auto px-4 py-8">
+        <div id="analytics" className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <FeatureCard
               title="Total Nodes"
@@ -106,7 +106,7 @@ export default async function HomePage() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="container mx-auto px-4 py-8">
+        <div id="network" className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Network Health Card - larger */}
             <div className="lg:col-span-2">
@@ -155,7 +155,7 @@ export default async function HomePage() {
         </div>
 
         {/* Nodes Table */}
-        <div className="container mx-auto px-4 py-8">
+        <div id="nodes" className="container mx-auto px-4 py-8">
           <NodesTable nodes={pnodes} />
         </div>
       </main>

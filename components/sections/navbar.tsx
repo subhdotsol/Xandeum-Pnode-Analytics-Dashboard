@@ -3,16 +3,23 @@
 import Link from "next/link";
 import { Activity } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { Button } from "@/components/ui/button-custom";
 
 const navLinks = [
-    { label: "Dashboard", href: "/" },
+    { label: "Dashboard", href: "#dashboard" },
     { label: "Network", href: "#network" },
     { label: "Nodes", href: "#nodes" },
     { label: "Analytics", href: "#analytics" },
 ];
 
 export function Navbar() {
+    const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+        e.preventDefault();
+        const element = document.querySelector(href);
+        if (element) {
+            element.scrollIntoView({ behavior: "smooth" });
+        }
+    };
+
     return (
         <div className="border-b border-border/50 bg-background/80 backdrop-blur-md sticky top-0 z-50">
             <div className="container mx-auto px-4">
@@ -28,13 +35,14 @@ export function Navbar() {
                     {/* Desktop Nav Links */}
                     <nav className="hidden md:flex items-center gap-8">
                         {navLinks.map((link) => (
-                            <Link
+                            <a
                                 key={link.label}
                                 href={link.href}
-                                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                                onClick={(e) => handleScroll(e, link.href)}
+                                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                             >
                                 {link.label}
-                            </Link>
+                            </a>
                         ))}
                     </nav>
 

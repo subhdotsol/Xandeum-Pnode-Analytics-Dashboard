@@ -138,7 +138,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
                 </div>
 
                 {/* Table */}
-                <div className="rounded-md border border-border overflow-hidden relative">
+                <div className="rounded-md border border-border overflow-hidden">
                     <Table>
                         <TableHeader>
                             <TableRow>
@@ -204,36 +204,36 @@ export function NodesTable({ nodes }: NodesTableProps) {
                             )}
                         </TableBody>
                     </Table>
-
-                    {/* Blur overlay and View More button */}
-                    {hasMore && !showAll && (
-                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background via-background/80 to-transparent flex items-end justify-center pb-4">
-                            <Button
-                                variant="secondary"
-                                onClick={() => setShowAll(true)}
-                                className="gap-2"
-                            >
-                                View More ({filteredAndSortedNodes.length - INITIAL_DISPLAY_COUNT} more)
-                                <ChevronDown className="w-4 h-4" />
-                            </Button>
-                        </div>
-                    )}
-
-                    {/* Show Less button */}
-                    {showAll && hasMore && (
-                        <div className="flex justify-center py-4 border-t border-border">
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={() => setShowAll(false)}
-                                className="flex items-center gap-2"
-                            >
-                                <span>Show Less</span>
-                                <ChevronDown className="w-4 h-4 rotate-180" />
-                            </Button>
-                        </div>
-                    )}
                 </div>
+
+                {/* View More button - Outside table */}
+                {hasMore && !showAll && (
+                    <div className="flex justify-center py-4">
+                        <Button
+                            variant="secondary"
+                            onClick={() => setShowAll(true)}
+                            className="inline-flex items-center gap-2"
+                        >
+                            <span>View More ({filteredAndSortedNodes.length - INITIAL_DISPLAY_COUNT} more)</span>
+                            <ChevronDown className="w-4 h-4" />
+                        </Button>
+                    </div>
+                )}
+
+                {/* Show Less button */}
+                {showAll && hasMore && (
+                    <div className="flex justify-center py-4 border-t border-border">
+                        <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => setShowAll(false)}
+                            className="inline-flex items-center gap-2"
+                        >
+                            <span>Show Less</span>
+                            <ChevronDown className="w-4 h-4 rotate-180" />
+                        </Button>
+                    </div>
+                )}
             </CardContent>
         </Card>
     );

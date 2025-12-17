@@ -95,7 +95,7 @@ export function NetworkHealthCard({
                             transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                             className="relative"
                         >
-                            <div className="text-7xl font-bold notion-text-gradient dark:text-foreground">
+                            <div className="text-7xl font-bold dark:notion-text-gradient">
                                 {score}
                             </div>
                             <div className="text-sm text-muted-foreground text-center mt-1">
