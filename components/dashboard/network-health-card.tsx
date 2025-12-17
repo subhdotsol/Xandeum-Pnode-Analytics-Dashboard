@@ -38,11 +38,11 @@ export function NetworkHealthCard({
     };
 
     return (
-        <Card className="glass-card-strong border-space-border overflow-hidden">
+        <Card className="light-card dark:glass-card-strong border-border h-full">
             <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-neo-teal" />
-                    <span className="gradient-text">Network Health</span>
+                    <Activity className="w-5 h-5 text-accent" />
+                    <span className="notion-text-gradient dark:text-foreground">Network Health</span>
                 </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">

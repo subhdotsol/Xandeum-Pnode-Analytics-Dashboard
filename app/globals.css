@@ -2,51 +2,51 @@
 
 @layer base {
   :root {
-    /* Light theme - Vibrant Professional Colors */
+    /* Light theme - Notion-inspired Clean Design */
     --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --foreground: 0 0% 9%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 9%;
 
-    /* Primary - Vibrant Blue */
-    --primary: 217 91% 60%;
+    /* Primary - Subtle Purple like Notion */
+    --primary: 250 100% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Vibrant Orange/Gold */
-    --secondary: 25 95% 53%;
-    --secondary-foreground: 0 0% 100%;
+    /* Secondary - Soft Peach */
+    --secondary: 25 70% 60%;
+    --secondary-foreground: 0 0% 9%;
 
-    /* Accent - Vibrant Teal */
-    --accent: 172 89% 51%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent - Muted Blue */
+    --accent: 210 70% 55%;
+    --accent-foreground: 0 0% 9%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 20% 45%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 250 100% 60%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
 
-    /* Chart colors - Vibrant palette */
-    --chart-1: 217 91% 60%;
-    /* Blue */
-    --chart-2: 25 95% 53%;
-    /* Orange */
-    --chart-3: 142 71% 45%;
-    /* Green */
-    --chart-4: 280 65% 60%;
+    /* Chart colors - Soft palette like Notion */
+    --chart-1: 250 100% 60%;
     /* Purple */
-    --chart-5: 340 82% 52%;
-    /* Pink */
+    --chart-2: 25 70% 60%;
+    /* Peach */
+    --chart-3: 142 50% 50%;
+    /* Green */
+    --chart-4: 280 50% 60%;
+    /* Lavender */
+    --chart-5: 340 60% 60%;
+    /* Rose */
   }
 
   .dark {
@@ -272,6 +272,39 @@
   }
 
   /* Shimmer effect */
+  /* Notion-inspired gradient backgrounds for light mode */
+  .notion-gradient-bg {
+    background: linear-gradient(135deg,
+        rgba(255, 236, 224, 0.3) 0%,
+        rgba(242, 225, 255, 0.3) 50%,
+        rgba(225, 242, 255, 0.3) 100%);
+  }
+
+  .notion-text-gradient {
+    background: linear-gradient(90deg,
+        rgb(142, 108, 239) 0%,
+        rgb(237, 78, 163) 50%,
+        rgb(245, 158, 11) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Light mode specific - remove shadows and colors, add gradients */
+  :root .light-card {
+    background: white;
+    border: 1px solid hsl(var(--border));
+    box-shadow: none;
+  }
+
+  :root .light-card:hover {
+    background: linear-gradient(135deg,
+        rgba(255, 236, 224, 0.15) 0%,
+        rgba(242, 225, 255, 0.15) 50%,
+        rgba(225, 242, 255, 0.15) 100%);
+    border-color: hsl(var(--accent) / 0.3);
+  }
+
   .shimmer {
     position: relative;
     overflow: hidden;

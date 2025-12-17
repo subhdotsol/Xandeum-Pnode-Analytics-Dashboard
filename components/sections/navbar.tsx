@@ -41,9 +41,6 @@ export function Navbar() {
                     {/* Right Section */}
                     <div className="flex items-center gap-4">
                         <ThemeToggle />
-                        <Button variant="primary" size="sm" className="hidden md:inline-flex">
-                            Connect
-                        </Button>
                     </div>
                 </div>
             </div>
