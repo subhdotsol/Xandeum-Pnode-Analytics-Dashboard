@@ -20,25 +20,31 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
     const [geolocatedNodes, setGeolocatedNodes] = useState<GeoLocation[]>([]);
     const [rotation, setRotation] = useState<[number, number, number]>([0, -30, 0]);
     const [isDragging, setIsDragging] = useState(false);
+    const [loading, setLoading] = useState(true);
 
     // Fetch geolocation for nodes
     useEffect(() => {
         const fetchGeolocations = async () => {
-            const limit = 50; // Limit to avoid rate limiting
+            const limit = 50;
             const batch = pnodes.slice(0, limit);
             const results: GeoLocation[] = [];
 
-            for (let i = 0; i < batch.length; i += 10) {
-                const chunk = batch.slice(i, i + 10);
+            for (let i = 0; i < batch.length; i += 5) {
+                const chunk = batch.slice(i, i + 5);
                 const promises = chunk.map(async (node) => {
                     try {
                         const ip = node.address.split(":")[0];
                         const response = await fetch(
-                            `http://ip-api.com/json/${ip}?fields=status,lat,lon,city,country`
+                            `https://ipapi.co/${ip}/json/`
                         );
+
+                        if (!response.ok) {
+                            return null;
+                        }
+
                         const data = await response.json();
 
-                        if (data.status === "success") {
+                        if (data.latitude && data.longitude) {
                             const now = Math.floor(Date.now() / 1000);
                             const delta = now - node.last_seen_timestamp;
                             let health: "healthy" | "degraded" | "offline" = "healthy";
@@ -47,10 +53,10 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
 
                             return {
                                 address: node.address,
-                                lat: data.lat,
-                                lon: data.lon,
-                                city: data.city,
-                                country: data.country,
+                                lat: data.latitude,
+                                lon: data.longitude,
+                                city: data.city || "Unknown",
+                                country: data.country_name || "Unknown",
                                 health,
                             };
                         }
@@ -63,12 +69,13 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                 const chunkResults = await Promise.all(promises);
                 results.push(...chunkResults.filter((r): r is GeoLocation => r !== null));
 
-                if (i + 10 < batch.length) {
-                    await new Promise((resolve) => setTimeout(resolve, 1500));
+                if (i + 5 < batch.length) {
+                    await new Promise((resolve) => setTimeout(resolve, 2000));
                 }
             }
 
             setGeolocatedNodes(results);
+            setLoading(false);
         };
 
         fetchGeolocations();
@@ -76,16 +83,18 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
 
     // Render globe with D3
     useEffect(() => {
-        if (!svgRef.current || geolocatedNodes.length === 0) return;
+        if (!svgRef.current) return;
 
-        const width = 800;
-        const height = 800;
+        const width = window.innerWidth;
+        const height = window.innerHeight;
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
 
+        const radius = Math.min(width, height) / 2.5;
+
         const projection = d3
             .geoOrthographic()
-            .scale(380)
+            .scale(radius)
             .translate([width / 2, height / 2])
             .rotate(rotation);
 
@@ -96,13 +105,14 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
             .append("circle")
             .attr("cx", width / 2)
             .attr("cy", height / 2)
-            .attr("r", 380)
+            .attr("r", radius)
             .attr("fill", "#0a0e27")
-            .attr("stroke", "#1e2a3e")
-            .attr("stroke-width", 2);
+            .attr("stroke", "#14F1C6")
+            .attr("stroke-width", 2)
+            .attr("opacity", 0.3);
 
         // Load world map
-        fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
+        fetch("https://cdn.jsdel ivr.net/npm/world-atlas@2/countries-110m.json")
             .then((response) => response.json())
             .then((world: Topology) => {
                 const countries = feature(
@@ -132,72 +142,56 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     .attr("stroke", "#2a3a4e")
                     .attr("stroke-width", 0.5)
                     .attr("opacity", 0.3);
-
-                // Add glowing nodes
-                const nodeGroup = svg.append("g").attr("class", "nodes");
-
-                geolocatedNodes.forEach((node) => {
-                    const coords = projection([node.lon, node.lat]);
-                    if (!coords) return;
-
-                    const [x, y] = coords;
-
-                    // Color based on health
-                    let color = "#14F1C6"; // healthy - cyan
-                    let opacity = 1.0;
-                    if (node.health === "degraded") {
-                        color = "#FFA500"; // orange
-                        opacity = 0.7;
-                    } else if (node.health === "offline") {
-                        color = "#FF4444"; // red
-                        opacity = 0.4;
-                    }
-
-                    // Outer glow
-                    nodeGroup
-                        .append("circle")
-                        .attr("cx", x)
-                        .attr("cy", y)
-                        .attr("r", 12)
-                        .attr("fill", color)
-                        .attr("opacity", opacity * 0.2)
-                        .attr("class", "glow-pulse");
-
-                    // Middle glow
-                    nodeGroup
-                        .append("circle")
-                        .attr("cx", x)
-                        .attr("cy", y)
-                        .attr("r", 6)
-                        .attr("fill", color)
-                        .attr("opacity", opacity * 0.4);
-
-                    // Core dot
-                    nodeGroup
-                        .append("circle")
-                        .attr("cx", x)
-                        .attr("cy", y)
-                        .attr("r", 3)
-                        .attr("fill", color)
-                        .attr("opacity", opacity)
-                        .style("filter", `drop-shadow(0 0 8px ${color})`);
-                });
-
-                // Add CSS animation for pulsing
-                const style = document.createElement("style");
-                style.textContent = `
-          @keyframes glow-pulse {
-            0%, 100% { opacity: 0.2; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(1.2); }
-          }
-          .glow-pulse {
-            animation: glow-pulse 2s ease-in-out infinite;
-          }
-        `;
-                document.head.appendChild(style);
             });
 
-        // Auto-rotation
+        // Add glowing nodes
+        if (geolocatedNodes.length > 0) {
+            const nodeGroup = svg.append("g").attr("class", "nodes");
+
+            geolocatedNodes.forEach((node) => {
+                const coords = projection([node.lon, node.lat]);
+                if (!coords) return;
+
+                const [x, y] = coords;
+
+                let color = "#14F1C6";
+                let opacity = 1.0;
+                if (node.health === "degraded") {
+                    color = "#FFA500";
+                    opacity = 0.7;
+                } else if (node.health === "offline") {
+                    color = "#FF4444";
+                    opacity = 0.4;
+                }
+
+                nodeGroup
+                    .append("circle")
+                    .attr("cx", x)
+                    .attr("cy", y)
+                    .attr("r", 20)
+                    .attr("fill", color)
+                    .attr("opacity", opacity * 0.15)
+                    .attr("class", "glow-pulse");
+
+                nodeGroup
+                    .append("circle")
+                    .attr("cx", x)
+                    .attr("cy", y)
+                    .attr("r", 10)
+                    .attr("fill", color)
+                    .attr("opacity", opacity * 0.3);
+
+                nodeGroup
+                    .append("circle")
+                    .attr("cx", x)
+                    .attr("cy", y)
+                    .attr("r", 4)
+                    .attr("fill", color)
+                    .attr("opacity", opacity)
+                    .style("filter", `drop-shadow(0 0 10px ${color})`);
+            });
+        }
+
         let autoRotateTimer: NodeJS.Timeout | null = null;
         if (!isDragging) {
             autoRotateTimer = setInterval(() => {
@@ -210,7 +204,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
         };
     }, [geolocatedNodes, rotation, isDragging]);
 
-    // Drag handlers
     const handleMouseDown = () => setIsDragging(true);
     const handleMouseUp = () => {
         setIsDragging(false);
@@ -228,35 +221,63 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
     };
 
     return (
-        <div className="flex flex-col items-center gap-4">
+        <div className="relative w-full h-screen">
+            <style jsx>{`
+        @keyframes glow-pulse {
+          0%, 100% { opacity: 0.15; transform: scale(1); }
+          50% { opacity: 0.3; transform: scale(1.3); }
+        }
+        .glow-pulse {
+          animation: glow-pulse 2s ease-in-out infinite;
+        }
+      `}</style>
+
             <svg
                 ref={svgRef}
-                width={800}
-                height={800}
+                width="100%"
+                height="100%"
                 onMouseDown={handleMouseDown}
                 onMouseUp={handleMouseUp}
                 onMouseMove={handleMouseMove}
                 onMouseLeave={handleMouseUp}
                 className="cursor-grab active:cursor-grabbing"
+                style={{ display: 'block' }}
             />
-            <div className="flex gap-4 text-sm">
+
+            {loading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+                    <div className="text-center">
+                        <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                        <p className="text-lg text-muted-foreground">
+                            Loading {geolocatedNodes.length} of {Math.min(50, pnodes.length)} nodes...
+                        </p>
+                    </div>
+                </div>
+            )}
+
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 glass-card px-6 py-4 rounded-full flex gap-6 text-sm">
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#14F1C6]" />
-                    <span className="text-muted-foreground">Healthy</span>
+                    <span className="text-foreground">Healthy ({geolocatedNodes.filter(n => n.health === "healthy").length})</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#FFA500]" />
-                    <span className="text-muted-foreground">Degraded</span>
+                    <span className="text-foreground">Degraded ({geolocatedNodes.filter(n => n.health === "degraded").length})</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#FF4444]" />
-                    <span className="text-muted-foreground">Offline</span>
+                    <span className="text-foreground">Offline ({geolocatedNodes.filter(n => n.health === "offline").length})</span>
                 </div>
             </div>
-            <p className="text-sm text-muted-foreground text-center max-w-md">
-                Showing {geolocatedNodes.length} of {pnodes.length} nodes with geolocation data.
-                Drag to rotate the globe.
-            </p>
+
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center">
+                <h2 className="text-3xl font-bold gradient-text-vibrant mb-2">
+                    Global pNode Network
+                </h2>
+                <p className="text-muted-foreground">
+                    {geolocatedNodes.length} nodes visualized • Drag to rotate
+                </p>
+            </div>
         </div>
     );
 }
