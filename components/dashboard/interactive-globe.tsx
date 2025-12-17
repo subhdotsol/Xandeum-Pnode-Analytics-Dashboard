@@ -22,7 +22,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
     const [isDragging, setIsDragging] = useState(false);
     const [loading, setLoading] = useState(true);
 
-    // Fetch geolocation for nodes
     useEffect(() => {
         const fetchGeolocations = async () => {
             const limit = 50;
@@ -34,13 +33,9 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                 const promises = chunk.map(async (node) => {
                     try {
                         const ip = node.address.split(":")[0];
-                        const response = await fetch(
-                            `https://ipapi.co/${ip}/json/`
-                        );
+                        const response = await fetch(`https://ipapi.co/${ip}/json/`);
 
-                        if (!response.ok) {
-                            return null;
-                        }
+                        if (!response.ok) return null;
 
                         const data = await response.json();
 
@@ -81,7 +76,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
         fetchGeolocations();
     }, [pnodes]);
 
-    // Render globe with D3
     useEffect(() => {
         if (!svgRef.current) return;
 
@@ -100,7 +94,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
 
         const path = d3.geoPath().projection(projection);
 
-        // Add ocean
         svg
             .append("circle")
             .attr("cx", width / 2)
@@ -111,8 +104,7 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
             .attr("stroke-width", 2)
             .attr("opacity", 0.3);
 
-        // Load world map
-        fetch("https://cdn.jsdel ivr.net/npm/world-atlas@2/countries-110m.json")
+        fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
             .then((response) => response.json())
             .then((world: Topology) => {
                 const countries = feature(
@@ -120,7 +112,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     world.objects.countries as GeometryCollection
                 );
 
-                // Draw countries
                 svg
                     .append("g")
                     .selectAll("path")
@@ -132,7 +123,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     .attr("stroke", "#2a3a4e")
                     .attr("stroke-width", 0.5);
 
-                // Add graticule
                 const graticule = d3.geoGraticule();
                 svg
                     .append("path")
@@ -144,7 +134,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     .attr("opacity", 0.3);
             });
 
-        // Add glowing nodes
         if (geolocatedNodes.length > 0) {
             const nodeGroup = svg.append("g").attr("class", "nodes");
 
@@ -249,35 +238,11 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     <div className="text-center">
                         <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                         <p className="text-lg text-muted-foreground">
-                            Loading {geolocatedNodes.length} of {Math.min(50, pnodes.length)} nodes...
+                            Loading nodes... {geolocatedNodes.length} / {Math.min(50, pnodes.length)}
                         </p>
                     </div>
                 </div>
             )}
-
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 glass-card px-6 py-4 rounded-full flex gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#14F1C6]" />
-                    <span className="text-foreground">Healthy ({geolocatedNodes.filter(n => n.health === "healthy").length})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#FFA500]" />
-                    <span className="text-foreground">Degraded ({geolocatedNodes.filter(n => n.health === "degraded").length})</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-[#FF4444]" />
-                    <span className="text-foreground">Offline ({geolocatedNodes.filter(n => n.health === "offline").length})</span>
-                </div>
-            </div>
-
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 text-center">
-                <h2 className="text-3xl font-bold gradient-text-vibrant mb-2">
-                    Global pNode Network
-                </h2>
-                <p className="text-muted-foreground">
-                    {geolocatedNodes.length} nodes visualized • Drag to rotate
-                </p>
-            </div>
         </div>
     );
 }

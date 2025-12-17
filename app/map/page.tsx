@@ -22,7 +22,7 @@ export default async function MapPage() {
         <div className="relative w-full h-screen bg-background overflow-hidden">
             <Link
                 href="/"
-                className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 glass-card rounded-full text-accent hover:bg-accent/20 transition-all"
+                className="fixed top-6 left-6 z-50 flex items-center gap-2 px-4 py-2 border border-border bg-background/80 backdrop-blur-sm text-accent hover:bg-accent/10 transition-all"
             >
                 <svg
                     className="w-5 h-5"
