@@ -20,12 +20,13 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
 
     useEffect(() => {
         const fetchGeolocations = async () => {
-            const limit = 50;
-            const batch = pnodes.slice(0, limit);
+            // Fetch ALL nodes instead of limiting to 50
+            const batch = pnodes;
             const results: GeoLocation[] = [];
 
-            for (let i = 0; i < batch.length; i += 5) {
-                const chunk = batch.slice(i, i + 5);
+            // Process in batches of 10 to avoid rate limiting
+            for (let i = 0; i < batch.length; i += 10) {
+                const chunk = batch.slice(i, i + 10);
                 const promises = chunk.map(async (node) => {
                     try {
                         const ip = node.address.split(":")[0];
@@ -58,8 +59,11 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                 const chunkResults = await Promise.all(promises);
                 results.push(...chunkResults.filter((r): r is GeoLocation => r !== null));
 
-                if (i + 5 < batch.length) {
-                    await new Promise((resolve) => setTimeout(resolve, 2000));
+                // Update the display as we fetch more nodes
+                setGeolocatedNodes([...results]);
+
+                if (i + 10 < batch.length) {
+                    await new Promise((resolve) => setTimeout(resolve, 1500));
                 }
             }
 
@@ -188,7 +192,7 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     <div className="text-center">
                         <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
                         <p className="text-lg text-muted-foreground">
-                            Loading nodes... {geolocatedNodes.length} / {Math.min(50, pnodes.length)}
+                            Loading nodes... {geolocatedNodes.length} / {pnodes.length}
                         </p>
                     </div>
                 </div>
