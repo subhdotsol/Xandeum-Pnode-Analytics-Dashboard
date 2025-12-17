@@ -10,16 +10,12 @@ interface GeoLocation {
     address: string;
     lat: number;
     lon: number;
-    city: string;
-    country: string;
     health: "healthy" | "degraded" | "offline";
 }
 
 export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
     const svgRef = useRef<SVGSVGElement>(null);
     const [geolocatedNodes, setGeolocatedNodes] = useState<GeoLocation[]>([]);
-    const [rotation, setRotation] = useState<[number, number, number]>([0, -30, 0]);
-    const [isDragging, setIsDragging] = useState(false);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -50,8 +46,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                                 address: node.address,
                                 lat: data.latitude,
                                 lon: data.longitude,
-                                city: data.city || "Unknown",
-                                country: data.country_name || "Unknown",
                                 health,
                             };
                         }
@@ -84,26 +78,22 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
         const svg = d3.select(svgRef.current);
         svg.selectAll("*").remove();
 
-        const radius = Math.min(width, height) / 2.5;
-
+        // Use flat Mercator projection instead of Orthographic
         const projection = d3
-            .geoOrthographic()
-            .scale(radius)
-            .translate([width / 2, height / 2])
-            .rotate(rotation);
+            .geoMercator()
+            .scale(200)
+            .translate([width / 2, height / 1.5]);
 
         const path = d3.geoPath().projection(projection);
 
+        // Add background
         svg
-            .append("circle")
-            .attr("cx", width / 2)
-            .attr("cy", height / 2)
-            .attr("r", radius)
-            .attr("fill", "#0a0e27")
-            .attr("stroke", "#14F1C6")
-            .attr("stroke-width", 2)
-            .attr("opacity", 0.3);
+            .append("rect")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("fill", "#0a0e27");
 
+        // Load world map
         fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")
             .then((response) => response.json())
             .then((world: Topology) => {
@@ -112,6 +102,7 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     world.objects.countries as GeometryCollection
                 );
 
+                // Draw countries
                 svg
                     .append("g")
                     .selectAll("path")
@@ -122,18 +113,9 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     .attr("fill", "#1a2332")
                     .attr("stroke", "#2a3a4e")
                     .attr("stroke-width", 0.5);
-
-                const graticule = d3.geoGraticule();
-                svg
-                    .append("path")
-                    .datum(graticule)
-                    .attr("d", path as any)
-                    .attr("fill", "none")
-                    .attr("stroke", "#2a3a4e")
-                    .attr("stroke-width", 0.5)
-                    .attr("opacity", 0.3);
             });
 
+        // Add glowing nodes
         if (geolocatedNodes.length > 0) {
             const nodeGroup = svg.append("g").attr("class", "nodes");
 
@@ -180,37 +162,10 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                     .style("filter", `drop-shadow(0 0 10px ${color})`);
             });
         }
-
-        let autoRotateTimer: NodeJS.Timeout | null = null;
-        if (!isDragging) {
-            autoRotateTimer = setInterval(() => {
-                setRotation(([lon, lat, roll]) => [(lon + 0.2) % 360, lat, roll]);
-            }, 30);
-        }
-
-        return () => {
-            if (autoRotateTimer) clearInterval(autoRotateTimer);
-        };
-    }, [geolocatedNodes, rotation, isDragging]);
-
-    const handleMouseDown = () => setIsDragging(true);
-    const handleMouseUp = () => {
-        setIsDragging(false);
-        setTimeout(() => setIsDragging(false), 1000);
-    };
-
-    const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
-        if (!isDragging) return;
-        const sensitivity = 0.5;
-        setRotation(([lon, lat, roll]) => [
-            (lon - e.movementX * sensitivity) % 360,
-            Math.max(-90, Math.min(90, lat + e.movementY * sensitivity)),
-            roll,
-        ]);
-    };
+    }, [geolocatedNodes]);
 
     return (
-        <div className="relative w-full h-screen">
+        <div className="relative h-screen w-full">
             <style jsx>{`
         @keyframes glow-pulse {
           0%, 100% { opacity: 0.15; transform: scale(1); }
@@ -225,11 +180,6 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
                 ref={svgRef}
                 width="100%"
                 height="100%"
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-                onMouseMove={handleMouseMove}
-                onMouseLeave={handleMouseUp}
-                className="cursor-grab active:cursor-grabbing"
                 style={{ display: 'block' }}
             />
 
