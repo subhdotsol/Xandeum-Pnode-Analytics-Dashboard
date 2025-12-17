@@ -104,52 +104,84 @@ export default function MapComponent({ pnodes }: { pnodes: PNode[] }) {
                     icon={createColoredIcon(getMarkerColor(node.status))}
                 >
                     <Popup>
-                        <div className="p-2 min-w-[200px]">
-                            <div className="flex items-center gap-2 mb-2">
+                        <div className="bg-black/95 backdrop-blur-lg border border-white/30 rounded-2xl p-6 min-w-[280px] shadow-2xl">
+                            <div className="flex items-center gap-3 mb-4 pb-4 border-b border-white/20">
                                 <div
-                                    className="w-3 h-3 rounded-full"
-                                    style={{ backgroundColor: getMarkerColor(node.status) }}
+                                    className="w-5 h-5 rounded-full shadow-lg"
+                                    style={{
+                                        backgroundColor: getMarkerColor(node.status),
+                                        boxShadow: `0 0 12px ${getMarkerColor(node.status)}AA`
+                                    }}
                                 />
-                                <span className="font-bold text-sm capitalize">
+                                <span className="font-bold text-base capitalize text-white">
                                     {node.status}
                                 </span>
                             </div>
 
-                            <div className="space-y-1 text-xs">
+                            <div className="space-y-4 text-sm">
                                 {node.city && node.country && (
                                     <div>
-                                        <span className="text-gray-500">Location:</span>
-                                        <p className="font-semibold">
+                                        <span className="text-gray-400 text-xs uppercase tracking-wide">Location</span>
+                                        <p className="font-semibold text-white mt-1 text-base">
                                             📍 {node.city}, {node.country}
                                         </p>
                                     </div>
                                 )}
 
                                 <div>
-                                    <span className="text-gray-500">Address:</span>
-                                    <p className="font-mono font-semibold">{node.address}</p>
+                                    <span className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Address</span>
+                                    <div className="flex items-center gap-2 bg-white/5 px-3 py-2 rounded-lg border border-white/10">
+                                        <p className="font-mono text-white text-xs flex-1">{node.address}</p>
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(node.address);
+                                            }}
+                                            className="text-white/60 hover:text-white transition-colors p-1"
+                                            title="Copy address"
+                                        >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <span className="text-gray-500">Version:</span>
-                                    <p className="font-semibold">{node.version}</p>
+                                    <span className="text-gray-400 text-xs uppercase tracking-wide">Version</span>
+                                    <p className="font-semibold text-white mt-1">{node.version}</p>
                                 </div>
 
                                 {node.pubkey && (
                                     <div>
-                                        <span className="text-gray-500">Pubkey:</span>
-                                        <p className="font-mono text-xs break-all">{node.pubkey}</p>
+                                        <span className="text-gray-400 text-xs uppercase tracking-wide block mb-1">Pubkey</span>
+                                        <div className="flex items-start gap-2 bg-white/5 px-3 py-2 rounded-lg border border-white/10">
+                                            <p className="font-mono text-xs break-all text-white/90 flex-1 leading-relaxed">{node.pubkey}</p>
+                                            <button
+                                                onClick={() => {
+                                                    if (node.pubkey) navigator.clipboard.writeText(node.pubkey);
+                                                }}
+                                                className="text-white/60 hover:text-white transition-colors p-1 flex-shrink-0"
+                                                title="Copy pubkey"
+                                            >
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                    <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                                                    <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+                                                </svg>
+                                            </button>
+                                        </div>
                                     </div>
                                 )}
+
                                 <div>
-                                    <span className="text-gray-500">Last seen:</span>
-                                    <p>{formatTimeAgo(node.last_seen_timestamp)}</p>
+                                    <span className="text-gray-400 text-xs uppercase tracking-wide">Last seen</span>
+                                    <p className="text-white mt-1 font-medium">{formatTimeAgo(node.last_seen_timestamp)}</p>
                                 </div>
                             </div>
 
                             <Link
                                 href={`/pnode/${encodeURIComponent(node.address)}`}
-                                className="block mt-3 text-center bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition"
+                                className="block mt-5 text-center bg-white/10 hover:bg-white/20 text-white px-5 py-3 rounded-xl text-sm font-bold transition-all duration-200 border border-white/30 shadow-lg"
                             >
                                 View Details →
                             </Link>

@@ -212,8 +212,8 @@ export default function MapPage() {
                 <span className="font-medium">Dashboard</span>
             </Link>
 
-            {/* Status Legend - Lower Left */}
-            <div className="fixed bottom-6 left-6 z-[1000] bg-black/80 backdrop-blur-md border border-white/20 rounded-lg p-4 space-y-3">
+            {/* Status Legend - Lower Right */}
+            <div className="fixed bottom-6 right-6 z-[1000] bg-black/80 backdrop-blur-md border border-white/20 rounded-lg p-4 space-y-3">
                 <div className="flex items-center gap-3">
                     <div className="w-4 h-4 bg-green-500 rounded-full shadow-lg shadow-green-500/50"></div>
                     <span className="text-white font-medium">Healthy</span>
