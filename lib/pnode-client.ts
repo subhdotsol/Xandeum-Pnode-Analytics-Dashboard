@@ -69,6 +69,7 @@ export class PNodeClient {
 
             if (response.error) {
               console.error(`[PNodeClient] RPC error:`, response.error);
+              // console.error(`[PNodeClient] RPC error:`, response.error); // Commented out error logging
               resolve(null);
               return;
             }
@@ -76,19 +77,19 @@ export class PNodeClient {
             console.log(`[PNodeClient] ✓ Success from ${ip}`);
             resolve(response.result);
           } catch (error) {
-            console.error(`[PNodeClient] Failed to parse response:`, error);
+            // console.error(`[PNodeClient] Failed to parse response:`, error); // Commented out error logging
             resolve(null);
           }
         });
       });
 
       req.on("error", (error) => {
-        console.error(`[PNodeClient] Request error for ${ip}:`, error.message);
+        // console.error(`[PNodeClient] Request error for ${ip}:`, error.message); // Commented out error logging
         resolve(null);
       });
 
       req.on("timeout", () => {
-        console.error(`[PNodeClient] Request timeout for ${ip}`);
+        // console.error(`[PNodeClient] Request timeout for ${ip}`); // Commented out timeout logging
         req.destroy();
         resolve(null);
       });
