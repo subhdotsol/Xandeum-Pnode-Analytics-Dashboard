@@ -69,11 +69,11 @@ export default function MapComponent({ pnodes }: { pnodes: PNode[] }) {
     const getMarkerColor = (status: string) => {
         switch (status) {
             case "online":
-                return "#22c55e";
+                return "#22c55e"; // Green - Healthy
             case "recent":
-                return "#eab308";
+                return "#eab308"; // Yellow - Degraded
             case "offline":
-                return "#6b7280";
+                return "#ef4444"; // Red - Offline
             default:
                 return "#3b82f6";
         }
