@@ -10,9 +10,13 @@ const ubuntu = Ubuntu({
 });
 
 export const metadata: Metadata = {
-  title: "Xandeum pNode Analytics - Real-time Network Monitoring",
-  description:
-    "Monitor and visualize the health, distribution, and performance of pNodes in the Xandeum distributed storage network.",
+  title: "Xandeum Explorer",
+  description: "Real-time analytics and monitoring for the Xandeum pNode network",
+  icons: {
+    icon: '/xandeum-logo.png',
+    shortcut: '/xandeum-logo.png',
+    apple: '/xandeum-logo.png',
+  },
   keywords: [
     "Xandeum",
     "pNode",
