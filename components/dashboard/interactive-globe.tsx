@@ -91,7 +91,7 @@ export function InteractiveGlobe({ pnodes }: { pnodes: PNodeInfo[] }) {
             .append("rect")
             .attr("width", width)
             .attr("height", height)
-            .attr("fill", "#0a0e27");
+            .attr("fill", "#000000");
 
         // Load world map
         fetch("https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json")

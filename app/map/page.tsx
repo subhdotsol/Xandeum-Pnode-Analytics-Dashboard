@@ -20,13 +20,12 @@ export default async function MapPage() {
     const pnodes = await getPNodes();
 
     return (
-        <main className="relative h-screen w-full overflow-hidden bg-background">
+        <main className="relative h-screen w-full overflow-hidden bg-black">
             <Link
                 href="/"
-                className="fixed left-6 top-6 z-50 flex items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-4 py-2 backdrop-blur-sm transition-colors hover:bg-background"
+                className="fixed left-6 top-6 z-50 flex items-center gap-2 rounded-lg border border-border/50 bg-background/80 px-3 py-3 backdrop-blur-sm transition-colors hover:bg-background"
             >
-                <ArrowLeft className="h-4 w-4" />
-                <span className="text-sm font-medium">Back to Dashboard</span>
+                <ArrowLeft className="h-5 w-5" />
             </Link>
 
             <InteractiveGlobe pnodes={pnodes} />
