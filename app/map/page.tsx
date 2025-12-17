@@ -199,7 +199,7 @@ export default function MapPage() {
     const nodesWithCoords = pnodes.filter((n) => n.lat && n.lng);
 
     return (
-        <div className="relative h-screen w-full bg-black">
+        <div className="fixed inset-0 w-full h-full bg-black overflow-hidden">
             {/* Back Button - Upper Left */}
             <Link
                 href="/"
@@ -271,7 +271,7 @@ export default function MapPage() {
             </div>
 
             {/* Map - Full Screen */}
-            <div className="h-full w-full">
+            <div className="absolute inset-0 w-full h-full">
                 {!loading && pnodes.length > 0 && <MapComponent pnodes={pnodes} />}
                 {!loading && pnodes.length === 0 && (
                     <div className="h-full flex items-center justify-center">

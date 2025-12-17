@@ -410,3 +410,31 @@
     transform: scale(0.3) translateY(10px);
   }
 }
+
+/* Prevent scrolling on map page - without position fixed on body */
+body {
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important;
+  height: 100vh !important;
+}
+
+html {
+  overflow: hidden !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
+/* Ensure Leaflet map fills container completely */
+.leaflet-container {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
