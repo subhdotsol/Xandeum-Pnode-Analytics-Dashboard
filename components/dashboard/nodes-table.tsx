@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, ChevronDown, ArrowRight } from "lucide-react";
+import { Search, Filter, ChevronDown, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import {
     Table,
@@ -191,10 +191,10 @@ export function NodesTable({ nodes }: NodesTableProps) {
                                                     <span>{node.address}</span>
                                                     <Link
                                                         href={`/pnode/${encodeURIComponent(node.address)}`}
-                                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                                        className="text-muted-foreground hover:text-primary active:text-primary/70 transition-all hover:scale-110 active:scale-95"
                                                         title="View node details"
                                                     >
-                                                        <ArrowRight className="w-4 h-4" />
+                                                        <ArrowUpRight className="w-4 h-4" />
                                                     </Link>
                                                 </div>
                                             </TableCell>

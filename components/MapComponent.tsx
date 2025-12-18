@@ -234,7 +234,7 @@ function DraggablePopup({
 
                 <Link
                     href={`/pnode/${encodeURIComponent(node.address)}`}
-                    className="no-drag block mt-3 text-center bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border border-white/30 shadow-lg"
+                    className="no-drag block mt-3 text-center bg-white/10 hover:bg-white/20 active:bg-white/30 text-white px-4 py-2 rounded-xl text-xs font-bold transition-all duration-200 border border-white/30 shadow-lg hover:scale-105 active:scale-95"
                 >
                     View Details →
                 </Link>

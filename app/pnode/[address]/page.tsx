@@ -115,12 +115,20 @@ export default async function PNodeDetailPage({
         console.log("[Component] Showing error page");
         return (
             <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
-                <Card className="max-w-md">
+                <Card className="max-w-lg">
                     <CardHeader className="text-center">
-                        <div className="text-6xl mb-4">🔍</div>
-                        <CardTitle className="text-3xl">pNode Not Found</CardTitle>
-                        <CardDescription>
-                            Unable to fetch data for this node. It may be offline or unreachable.
+                        <div className="text-6xl mb-4">🔌</div>
+                        <CardTitle className="text-3xl">Node Stats Unavailable</CardTitle>
+                        <CardDescription className="text-base space-y-2 mt-4">
+                            <div>This node is visible in the network but its stats endpoint is not responding.</div>
+                            <div className="text-sm text-muted-foreground mt-3">
+                                <strong>Why this happens:</strong> Nodes can participate in gossip (peer discovery)
+                                while their RPC stats endpoint is blocked by firewalls or temporarily unavailable.
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                                Try clicking on one of the seed nodes (addresses starting with 173.212, 161.97, or 192.190)
+                                - these infrastructure nodes are typically always accessible.
+                            </div>
                         </CardDescription>
                     </CardHeader>
                     <CardContent className="flex justify-center">
