@@ -123,9 +123,9 @@ export default function MapPage() {
 
                     const nodesWithGeo: PNodeWithGeo[] = [];
 
-                    // Process in smaller batches to avoid rate limiting
+                    // Process in optimized batches to balance speed and rate limits
                     // ip-api.com free tier: 45 requests per minute
-                    const batchSize = 5; // Reduced from 10 to 5
+                    const batchSize = 10; // Increased for faster loading
                     for (let i = 0; i < nodes.length; i += batchSize) {
                         const batch = nodes.slice(i, i + batchSize);
                         console.log(`[MAP] Processing batch ${Math.floor(i / batchSize) + 1}`);
@@ -154,10 +154,16 @@ export default function MapPage() {
                         });
                         setPnodes([...nodesWithGeo]);
 
-                        // Longer delay between batches to respect rate limits
-                        // With batchSize=5 and delay=8000ms, we do ~37 requests per minute
+                        // After first batch, hide loading screen and show map
+                        // Continue loading remaining nodes in background
+                        if (i === 0 && nodesWithGeo.filter(n => n.lat && n.lng).length > 0) {
+                            setGeoLoading(false);
+                        }
+
+                        // Optimized delay to maximize speed while respecting rate limits
+                        // With batchSize=10 and delay=3500ms, we do ~43 requests per minute
                         if (i + batchSize < nodes.length) {
-                            await new Promise((resolve) => setTimeout(resolve, 8000));
+                            await new Promise((resolve) => setTimeout(resolve, 3500));
                         }
                     }
 
