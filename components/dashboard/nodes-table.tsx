@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, ChevronDown } from "lucide-react";
+import { Search, Filter, ChevronDown, ArrowRight } from "lucide-react";
+import Link from "next/link";
 import {
     Table,
     TableBody,
@@ -186,7 +187,16 @@ export function NodesTable({ nodes }: NodesTableProps) {
                                             className="border-b border-border hover:bg-muted/50 transition-colors"
                                         >
                                             <TableCell className="font-mono text-sm">
-                                                {node.address}
+                                                <div className="flex items-center gap-2">
+                                                    <span>{node.address}</span>
+                                                    <Link
+                                                        href={`/pnode/${encodeURIComponent(node.address)}`}
+                                                        className="text-muted-foreground hover:text-primary transition-colors"
+                                                        title="View node details"
+                                                    >
+                                                        <ArrowRight className="w-4 h-4" />
+                                                    </Link>
+                                                </div>
                                             </TableCell>
                                             <TableCell>{getHealthBadge(node.last_seen_timestamp)}</TableCell>
                                             <TableCell>
