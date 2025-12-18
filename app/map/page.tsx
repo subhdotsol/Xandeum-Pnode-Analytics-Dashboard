@@ -67,7 +67,7 @@ interface PNodeWithGeo extends PNode {
     country?: string;
 }
 
-// Fetch geolocation from ip-api.com
+// Fetch geolocation via our API proxy
 async function fetchGeoLocation(ip: string): Promise<{
     lat: number;
     lng: number;
@@ -76,9 +76,7 @@ async function fetchGeoLocation(ip: string): Promise<{
 } | null> {
     try {
         console.log(`[GEO] Fetching location for ${ip}`);
-        const response = await fetch(
-            `http://ip-api.com/json/${ip}?fields=status,lat,lon,city,country`
-        );
+        const response = await fetch(`/api/geo?ip=${encodeURIComponent(ip)}`);
         const data = await response.json();
 
         console.log(`[GEO] Response for ${ip}:`, data);
@@ -125,21 +123,17 @@ export default function MapPage() {
 
                     const nodesWithGeo: PNodeWithGeo[] = [];
 
-                    // Process in batches to avoid rate limiting
-                    const batchSize = 10;
+                    // Process in smaller batches to avoid rate limiting
+                    // ip-api.com free tier: 45 requests per minute
+                    const batchSize = 5; // Reduced from 10 to 5
                     for (let i = 0; i < nodes.length; i += batchSize) {
                         const batch = nodes.slice(i, i + batchSize);
-                        console.log(`[MAP] Processing batch ${i / batchSize + 1}`);
+                        console.log(`[MAP] Processing batch ${Math.floor(i / batchSize) + 1}`);
 
                         const batchResults = await Promise.all(
-                            batch.map(async (node) => {
+                            batch.map(async (node, idx) => {
                                 const ip = node.address.split(":")[0];
                                 const geo = await fetchGeoLocation(ip);
-
-                                setGeoProgress({
-                                    current: i + batch.indexOf(node) + 1,
-                                    total: nodes.length,
-                                });
 
                                 return {
                                     ...node,
@@ -153,12 +147,17 @@ export default function MapPage() {
 
                         nodesWithGeo.push(...batchResults);
 
-                        // Update state after each batch
+                        // Update state and progress ONCE per batch (not per node)
+                        setGeoProgress({
+                            current: Math.min(i + batchSize, nodes.length),
+                            total: nodes.length,
+                        });
                         setPnodes([...nodesWithGeo]);
 
-                        // Small delay between batches to avoid rate limiting
+                        // Longer delay between batches to respect rate limits
+                        // With batchSize=5 and delay=8000ms, we do ~37 requests per minute
                         if (i + batchSize < nodes.length) {
-                            await new Promise((resolve) => setTimeout(resolve, 1500));
+                            await new Promise((resolve) => setTimeout(resolve, 8000));
                         }
                     }
 
@@ -272,9 +271,65 @@ export default function MapPage() {
 
             {/* Map - Full Screen */}
             <div className="absolute inset-0 w-full h-full">
-                {!loading && pnodes.length > 0 && <MapComponent pnodes={pnodes} />}
-                {!loading && pnodes.length === 0 && (
-                    <div className="h-full flex items-center justify-center">
+                {/* Show loading screen until first batch of nodes is geolocated */}
+                {(loading || (geoLoading && nodesWithCoords.length === 0)) && (
+                    <div className="h-full flex items-center justify-center bg-black">
+                        <div className="text-center space-y-6">
+                            {/* Animated Globe Icon */}
+                            <div className="relative mx-auto w-24 h-24">
+                                <div className="absolute inset-0 rounded-full border-4 border-blue-500/20 animate-ping"></div>
+                                <div className="absolute inset-0 rounded-full border-4 border-t-blue-500 border-r-green-500 border-b-blue-500/20 border-l-green-500/20 animate-spin"></div>
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+                                        <path d="M2 12h20" />
+                                    </svg>
+                                </div>
+                            </div>
+
+                            {/* Loading Text */}
+                            <div className="space-y-3">
+                                <h2 className="text-2xl font-bold text-white">
+                                    {loading ? "Loading Nodes..." : "Mapping the World"}
+                                </h2>
+                                <p className="text-white/60 text-sm">
+                                    {loading
+                                        ? "Fetching pNode data from the network"
+                                        : `Geolocating nodes across the globe...`
+                                    }
+                                </p>
+                                {geoLoading && !loading && (
+                                    <div className="mt-4 space-y-2">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                                            <span className="text-white/80 text-sm font-mono">
+                                                {geoProgress.current}/{geoProgress.total}
+                                            </span>
+                                        </div>
+                                        <div className="w-64 bg-white/10 rounded-full h-2 overflow-hidden mx-auto">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-300 rounded-full"
+                                                style={{
+                                                    width: `${geoProgress.total > 0 ? (geoProgress.current / geoProgress.total) * 100 : 0}%`
+                                                }}
+                                            ></div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Map Component - Show when nodes have coordinates */}
+                {!loading && pnodes.length > 0 && nodesWithCoords.length > 0 && (
+                    <MapComponent pnodes={pnodes} />
+                )}
+
+                {/* No nodes found */}
+                {!loading && !geoLoading && pnodes.length === 0 && (
+                    <div className="h-full flex items-center justify-center bg-black">
                         <p className="text-white text-lg">No pNodes found</p>
                     </div>
                 )}
