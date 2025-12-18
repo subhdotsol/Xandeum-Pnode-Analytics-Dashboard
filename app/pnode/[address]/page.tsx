@@ -5,7 +5,6 @@ import { pnodeClient } from "@/lib/pnode-client";
 import { getNodeHealth } from "@/lib/network-analytics";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -16,27 +15,36 @@ import {
 
 async function getPNodeData(address: string) {
     try {
+        console.log("[Detail Page] Fetching stats for:", address);
         const stats = await pnodeClient.getPNodeStats(address);
 
         if (!stats) {
+            console.log("[Detail Page] No stats returned");
             return null;
         }
 
-        const version = await pnodeClient.getPNodeVersion(address);
-        const health = getNodeHealth(stats.last_updated);
+        console.log("[Detail Page] Got stats:", stats);
 
-        return {
+        // Get version separately
+        const version = await pnodeClient.getPNodeVersion(address);
+        console.log("[Detail Page] Got version:", version);
+
+        const health = getNodeHealth(stats.last_updated);
+        console.log("[Detail Page] Health status:", health);
+
+        const result = {
             success: true,
             data: {
-                stats: {
-                    ...stats,
-                    version: version || "Unknown",
-                },
+                stats,
+                version: version || "Unknown",
                 health,
             }
         };
+
+        console.log("[Detail Page] Returning response:", result);
+        return result;
     } catch (error) {
-        console.error("Error fetching node data:", error);
+        console.error("[Detail Page] Error fetching node data:", error);
         return null;
     }
 }
@@ -97,9 +105,14 @@ export default async function PNodeDetailPage({
     const { address } = await params;
     const decodedAddress = decodeURIComponent(address);
 
+    console.log("[Component] Decoded address:", decodedAddress);
     const response = await getPNodeData(decodedAddress);
+    console.log("[Component] Response received:", response);
+    console.log("[Component] Response check - !response:", !response);
+    console.log("[Component] Response check - !response?.success:", !response?.success);
 
     if (!response || !response.success) {
+        console.log("[Component] Showing error page");
         return (
             <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
                 <Card className="max-w-md">
@@ -124,7 +137,8 @@ export default async function PNodeDetailPage({
         );
     }
 
-    const { stats, health } = response.data;
+    console.log("[Component] Showing node data");
+    const { stats, version, health } = response.data;
     const ip = decodedAddress.split(":")[0];
     const geoData = await getGeoLocation(ip);
 
@@ -153,7 +167,7 @@ export default async function PNodeDetailPage({
 
                     <div className="flex items-center justify-between gap-4 flex-wrap">
                         <div>
-                            <h1 className="text-3xl sm:text-4xl font-bold mb-3">
+                            <h1 className="text-3xl sm:text-4xl font-bold mb-3 dark:notion-text-gradient">
                                 Node Analytics
                             </h1>
                             <div className="flex items-center gap-3 flex-wrap">
@@ -220,202 +234,187 @@ export default async function PNodeDetailPage({
                     />
                 </div>
 
-                {/* Detailed Information Tabs */}
-                <Tabs defaultValue="system" className="space-y-6">
-                    <TabsList className="glass-card">
-                        <TabsTrigger value="system">System Info</TabsTrigger>
-                        <TabsTrigger value="network">Network</TabsTrigger>
-                        <TabsTrigger value="storage">Storage</TabsTrigger>
-                        {geoData && <TabsTrigger value="location">Location</TabsTrigger>}
-                    </TabsList>
-
-                    {/* System Info Tab */}
-                    <TabsContent value="system" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <span>🖥️</span>
-                                    System Information
-                                </CardTitle>
-                                <CardDescription>Hardware and software details</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-sm text-muted-foreground">Gossip Address</label>
-                                        <p className="font-mono text-sm">{decodedAddress}</p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm text-muted-foreground">RPC Address</label>
-                                        <p className="font-mono text-sm">{ip}:6000</p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm text-muted-foreground">Version</label>
-                                        <p className="font-mono text-sm">{stats.version || "Unknown"}</p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-sm text-muted-foreground">Last Updated</label>
-                                        <p className="text-sm">{new Date(stats.last_updated * 1000).toLocaleString()}</p>
-                                    </div>
+                {/* All Information in Grid Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* System Information */}
+                    <Card className="glass-card">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <span>🖥️</span>
+                                <span className="dark:gradient-text-vibrant">System Information</span>
+                            </CardTitle>
+                            <CardDescription>Hardware and software details</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-1 gap-4">
+                                <div className="space-y-2">
+                                    <label className="text-sm text-muted-foreground">Gossip Address</label>
+                                    <p className="font-mono text-sm dark:text-chart-1">{decodedAddress}</p>
                                 </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm text-muted-foreground">RPC Address</label>
+                                    <p className="font-mono text-sm dark:text-chart-2">{ip}:6000</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm text-muted-foreground">Version</label>
+                                    <p className="font-mono text-sm dark:text-chart-3">{version}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm text-muted-foreground">Last Updated</label>
+                                    <p className="text-sm dark:text-chart-4">{new Date(stats.last_updated * 1000).toLocaleString()}</p>
+                                </div>
+                            </div>
 
-                                <Separator />
+                            <Separator />
 
-                                {/* CPU Progress */}
+                            {/* CPU Progress */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">CPU Usage</span>
+                                    <span className="font-semibold dark:text-chart-1">{cpuPercentage.toFixed(1)}%</span>
+                                </div>
+                                <Progress value={cpuPercentage} className="h-2" />
+                            </div>
+
+                            {/* RAM Progress */}
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">RAM Usage</span>
+                                    <span className="font-semibold dark:text-chart-2">
+                                        {formatBytes(stats.ram_used)} / {formatBytes(stats.ram_total)} ({ramPercentage.toFixed(1)}%)
+                                    </span>
+                                </div>
+                                <Progress value={ramPercentage} className="h-2" />
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Network Activity */}
+                    <Card className="glass-card">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <span>📶</span>
+                                <span className="dark:gradient-text-vibrant">Network Activity</span>
+                            </CardTitle>
+                            <CardDescription>Real-time network metrics</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="grid grid-cols-3 gap-4">
+                                <div className="text-center p-4 glass-card rounded-lg">
+                                    <div className="text-3xl font-bold dark:text-chart-1">{stats.active_streams}</div>
+                                    <div className="text-xs text-muted-foreground mt-1">Active Streams</div>
+                                </div>
+                                <div className="text-center p-4 glass-card rounded-lg">
+                                    <div className="text-3xl font-bold dark:text-chart-2">{stats.packets_received}</div>
+                                    <div className="text-xs text-muted-foreground mt-1">RX/s</div>
+                                </div>
+                                <div className="text-center p-4 glass-card rounded-lg">
+                                    <div className="text-3xl font-bold dark:text-chart-3">{stats.packets_sent}</div>
+                                    <div className="text-xs text-muted-foreground mt-1">TX/s</div>
+                                </div>
+                            </div>
+
+                            <Separator />
+
+                            <div className="space-y-4">
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">CPU Usage</span>
-                                        <span className="font-semibold">{cpuPercentage.toFixed(1)}%</span>
+                                        <span className="text-muted-foreground">Packets Received</span>
+                                        <span className="font-mono dark:text-chart-2">{stats.packets_received}/s</span>
                                     </div>
-                                    <Progress value={cpuPercentage} className="h-2" />
+                                    <Progress
+                                        value={(stats.packets_received / Math.max(stats.packets_received, stats.packets_sent)) * 100}
+                                        className="h-2"
+                                    />
                                 </div>
 
-                                {/* RAM Progress */}
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-sm">
-                                        <span className="text-muted-foreground">RAM Usage</span>
-                                        <span className="font-semibold">
-                                            {formatBytes(stats.ram_used)} / {formatBytes(stats.ram_total)} ({ramPercentage.toFixed(1)}%)
-                                        </span>
+                                        <span className="text-muted-foreground">Packets Sent</span>
+                                        <span className="font-mono dark:text-chart-3">{stats.packets_sent}/s</span>
                                     </div>
-                                    <Progress value={ramPercentage} className="h-2" />
+                                    <Progress
+                                        value={(stats.packets_sent / Math.max(stats.packets_received, stats.packets_sent)) * 100}
+                                        className="h-2"
+                                    />
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    {/* Network Tab */}
-                    <TabsContent value="network" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <span>📶</span>
-                                    Network Activity
-                                </CardTitle>
-                                <CardDescription>Real-time network metrics</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="text-center p-4 glass-card rounded-lg">
-                                        <div className="text-3xl font-bold text-primary">{stats.active_streams}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">Active Streams</div>
-                                    </div>
-                                    <div className="text-center p-4 glass-card rounded-lg">
-                                        <div className="text-3xl font-bold text-primary">{stats.packets_received}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">RX/s</div>
-                                    </div>
-                                    <div className="text-center p-4 glass-card rounded-lg">
-                                        <div className="text-3xl font-bold text-primary">{stats.packets_sent}</div>
-                                        <div className="text-xs text-muted-foreground mt-1">TX/s</div>
-                                    </div>
+                    {/* Storage Utilization */}
+                    <Card className="glass-card">
+                        <CardHeader>
+                            <CardTitle className="flex items-center gap-2">
+                                <span>💿</span>
+                                <span className="dark:gradient-text-vibrant">Storage Utilization</span>
+                            </CardTitle>
+                            <CardDescription>Disk usage and capacity</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            <div className="text-center">
+                                <div className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
+                                    {storagePercentage.toFixed(1)}%
                                 </div>
-
-                                <Separator />
-
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">Packets Received</span>
-                                            <span className="font-mono">{stats.packets_received}/s</span>
-                                        </div>
-                                        <Progress
-                                            value={(stats.packets_received / Math.max(stats.packets_received, stats.packets_sent)) * 100}
-                                            className="h-2"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-muted-foreground">Packets Sent</span>
-                                            <span className="font-mono">{stats.packets_sent}/s</span>
-                                        </div>
-                                        <Progress
-                                            value={(stats.packets_sent / Math.max(stats.packets_received, stats.packets_sent)) * 100}
-                                            className="h-2"
-                                        />
-                                    </div>
+                                <div className="text-sm text-muted-foreground">
+                                    {formatBytes(stats.total_bytes)} / {formatBytes(stats.file_size)}
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                            </div>
 
-                    {/* Storage Tab */}
-                    <TabsContent value="storage" className="space-y-6">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <span>💿</span>
-                                    Storage Utilization
-                                </CardTitle>
-                                <CardDescription>Disk usage and capacity</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-6">
-                                <div className="text-center">
-                                    <div className="text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
-                                        {storagePercentage.toFixed(1)}%
+                            <Progress value={storagePercentage} className="h-3" />
+
+                            <Separator />
+
+                            <StorageHeatmap percentage={storagePercentage} />
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="text-center p-4 glass-card rounded-lg">
+                                    <div className="text-2xl font-bold dark:text-chart-1">
+                                        {formatBytes(stats.total_bytes)}
                                     </div>
-                                    <div className="text-sm text-muted-foreground">
-                                        {formatBytes(stats.total_bytes)} / {formatBytes(stats.file_size)}
-                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-1">Used</div>
                                 </div>
-
-                                <Progress value={storagePercentage} className="h-3" />
-
-                                <Separator />
-
-                                <StorageHeatmap percentage={storagePercentage} />
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="text-center p-4 glass-card rounded-lg">
-                                        <div className="text-2xl font-bold text-primary">
-                                            {formatBytes(stats.total_bytes)}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground mt-1">Used</div>
+                                <div className="text-center p-4 glass-card rounded-lg">
+                                    <div className="text-2xl font-bold dark:text-chart-2">
+                                        {formatBytes(stats.file_size)}
                                     </div>
-                                    <div className="text-center p-4 glass-card rounded-lg">
-                                        <div className="text-2xl font-bold text-muted-foreground">
-                                            {formatBytes(stats.file_size)}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground mt-1">Capacity</div>
-                                    </div>
+                                    <div className="text-xs text-muted-foreground mt-1">Capacity</div>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
+                            </div>
+                        </CardContent>
+                    </Card>
 
-                    {/* Location Tab */}
+                    {/* Location */}
                     {geoData && (
-                        <TabsContent value="location">
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="flex items-center gap-2">
-                                        <span>🌍</span>
-                                        Geographic Location
-                                    </CardTitle>
-                                    <CardDescription>IP-based geolocation data</CardDescription>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <label className="text-sm text-muted-foreground">Country</label>
-                                            <p className="text-lg font-semibold">{geoData.country}</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm text-muted-foreground">City</label>
-                                            <p className="text-lg font-semibold">{geoData.city}</p>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm text-muted-foreground">Coordinates</label>
-                                            <p className="font-mono text-sm">
-                                                {geoData.lat.toFixed(4)}, {geoData.lon.toFixed(4)}
-                                            </p>
-                                        </div>
+                        <Card className="glass-card">
+                            <CardHeader>
+                                <CardTitle className="flex items-center gap-2">
+                                    <span>🌍</span>
+                                    <span className="dark:gradient-text-vibrant">Geographic Location</span>
+                                </CardTitle>
+                                <CardDescription>IP-based geolocation data</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="grid grid-cols-1 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-muted-foreground">Country</label>
+                                        <p className="text-lg font-semibold dark:text-chart-1">{geoData.country}</p>
                                     </div>
-                                </CardContent>
-                            </Card>
-                        </TabsContent>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-muted-foreground">City</label>
+                                        <p className="text-lg font-semibold dark:text-chart-2">{geoData.city}</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm text-muted-foreground">Coordinates</label>
+                                        <p className="font-mono text-sm dark:text-chart-3">
+                                            {geoData.lat.toFixed(4)}, {geoData.lon.toFixed(4)}
+                                        </p>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
                     )}
-                </Tabs>
+                </div>
             </main>
         </div>
     );
