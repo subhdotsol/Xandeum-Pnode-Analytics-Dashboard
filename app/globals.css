@@ -335,6 +335,23 @@
       left: 150%;
     }
   }
+
+  /* Slow pulse animation for badges */
+  @keyframes pulse-slow {
+
+    0%,
+    100% {
+      opacity: 1;
+    }
+
+    50% {
+      opacity: 0.6;
+    }
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 3s ease-in-out infinite;
+  }
 }
 
 /* Leaflet Popup Custom Styles */

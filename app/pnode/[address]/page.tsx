@@ -3,17 +3,24 @@ import { ArrowLeft } from "lucide-react";
 import type { PNodeStats } from "@/types/pnode";
 import { pnodeClient } from "@/lib/pnode-client";
 import { getNodeHealth } from "@/lib/network-analytics";
+import {
+    RadialProgress,
+    AnimatedStatCard,
+    GlassCard,
+    InfoItem,
+    MetricBox,
+    AnimatedBar,
+    StorageHeatmap,
+} from "./components";
 
 async function getPNodeData(address: string) {
     try {
-        // Directly call pnodeClient instead of HTTP fetch (avoids ECONNREFUSED in SSR)
         const stats = await pnodeClient.getPNodeStats(address);
 
         if (!stats) {
             return null;
         }
 
-        // Get version separately
         const version = await pnodeClient.getPNodeVersion(address);
         const health = getNodeHealth(stats.last_updated);
 
@@ -68,16 +75,36 @@ function formatUptime(seconds: number): string {
     return parts.join(" ") || "0m";
 }
 
-function getStatusColor(health: any) {
-    switch (health.status) {
+function getStatusColor(status: string) {
+    switch (status) {
         case "healthy":
-            return "border-green-500/50 bg-green-500/10";
+            return {
+                bg: "bg-green-500/20",
+                border: "border-green-500/50",
+                text: "text-green-400",
+                glow: "shadow-green-500/20"
+            };
         case "degraded":
-            return "border-yellow-500/50 bg-yellow-500/10";
+            return {
+                bg: "bg-yellow-500/20",
+                border: "border-yellow-500/50",
+                text: "text-yellow-400",
+                glow: "shadow-yellow-500/20"
+            };
         case "offline":
-            return "border-red-500/50 bg-red-500/10";
+            return {
+                bg: "bg-red-500/20",
+                border: "border-red-500/50",
+                text: "text-red-400",
+                glow: "shadow-red-500/20"
+            };
         default:
-            return "border-border/50 bg-card/10";
+            return {
+                bg: "bg-primary/20",
+                border: "border-primary/50",
+                text: "text-primary",
+                glow: "shadow-primary/20"
+            };
     }
 }
 
@@ -93,15 +120,18 @@ export default async function PNodeDetailPage({
 
     if (!response || !response.success) {
         return (
-            <div className="min-h-screen bg-background flex items-center justify-center p-4">
-                <div className="text-center max-w-md">
-                    <h1 className="text-3xl font-bold mb-4">pNode Not Found</h1>
+            <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center p-4">
+                <div className="text-center max-w-md glass-card p-8 rounded-2xl border border-border/50">
+                    <div className="text-6xl mb-4">🔍</div>
+                    <h1 className="text-3xl font-bold mb-4 bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                        pNode Not Found
+                    </h1>
                     <p className="text-muted-foreground mb-6">
                         Unable to fetch data for this node. It may be offline or unreachable.
                     </p>
                     <Link
                         href="/"
-                        className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+                        className="inline-flex items-center gap-2 bg-primary/90 text-primary-foreground px-6 py-3 rounded-xl hover:bg-primary transition-all hover:scale-105 hover:shadow-lg hover:shadow-primary/20"
                     >
                         <ArrowLeft className="h-4 w-4" />
                         Back to Dashboard
@@ -114,32 +144,46 @@ export default async function PNodeDetailPage({
     const { stats, health } = response.data;
     const ip = decodedAddress.split(":")[0];
     const geoData = await getGeoLocation(ip);
+    const statusColors = getStatusColor(health.status);
+
+    const cpuPercentage = Math.min(stats.cpu_percent, 100);
+    const ramPercentage = Math.min((stats.ram_used / stats.ram_total) * 100, 100);
+    const storagePercentage = Math.min((stats.total_bytes / stats.file_size) * 100, 100);
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted pb-16">
+            {/* Animated Background */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none">
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse"></div>
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+            </div>
+
             {/* Header */}
-            <div className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+            <div className="sticky top-0 z-50 glass-card border-b border-border/50 backdrop-blur-xl">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6">
                     <Link
                         href="/"
-                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+                        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-all mb-4 hover:gap-3"
                     >
                         <ArrowLeft className="h-4 w-4" />
                         Back to Dashboard
                     </Link>
 
-                    <div className="flex items-start justify-between gap-4 flex-wrap">
+                    <div className="flex items-center justify-between gap-4 flex-wrap">
                         <div>
-                            <h1 className="text-2xl sm:text-3xl font-bold mb-3">Node Details</h1>
+                            <h1 className="text-3xl sm:text-4xl font-bold mb-3 bg-gradient-to-r from-foreground to-foreground/60 bg-clip-text text-transparent">
+                                Node Analytics
+                            </h1>
                             <div className="flex items-center gap-3 flex-wrap">
-                                <code className="text-sm bg-muted px-3 py-1.5 rounded border font-mono">
+                                <code className="text-sm glass-card px-4 py-2 rounded-lg border border-border/50 font-mono backdrop-blur-sm">
                                     {decodedAddress}
                                 </code>
                                 <span
-                                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold border ${getStatusColor(health)}`}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold border ${statusColors.border} ${statusColors.bg} ${statusColors.text} backdrop-blur-sm animate-pulse-slow shadow-lg ${statusColors.glow}`}
                                 >
-                                    <span className={`w-2 h-2 rounded-full ${health.status === 'healthy' ? 'bg-green-500' : health.status === 'degraded' ? 'bg-yellow-500' : 'bg-red-500'}`}></span>
-                                    {health.text}
+                                    <span className={`w-2 h-2 rounded-full ${health.status === 'healthy' ? 'bg-green-400' : health.status === 'degraded' ? 'bg-yellow-400' : 'bg-red-400'} animate-ping absolute`}></span>
+                                    <span className={`w-2 h-2 rounded-full ${health.status === 'healthy' ? 'bg-green-400' : health.status === 'degraded' ? 'bg-yellow-400' : 'bg-red-400'} relative`}></span>
+                                    {health.text.toUpperCase()}
                                 </span>
                             </div>
                         </div>
@@ -147,203 +191,145 @@ export default async function PNodeDetailPage({
                 </div>
             </div>
 
-            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Top Stats */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                    <StatCard
-                        label="Storage Used"
-                        value={formatBytes(stats.total_bytes)}
+            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+                {/* Performance Rings */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <RadialProgress
+                        label="CPU Usage"
+                        value={cpuPercentage}
+                        icon="🖥️"
+                        color="from-blue-500 to-cyan-500"
+                    />
+                    <RadialProgress
+                        label="RAM Usage"
+                        value={ramPercentage}
                         icon="💾"
+                        color="from-purple-500 to-pink-500"
                     />
-                    <StatCard
-                        label="Total Pages"
-                        value={stats.total_pages.toLocaleString()}
+                    <RadialProgress
+                        label="Storage"
+                        value={storagePercentage}
+                        icon="💿"
+                        color="from-green-500 to-emerald-500"
+                    />
+                </div>
+
+                {/* Stats Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <AnimatedStatCard
+                        label="Total Data"
+                        value={formatBytes(stats.total_bytes)}
                         icon="📊"
+                        delay={0}
                     />
-                    <StatCard
+                    <AnimatedStatCard
+                        label="Pages Processed"
+                        value={stats.total_pages.toLocaleString()}
+                        icon="📄"
+                        delay={100}
+                    />
+                    <AnimatedStatCard
                         label="Active Streams"
                         value={stats.active_streams.toString()}
                         icon="⚡"
+                        delay={200}
                     />
-                    <StatCard
+                    <AnimatedStatCard
                         label="Uptime"
                         value={formatUptime(stats.uptime)}
                         icon="⏱️"
+                        delay={300}
                     />
                 </div>
 
-                {/* Main Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Node Information */}
-                    <div className="bg-card border rounded-lg p-6 hover:border-primary/50 transition-colors">
-                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <span>🖥️</span>
-                            Node Information
-                        </h2>
-
-                        <div className="space-y-3">
-                            <InfoRow label="Gossip Address" value={decodedAddress} />
-                            <InfoRow label="RPC Address" value={`${ip}:6000`} />
-                            <InfoRow label="Version" value={stats.version || "Unknown"} />
-                            <InfoRow label="CPU Usage" value={`${stats.cpu_percent.toFixed(1)}%`} />
-                            <InfoRow
-                                label="RAM Usage"
-                                value={`${formatBytes(stats.ram_used)} / ${formatBytes(stats.ram_total)}`}
-                            />
-                            <InfoRow label="Packets RX" value={`${stats.packets_received}/s`} />
-                            <InfoRow label="Packets TX" value={`${stats.packets_sent}/s`} />
-                        </div>
-                    </div>
-
-                    {/* Location */}
-                    {geoData && (
-                        <div className="bg-card border rounded-lg p-6 hover:border-primary/50 transition-colors">
-                            <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                                <span>🌍</span>
-                                Location
-                            </h2>
-
-                            <div className="space-y-3">
-                                <InfoRow label="Country" value={geoData.country} />
-                                <InfoRow label="City" value={geoData.city} />
-                                <InfoRow label="Coordinates" value={`${geoData.lat}, ${geoData.lon}`} />
+                {/* Main Content */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* Node Information - Spans 2 columns */}
+                    <div className="lg:col-span-2 space-y-6">
+                        {/* System Info */}
+                        <GlassCard title="System Information" icon="🖥️">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <InfoItem label="Gossip Address" value={decodedAddress} />
+                                <InfoItem label="RPC Address" value={`${ip}:6000`} />
+                                <InfoItem label="Version" value={stats.version || "Unknown"} />
+                                <InfoItem label="CPU Cores" value={`${stats.cpu_percent.toFixed(1)}%`} />
+                                <InfoItem
+                                    label="RAM"
+                                    value={`${formatBytes(stats.ram_used)} / ${formatBytes(stats.ram_total)}`}
+                                />
+                                <InfoItem label="Last Updated" value={new Date(stats.last_updated * 1000).toLocaleString()} />
                             </div>
-                        </div>
-                    )}
+                        </GlassCard>
 
-                    {/* Storage Stats */}
-                    <div className="bg-card border rounded-lg p-6 hover:border-primary/50 transition-colors">
-                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <span>💿</span>
-                            Storage Statistics
-                        </h2>
-
-                        <div className="space-y-4">
-                            <div>
-                                <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                                    <span>Utilization</span>
-                                    <span>
-                                        {((stats.total_bytes / stats.file_size) * 100).toFixed(1)}%
-                                    </span>
+                        {/* Network Activity */}
+                        <GlassCard title="Network Activity" icon="📶">
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-3 gap-4">
+                                    <MetricBox
+                                        label="Streams"
+                                        value={stats.active_streams}
+                                        color="from-blue-500 to-cyan-500"
+                                    />
+                                    <MetricBox
+                                        label="RX/s"
+                                        value={stats.packets_received}
+                                        color="from-green-500 to-emerald-500"
+                                    />
+                                    <MetricBox
+                                        label="TX/s"
+                                        value={stats.packets_sent}
+                                        color="from-orange-500 to-red-500"
+                                    />
                                 </div>
-                                <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
-                                    <div
-                                        className="h-2 bg-primary transition-all duration-500"
-                                        style={{
-                                            width: `${Math.min((stats.total_bytes / stats.file_size) * 100, 100)}%`,
-                                        }}
+
+                                {/* Network Activity Bars */}
+                                <div className="space-y-4">
+                                    <AnimatedBar
+                                        label="Packets Received"
+                                        value={stats.packets_received}
+                                        max={Math.max(stats.packets_received, stats.packets_sent)}
+                                        color="bg-gradient-to-r from-green-500 to-emerald-500"
+                                    />
+                                    <AnimatedBar
+                                        label="Packets Sent"
+                                        value={stats.packets_sent}
+                                        max={Math.max(stats.packets_received, stats.packets_sent)}
+                                        color="bg-gradient-to-r from-orange-500 to-red-500"
                                     />
                                 </div>
                             </div>
-
-                            <div className="grid grid-cols-2 gap-4 mt-6">
-                                <div className="text-center p-4 bg-muted rounded-lg">
-                                    <div className="text-2xl font-bold text-primary">
-                                        {formatBytes(stats.total_bytes)}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground mt-1">Used</div>
-                                </div>
-                                <div className="text-center p-4 bg-muted rounded-lg">
-                                    <div className="text-2xl font-bold text-muted-foreground">
-                                        {formatBytes(stats.file_size)}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground mt-1">Capacity</div>
-                                </div>
-                            </div>
-                        </div>
+                        </GlassCard>
                     </div>
 
-                    {/* Network Activity */}
-                    <div className="bg-card border rounded-lg p-6 hover:border-primary/50 transition-colors">
-                        <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <span>📶</span>
-                            Network Activity
-                        </h2>
-
-                        <div className="grid grid-cols-3 gap-3 mb-4">
-                            <div className="text-center p-3 bg-muted rounded-lg">
-                                <div className="text-2xl font-bold text-primary">
-                                    {stats.active_streams}
+                    {/* Sidebar */}
+                    <div className="space-y-6">
+                        {/* Location */}
+                        {geoData && (
+                            <GlassCard title="Location" icon="🌍">
+                                <div className="space-y-3">
+                                    <InfoItem label="Country" value={geoData.country} />
+                                    <InfoItem label="City" value={geoData.city} />
+                                    <InfoItem label="Coordinates" value={`${geoData.lat.toFixed(4)}, ${geoData.lon.toFixed(4)}`} />
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-1">Streams</div>
-                            </div>
-                            <div className="text-center p-3 bg-muted rounded-lg">
-                                <div className="text-2xl font-bold text-primary">
-                                    {stats.packets_received}
+                            </GlassCard>
+                        )}
+
+                        {/* Storage Heatmap */}
+                        <GlassCard title="Storage Utilization" icon="💿">
+                            <div className="space-y-4">
+                                <div className="text-center">
+                                    <div className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent mb-2">
+                                        {storagePercentage.toFixed(1)}%
+                                    </div>
+                                    <div className="text-xs text-muted-foreground">
+                                        {formatBytes(stats.total_bytes)} / {formatBytes(stats.file_size)}
+                                    </div>
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-1">RX/s</div>
-                            </div>
-                            <div className="text-center p-3 bg-muted rounded-lg">
-                                <div className="text-2xl font-bold text-primary">
-                                    {stats.packets_sent}
-                                </div>
-                                <div className="text-xs text-muted-foreground mt-1">TX/s</div>
-                            </div>
-                        </div>
 
-                        <div className="bg-muted rounded-lg p-3 text-center">
-                            <div className="text-xs text-muted-foreground">Last Updated</div>
-                            <div className="text-sm font-medium mt-1">
-                                {new Date(stats.last_updated * 1000).toLocaleString()}
+                                {/* Storage visualization */}
+                                <StorageHeatmap percentage={storagePercentage} />
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Performance Metrics */}
-                <div className="mt-6 bg-card border rounded-lg p-6 hover:border-primary/50 transition-colors">
-                    <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <span>📈</span>
-                        Performance Metrics
-                    </h2>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                                <span>CPU Usage</span>
-                                <span>{stats.cpu_percent.toFixed(1)}%</span>
-                            </div>
-                            <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
-                                <div
-                                    className="h-2 bg-primary transition-all"
-                                    style={{ width: `${Math.min(stats.cpu_percent, 100)}%` }}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                                <span>RAM Usage</span>
-                                <span>
-                                    {((stats.ram_used / stats.ram_total) * 100).toFixed(1)}%
-                                </span>
-                            </div>
-                            <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
-                                <div
-                                    className="h-2 bg-primary transition-all"
-                                    style={{
-                                        width: `${Math.min((stats.ram_used / stats.ram_total) * 100, 100)}%`,
-                                    }}
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <div className="flex justify-between text-sm text-muted-foreground mb-2">
-                                <span>Storage</span>
-                                <span>
-                                    {((stats.total_bytes / stats.file_size) * 100).toFixed(1)}%
-                                </span>
-                            </div>
-                            <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
-                                <div
-                                    className="h-2 bg-primary transition-all"
-                                    style={{
-                                        width: `${Math.min((stats.total_bytes / stats.file_size) * 100, 100)}%`,
-                                    }}
-                                />
-                            </div>
-                        </div>
+                        </GlassCard>
                     </div>
                 </div>
             </main>
@@ -351,35 +337,3 @@ export default async function PNodeDetailPage({
     );
 }
 
-function StatCard({
-    label,
-    value,
-    icon,
-}: {
-    label: string;
-    value: string;
-    icon: string;
-}) {
-    return (
-        <div className="bg-card border rounded-lg p-4 hover:border-primary/50 transition-colors">
-            <div className="flex items-center justify-between">
-                <div>
-                    <p className="text-xs text-muted-foreground mb-1">{label}</p>
-                    <p className="text-xl font-bold">{value}</p>
-                </div>
-                <div className="text-3xl opacity-60">{icon}</div>
-            </div>
-        </div>
-    );
-}
-
-function InfoRow({ label, value }: { label: string; value: string }) {
-    return (
-        <div className="flex items-center justify-between py-2 border-b last:border-0">
-            <span className="text-sm text-muted-foreground">{label}</span>
-            <span className="text-sm font-mono text-right break-all max-w-[60%]">
-                {value}
-            </span>
-        </div>
-    );
-}
