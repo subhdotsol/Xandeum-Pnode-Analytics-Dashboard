@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { geoCache, type GeoData } from "@/lib/geo-cache";
 
 // Retry helper with exponential backoff
 async function fetchWithRetry(
@@ -41,10 +42,22 @@ export async function GET(request: NextRequest) {
         );
     }
 
+    // Check cache first
+    const cached = geoCache.get(ip);
+    if (cached) {
+        return NextResponse.json({
+            status: "success",
+            lat: cached.lat,
+            lon: cached.lng,
+            city: cached.city,
+            country: cached.country,
+        });
+    }
+
     try {
         // Server-side can make HTTP requests without mixed content issues
         const response = await fetchWithRetry(
-            `http://ip-api.com/json/${ip}?fields=status,lat,lon,city,country`,
+            `http://ip-api.com/json/${ip}?fields=status,lat,lon,city,country,regionName,isp,org`,
             {
                 headers: {
                     "User-Agent": "Pnode-Analytics-Dashboard",
@@ -58,6 +71,21 @@ export async function GET(request: NextRequest) {
         }
 
         const data = await response.json();
+
+        // Cache successful responses
+        if (data.status === "success" && data.lat && data.lon) {
+            const geoData: GeoData = {
+                lat: data.lat,
+                lng: data.lon,
+                city: data.city,
+                country: data.country,
+                regionName: data.regionName,
+                isp: data.isp,
+                org: data.org,
+            };
+            geoCache.set(ip, geoData);
+        }
+
         return NextResponse.json(data);
     } catch (error) {
         console.error(`[GEO API] Error fetching location for ${ip}:`, error);
