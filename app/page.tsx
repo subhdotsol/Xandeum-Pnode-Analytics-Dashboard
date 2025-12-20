@@ -159,29 +159,19 @@ export default function HomePage() {
       const analyticsData = await analyticsRes.json();
       setAnalytics(analyticsData);
 
-      // Get stats for first 10 nodes
-      const statsPromises = (pnodesData.pnodes || []).slice(0, 10).map(async (node: PNodeInfo) => {
-        try {
-          const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
-          if (res.ok) {
-            const stats = await res.json();
-            return stats;
-          }
-        } catch { }
-        return null;
-      });
-
-      const statsResults = await Promise.all(statsPromises);
-      const validStats = statsResults.filter((s): s is PNodeStats => s !== null);
-
-      setAggregateStats({
-        totalStorage: validStats.reduce((sum, s) => sum + (s.total_bytes || 0), 0),
-        totalRam: validStats.reduce((sum, s) => sum + (s.ram_total || 0), 0),
-        avgCpu: validStats.length > 0 ? validStats.reduce((sum, s) => sum + (s.cpu_percent || 0), 0) / validStats.length : 0,
-        avgUptime: validStats.length > 0 ? validStats.reduce((sum, s) => sum + (s.uptime || 0), 0) / validStats.length : 0,
-        totalData: validStats.reduce((sum, s) => sum + (s.file_size || 0), 0),
-        totalPages: validStats.reduce((sum, s) => sum + (s.total_pages || 0), 0),
-      });
+      // Fetch aggregate stats from reliable seed nodes
+      const statsRes = await fetch("/api/stats");
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setAggregateStats({
+          totalStorage: statsData.totalStorage || 0,
+          totalRam: statsData.totalRam || 0,
+          avgCpu: statsData.avgCpu || 0,
+          avgUptime: statsData.avgUptime || 0,
+          totalData: statsData.totalData || 0,
+          totalPages: statsData.totalPages || 0,
+        });
+      }
 
       // Estimate countries
       const uniqueIPs: Set<string> = new Set((pnodesData.pnodes || []).map((node: PNodeInfo) => node.address.split(':')[0]));
