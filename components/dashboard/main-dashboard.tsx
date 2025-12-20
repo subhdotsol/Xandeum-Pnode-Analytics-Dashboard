@@ -5,22 +5,18 @@ import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
 import { NodesTable } from "@/components/dashboard/nodes-table";
 import { VersionDistribution } from "@/components/dashboard/version-distribution";
+import { MapSkeleton } from "@/components/dashboard/skeletons";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
 
-// Dynamically import map component (client-side only)
 const MapComponent = dynamic(() => import("@/components/MapComponent"), {
     ssr: false,
-    loading: () => (
-        <div className="h-[500px] bg-muted/50 rounded-lg flex items-center justify-center">
-            <p className="text-muted-foreground">Loading map...</p>
-        </div>
-    ),
+    loading: () => <MapSkeleton />,
 });
 
 interface MainDashboardProps {
@@ -46,18 +42,7 @@ const tabs: { id: TabType; label: string }[] = [
     { id: "nodes", label: "Nodes Data" },
 ];
 
-// Stat Card Component
-function StatCard({
-    title,
-    value,
-    subtitle,
-    icon: Icon
-}: {
-    title: string;
-    value: string | number;
-    subtitle: string;
-    icon: React.ElementType;
-}) {
+function StatCard({ title, value, subtitle, icon: Icon }: { title: string; value: string | number; subtitle: string; icon: React.ElementType }) {
     return (
         <Card className="border border-border bg-card">
             <CardContent className="p-6">
@@ -76,7 +61,6 @@ function StatCard({
     );
 }
 
-// Metric Row Component
 function MetricRow({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ElementType }) {
     return (
         <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
@@ -130,9 +114,8 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const handleRefresh = useCallback(() => {
         setIsRefreshing(true);
         setSecondsAgo(0);
-        router.refresh();
-        setTimeout(() => setIsRefreshing(false), 1500);
-    }, [router]);
+        window.location.reload();
+    }, []);
 
     const formatTime = (seconds: number) => {
         if (seconds < 60) return `${seconds}s ago`;
@@ -146,7 +129,6 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     return (
         <div className="min-h-screen bg-background">
             <main className="max-w-6xl mx-auto px-6 py-8">
-                {/* Header: Logo + Title + Sync/Theme */}
                 <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center gap-3">
                         <Image src="/icon.png" alt="Xandeum" width={32} height={32} className="rounded" />
@@ -154,34 +136,25 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-xs text-muted-foreground">Last sync {formatTime(secondsAgo)}</span>
-                        <button
-                            onClick={handleRefresh}
-                            disabled={isRefreshing}
-                            className="p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50"
-                        >
+                        <button onClick={handleRefresh} disabled={isRefreshing} className="p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50">
                             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                         </button>
                         <ThemeToggle />
                     </div>
                 </div>
 
-                {/* Title + Subtitle */}
                 <div className="text-center mb-4">
                     <h1 className="text-3xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
                     <p className="text-muted-foreground">Real-time monitoring of the Xandeum distributed storage network</p>
                 </div>
 
-                {/* Navigation Tabs - BELOW the subtitle */}
                 <div className="flex justify-center mb-8">
                     <nav className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
                         {tabs.map((tab) => (
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id)}
-                                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === tab.id
-                                    ? "bg-background text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
-                                    }`}
+                                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
                             >
                                 {tab.label}
                             </button>
@@ -189,7 +162,6 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     </nav>
                 </div>
 
-                {/* Dashboard Tab */}
                 {activeTab === "dashboard" && (
                     <div className="space-y-8">
                         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
@@ -233,19 +205,12 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                 <NetworkHealthCard score={analytics.health.score} totals={analytics.totals} health={analytics.health} />
                             </div>
                             <div>
-                                <VersionDistribution
-                                    distribution={analytics.versions.distribution}
-                                    latest={analytics.versions.latest}
-                                    outdatedCount={analytics.versions.outdatedCount}
-                                    outdatedPercentage={analytics.versions.outdatedPercentage}
-                                    total={analytics.totals.total}
-                                />
+                                <VersionDistribution distribution={analytics.versions.distribution} latest={analytics.versions.latest} outdatedCount={analytics.versions.outdatedCount} outdatedPercentage={analytics.versions.outdatedPercentage} total={analytics.totals.total} />
                             </div>
                         </div>
                     </div>
                 )}
 
-                {/* Analytics Tab */}
                 {activeTab === "analytics" && (
                     <div className="flex items-center justify-center min-h-[400px]">
                         <div className="text-center space-y-4">
@@ -255,22 +220,16 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     </div>
                 )}
 
-                {/* Map Tab */}
                 {activeTab === "map" && (
-                    <Card className="border border-border overflow-hidden rounded-xl">
-                        <div className="h-[600px]">
-                            {isLoadingGeo ? (
-                                <div className="h-full flex items-center justify-center bg-muted/50">
-                                    <p className="text-muted-foreground">Loading node locations...</p>
-                                </div>
-                            ) : (
+                    isLoadingGeo ? <MapSkeleton /> : (
+                        <Card className="border border-border overflow-hidden rounded-xl">
+                            <div className="h-[600px]">
                                 <MapComponent pnodes={pnodesWithGeo.length > 0 ? pnodesWithGeo : pnodes} />
-                            )}
-                        </div>
-                    </Card>
+                            </div>
+                        </Card>
+                    )
                 )}
 
-                {/* Nodes Data Tab */}
                 {activeTab === "nodes" && <NodesTable nodes={pnodes} />}
             </main>
         </div>
