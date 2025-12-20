@@ -81,7 +81,9 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const [pnodesWithGeo, setPnodesWithGeo] = useState<any[]>([]);
     const [isLoadingGeo, setIsLoadingGeo] = useState(false);
     const [geoLoadedCount, setGeoLoadedCount] = useState(0);
-    const totalNodesToLoad = Math.min(pnodes.length, 50);
+    const [showToast, setShowToast] = useState(false);
+    const [geoLoadingComplete, setGeoLoadingComplete] = useState(false);
+    const totalNodes = pnodes.length;
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -91,16 +93,16 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     }, []);
 
     useEffect(() => {
-        if (activeTab === "map" && pnodesWithGeo.length === 0 && !isLoadingGeo) {
+        if (activeTab === "map" && !isLoadingGeo && !geoLoadingComplete) {
             setIsLoadingGeo(true);
             setGeoLoadedCount(0);
+            setShowToast(false);
 
             const fetchGeo = async () => {
-                const nodesToFetch = pnodes.slice(0, 50);
                 const results: any[] = [];
 
-                for (let i = 0; i < nodesToFetch.length; i++) {
-                    const node = nodesToFetch[i];
+                for (let i = 0; i < pnodes.length; i++) {
+                    const node = pnodes[i];
                     try {
                         const ip = node.address.split(':')[0];
                         const res = await fetch(`/api/geo?ip=${ip}`);
@@ -113,15 +115,29 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     } catch {
                         results.push(node);
                     }
+
                     setGeoLoadedCount(i + 1);
+
+                    // After first 10 nodes, show map and enable toast for progress
+                    if (i === 9) {
+                        setPnodesWithGeo([...results]);
+                        setIsLoadingGeo(false);
+                        setShowToast(true);
+                    } else if (i > 9 && i % 10 === 0) {
+                        // Update map every 10 nodes
+                        setPnodesWithGeo([...results]);
+                    }
                 }
 
                 setPnodesWithGeo(results);
-                setIsLoadingGeo(false);
+                setGeoLoadingComplete(true);
+
+                // Hide toast after 3 seconds
+                setTimeout(() => setShowToast(false), 3000);
             };
             fetchGeo();
         }
-    }, [activeTab, pnodes, pnodesWithGeo.length, isLoadingGeo]);
+    }, [activeTab, pnodes, isLoadingGeo, geoLoadingComplete]);
 
     const handleRefresh = useCallback(() => {
         setIsRefreshing(true);
@@ -233,21 +249,33 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 )}
 
                 {activeTab === "map" && (
-                    isLoadingGeo ? (
-                        <Card className="border border-border overflow-hidden rounded-xl">
-                            <div className="h-[700px] flex flex-col items-center justify-center bg-muted/30">
-                                <div className="animate-spin w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full mb-4" />
-                                <p className="text-lg font-medium mb-2">Loading node locations...</p>
-                                <p className="text-muted-foreground">{geoLoadedCount} out of {totalNodesToLoad} nodes loaded</p>
+                    <>
+                        {isLoadingGeo ? (
+                            <Card className="border border-border overflow-hidden rounded-xl">
+                                <div className="h-[700px] flex flex-col items-center justify-center bg-muted/30">
+                                    <div className="animate-spin w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full mb-4" />
+                                    <p className="text-lg font-medium mb-2">Loading node locations...</p>
+                                    <p className="text-muted-foreground">{geoLoadedCount} out of {totalNodes} nodes loaded</p>
+                                </div>
+                            </Card>
+                        ) : (
+                            <Card className="border border-border overflow-hidden rounded-xl">
+                                <div className="h-[700px]">
+                                    <MapComponent pnodes={pnodesWithGeo.length > 0 ? pnodesWithGeo : pnodes} />
+                                </div>
+                            </Card>
+                        )}
+
+                        {/* Progress Toast */}
+                        {showToast && !geoLoadingComplete && (
+                            <div className="fixed bottom-4 right-4 bg-card border border-border rounded-lg shadow-lg p-4 z-50 animate-in slide-in-from-bottom-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="animate-spin w-4 h-4 border-2 border-foreground/20 border-t-foreground rounded-full" />
+                                    <span className="text-sm">{geoLoadedCount} out of {totalNodes} nodes loaded</span>
+                                </div>
                             </div>
-                        </Card>
-                    ) : (
-                        <Card className="border border-border overflow-hidden rounded-xl">
-                            <div className="h-[700px]">
-                                <MapComponent pnodes={pnodesWithGeo.length > 0 ? pnodesWithGeo : pnodes} />
-                            </div>
-                        </Card>
-                    )
+                        )}
+                    </>
                 )}
 
                 {activeTab === "nodes" && <NodesTable nodes={pnodes} />}
@@ -255,3 +283,4 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
         </div>
     );
 }
+
