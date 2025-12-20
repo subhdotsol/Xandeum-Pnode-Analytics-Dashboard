@@ -134,10 +134,10 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Phase 1: Show spinner for 3 seconds
+    // Phase 1: Show spinner for 8 seconds
     const spinnerTimer = setTimeout(() => {
       setLoadingPhase("skeleton");
-    }, 3000);
+    }, 8000);
 
     // Fetch data
     fetchData();
