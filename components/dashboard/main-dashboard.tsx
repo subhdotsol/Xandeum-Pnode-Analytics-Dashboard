@@ -80,6 +80,8 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const [secondsAgo, setSecondsAgo] = useState(0);
     const [pnodesWithGeo, setPnodesWithGeo] = useState<any[]>([]);
     const [isLoadingGeo, setIsLoadingGeo] = useState(false);
+    const [geoLoadedCount, setGeoLoadedCount] = useState(0);
+    const totalNodesToLoad = Math.min(pnodes.length, 50);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -91,19 +93,29 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     useEffect(() => {
         if (activeTab === "map" && pnodesWithGeo.length === 0 && !isLoadingGeo) {
             setIsLoadingGeo(true);
+            setGeoLoadedCount(0);
+
             const fetchGeo = async () => {
-                const geoPromises = pnodes.slice(0, 50).map(async (node) => {
+                const nodesToFetch = pnodes.slice(0, 50);
+                const results: any[] = [];
+
+                for (let i = 0; i < nodesToFetch.length; i++) {
+                    const node = nodesToFetch[i];
                     try {
                         const ip = node.address.split(':')[0];
                         const res = await fetch(`/api/geo?ip=${ip}`);
                         if (res.ok) {
                             const geo = await res.json();
-                            return { ...node, lat: geo.lat, lng: geo.lon, city: geo.city, country: geo.country };
+                            results.push({ ...node, lat: geo.lat, lng: geo.lon, city: geo.city, country: geo.country });
+                        } else {
+                            results.push(node);
                         }
-                    } catch { }
-                    return node;
-                });
-                const results = await Promise.all(geoPromises);
+                    } catch {
+                        results.push(node);
+                    }
+                    setGeoLoadedCount(i + 1);
+                }
+
                 setPnodesWithGeo(results);
                 setIsLoadingGeo(false);
             };
@@ -221,9 +233,17 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 )}
 
                 {activeTab === "map" && (
-                    isLoadingGeo ? <MapSkeleton /> : (
+                    isLoadingGeo ? (
                         <Card className="border border-border overflow-hidden rounded-xl">
-                            <div className="h-[600px]">
+                            <div className="h-[700px] flex flex-col items-center justify-center bg-muted/30">
+                                <div className="animate-spin w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full mb-4" />
+                                <p className="text-lg font-medium mb-2">Loading node locations...</p>
+                                <p className="text-muted-foreground">{geoLoadedCount} out of {totalNodesToLoad} nodes loaded</p>
+                            </div>
+                        </Card>
+                    ) : (
+                        <Card className="border border-border overflow-hidden rounded-xl">
+                            <div className="h-[700px]">
                                 <MapComponent pnodes={pnodesWithGeo.length > 0 ? pnodesWithGeo : pnodes} />
                             </div>
                         </Card>
