@@ -7,353 +7,150 @@
 
 @layer base {
   :root {
-    /* Light theme - Notion-inspired Clean Design */
-    --background: 0 0% 100%;
-    --foreground: 0 0% 9%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 9%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 9%;
-
-    /* Primary - Subtle Purple like Notion */
-    --primary: 250 100% 60%;
-    --primary-foreground: 0 0% 100%;
-
-    /* Secondary - Soft Peach */
-    --secondary: 25 70% 60%;
-    --secondary-foreground: 0 0% 9%;
-
-    /* Accent - Muted Blue */
-    --accent: 210 70% 55%;
-    --accent-foreground: 0 0% 9%;
-
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-
-    --destructive: 0 70% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 250 100% 60%;
-
-    --radius: 0.5rem;
-
-    /* Chart colors - Soft palette like Notion */
-    --chart-1: 250 100% 60%;
-    /* Purple */
-    --chart-2: 25 70% 60%;
-    /* Peach */
-    --chart-3: 142 50% 50%;
-    /* Green */
-    --chart-4: 280 50% 60%;
-    /* Lavender */
-    --chart-5: 340 60% 60%;
-    /* Rose */
+    /* Clean greyscale palette - inspired by minimal design */
+    --background: oklch(0.98 0 0);
+    --foreground: oklch(0.15 0 0);
+    
+    --card: oklch(0.99 0 0);
+    --card-foreground: oklch(0.15 0 0);
+    
+    --popover: oklch(0.99 0 0);
+    --popover-foreground: oklch(0.15 0 0);
+    
+    --primary: oklch(0.25 0 0);
+    --primary-foreground: oklch(0.99 0 0);
+    
+    --secondary: oklch(0.93 0 0);
+    --secondary-foreground: oklch(0.15 0 0);
+    
+    --muted: oklch(0.95 0 0);
+    --muted-foreground: oklch(0.48 0 0);
+    
+    --accent: oklch(0.90 0 0);
+    --accent-foreground: oklch(0.15 0 0);
+    
+    --destructive: oklch(0.55 0.2 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    
+    --border: oklch(0.88 0 0);
+    --input: oklch(0.88 0 0);
+    --ring: oklch(0.50 0 0);
+    
+    /* Chart colors - greyscale with subtle variations */
+    --chart-1: oklch(0.30 0 0);
+    --chart-2: oklch(0.45 0 0);
+    --chart-3: oklch(0.60 0 0);
+    --chart-4: oklch(0.70 0 0);
+    --chart-5: oklch(0.80 0 0);
+    
+    --radius: 0.75rem;
+    
+    /* Sidebar colors */
+    --sidebar: oklch(0.99 0 0);
+    --sidebar-foreground: oklch(0.15 0 0);
+    --sidebar-primary: oklch(0.25 0 0);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.93 0 0);
+    --sidebar-accent-foreground: oklch(0.15 0 0);
+    --sidebar-border: oklch(0.88 0 0);
+    --sidebar-ring: oklch(0.50 0 0);
   }
 
   .dark {
-    /* Dark theme - Deep Black with Vibrant Accents */
-    --background: 0 0% 4%;
-    /* Almost pure black */
-    --foreground: 0 0% 98%;
-
-    --card: 0 0% 8%;
-    /* Very dark cards */
-    --card-foreground: 0 0% 98%;
-
-    --popover: 0 0% 6%;
-    --popover-foreground: 0 0% 98%;
-
-    /* Primary - Bright Blue for dark background */
-    --primary: 217 91% 70%;
-    --primary-foreground: 0 0% 10%;
-
-    /* Secondary - Bright Orange/Gold */
-    --secondary: 30 100% 65%;
-    --secondary-foreground: 0 0% 10%;
-
-    /* Accent - Bright Teal */
-    --accent: 172 89% 60%;
-    --accent-foreground: 0 0% 10%;
-
-    --muted: 0 0% 15%;
-    --muted-foreground: 0 0% 65%;
-
-    --destructive: 0 84% 70%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 18%;
-    --input: 0 0% 15%;
-    --ring: 172 89% 60%;
-
-    /* Chart colors - Extra bright for black background */
-    --chart-1: 217 91% 75%;
-    /* Extra Bright Blue */
-    --chart-2: 30 100% 70%;
-    /* Extra Bright Orange */
-    --chart-3: 142 76% 60%;
-    /* Extra Bright Green */
-    --chart-4: 280 75% 75%;
-    /* Extra Bright Purple */
-    --chart-5: 340 82% 67%;
-    /* Extra Bright Pink */
+    --background: oklch(0.12 0 0);
+    --foreground: oklch(0.95 0 0);
+    
+    --card: oklch(0.15 0 0);
+    --card-foreground: oklch(0.95 0 0);
+    
+    --popover: oklch(0.15 0 0);
+    --popover-foreground: oklch(0.95 0 0);
+    
+    --primary: oklch(0.85 0 0);
+    --primary-foreground: oklch(0.10 0 0);
+    
+    --secondary: oklch(0.22 0 0);
+    --secondary-foreground: oklch(0.95 0 0);
+    
+    --muted: oklch(0.22 0 0);
+    --muted-foreground: oklch(0.58 0 0);
+    
+    --accent: oklch(0.30 0 0);
+    --accent-foreground: oklch(0.95 0 0);
+    
+    --destructive: oklch(0.60 0.2 25);
+    --destructive-foreground: oklch(0.99 0 0);
+    
+    --border: oklch(0.22 0 0);
+    --input: oklch(0.22 0 0);
+    --ring: oklch(0.50 0 0);
+    
+    /* Chart colors - for dark mode */
+    --chart-1: oklch(0.70 0 0);
+    --chart-2: oklch(0.60 0 0);
+    --chart-3: oklch(0.50 0 0);
+    --chart-4: oklch(0.40 0 0);
+    --chart-5: oklch(0.30 0 0);
+    
+    /* Sidebar colors */
+    --sidebar: oklch(0.15 0 0);
+    --sidebar-foreground: oklch(0.95 0 0);
+    --sidebar-primary: oklch(0.85 0 0);
+    --sidebar-primary-foreground: oklch(0.10 0 0);
+    --sidebar-accent: oklch(0.22 0 0);
+    --sidebar-accent-foreground: oklch(0.95 0 0);
+    --sidebar-border: oklch(0.22 0 0);
+    --sidebar-ring: oklch(0.50 0 0);
   }
 }
 
 @layer base {
   * {
-    border-color: hsl(var(--border));
+    border-color: var(--border);
   }
 
   body {
-    color: hsl(var(--foreground));
+    color: var(--foreground);
+    background-color: var(--background);
     font-feature-settings: "rlig" 1, "calt" 1;
-    transition: background-color 0.3s ease, color 0.3s ease;
   }
 
-  /* Dark theme - Black gradient background */
-  .dark body {
-    background: linear-gradient(135deg,
-        #000000 0%,
-        #0a0a0f 25%,
-        #050508 50%,
-        #0a0a0f 75%,
-        #000000 100%);
-    background-attachment: fixed;
-    background-size: 200% 200%;
-    animation: gradientShift 15s ease infinite;
-  }
-
-  /* Light theme background */
-  body {
-    background-color: hsl(var(--background));
-  }
-
-  @keyframes gradientShift {
-    0% {
-      background-position: 0% 50%;
-    }
-
-    50% {
-      background-position: 100% 50%;
-    }
-
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-
-  /* Custom scrollbar - darker for black theme */
+  /* Custom scrollbar - clean design */
   ::-webkit-scrollbar {
-    width: 10px;
+    width: 8px;
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--background));
+    background: var(--background);
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--accent) / 0.5);
-    border-radius: 5px;
+    background: var(--muted-foreground);
+    border-radius: 4px;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--accent) / 0.7);
+    background: var(--foreground);
   }
 }
 
 @layer utilities {
-
-  /* Enhanced Glassmorphism for dark theme */
-  .glass-card {
-    background: hsl(var(--card) / 0.4);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid hsl(var(--border) / 0.5);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  /* Clean card hover effect */
+  .card-hover {
+    transition: all 0.2s ease;
   }
 
-  .glass-card-strong {
-    background: hsl(var(--card) / 0.6);
-    backdrop-filter: blur(24px) saturate(200%);
-    -webkit-backdrop-filter: blur(24px) saturate(200%);
-    border: 1px solid hsl(var(--border) / 0.8);
-    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.5),
-      inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+  .card-hover:hover {
+    background: var(--accent);
   }
 
-  /* Premium glass effect for headers */
-  .glass-header {
-    background: hsl(var(--card) / 0.3);
-    backdrop-filter: blur(16px) saturate(180%);
-    -webkit-backdrop-filter: blur(16px) saturate(180%);
-    border-bottom: 1px solid hsl(var(--border) / 0.5);
-    box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.2);
-  }
-
-  /* Gradient text with enhanced colors */
-  .gradient-text {
-    background: linear-gradient(135deg,
-        hsl(var(--primary)),
-        hsl(var(--accent)));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .gradient-text-vibrant {
-    background: linear-gradient(135deg,
-        hsl(var(--chart-1)),
-        hsl(var(--chart-2)),
-        hsl(var(--chart-3)));
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: gradientFlow 3s ease infinite;
-  }
-
-  @keyframes gradientFlow {
-
-    0%,
-    100% {
-      background-position: 0% center;
-    }
-
-    50% {
-      background-position: 100% center;
-    }
-  }
-
-  /* Reduced glow effects for professional look */
-  .glow-primary {
-    box-shadow: 0 0 12px hsl(var(--primary) / 0.2);
-  }
-
-  .glow-primary-strong {
-    box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
-  }
-
-  .glow-accent {
-    box-shadow: 0 0 12px hsl(var(--accent) / 0.2);
-  }
-
-  .glow-accent-strong {
-    box-shadow: 0 0 20px hsl(var(--accent) / 0.3);
-  }
-
-  /* Enhanced hover effects */
+  /* Subtle hover lift */
   .hover-lift {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-      box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s ease;
   }
 
   .hover-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  .hover-glow {
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-  }
-
-  .hover-glow:hover {
-    box-shadow: 0 0 16px hsl(var(--primary) / 0.3);
-    transform: scale(1.01);
-  }
-
-  /* Card hover with subtle glass effect */
-  .card-hover {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .card-hover:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
-    background: hsl(var(--card) / 0.7);
-  }
-
-  /* Shimmer effect */
-  /* Notion-inspired gradient backgrounds for light mode */
-  .notion-gradient-bg {
-    background: linear-gradient(135deg,
-        rgba(255, 236, 224, 0.3) 0%,
-        rgba(242, 225, 255, 0.3) 50%,
-        rgba(225, 242, 255, 0.3) 100%);
-  }
-
-  .notion-text-gradient {
-    background: linear-gradient(90deg,
-        rgb(142, 108, 239) 0%,
-        rgb(237, 78, 163) 50%,
-        rgb(245, 158, 11) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  /* Light mode specific - remove shadows and colors, add gradients */
-  :root:not(.dark) .light-card {
-    background: white;
-    border: 1px solid hsl(var(--border));
-    box-shadow: none;
-  }
-
-  :root:not(.dark) .light-card:hover {
-    background: linear-gradient(135deg,
-        rgba(255, 236, 224, 0.15) 0%,
-        rgba(242, 225, 255, 0.15) 50%,
-        rgba(225, 242, 255, 0.15) 100%);
-    border-color: hsl(var(--accent) / 0.3);
-  }
-
-  .shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .shimmer::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -150%;
-    width: 150%;
-    height: 100%;
-    background: linear-gradient(90deg,
-        transparent,
-        rgba(255, 255, 255, 0.1),
-        transparent);
-    animation: shimmer 3s infinite;
-  }
-
-  @keyframes shimmer {
-    0% {
-      left: -150%;
-    }
-
-    100% {
-      left: 150%;
-    }
-  }
-
-  /* Slow pulse animation for badges */
-  @keyframes pulse-slow {
-
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0.6;
-    }
-  }
-
-  .animate-pulse-slow {
-    animation: pulse-slow 3s ease-in-out infinite;
   }
 }
 
@@ -363,8 +160,6 @@
   box-shadow: none !important;
   padding: 0 !important;
   border-radius: 0 !important;
-  animation: popupFadeIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards !important;
-  transform-origin: bottom center !important;
 }
 
 .leaflet-popup-content {
@@ -378,57 +173,21 @@
 
 .leaflet-container a.leaflet-popup-close-button {
   color: white !important;
-  font-size: 28px !important;
+  font-size: 24px !important;
   font-weight: 300 !important;
   padding: 8px 12px !important;
   margin: 4px !important;
   opacity: 0.6 !important;
-  transition: opacity 0.2s ease, background 0.2s ease !important;
+  transition: opacity 0.2s ease !important;
   border-radius: 8px !important;
   line-height: 1 !important;
   width: auto !important;
   height: auto !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
 }
 
 .leaflet-container a.leaflet-popup-close-button:hover {
   opacity: 1 !important;
   background: rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Popup Animations */
-@keyframes popupFadeIn {
-  0% {
-    opacity: 0;
-    transform: scale(0.3) translateY(10px);
-  }
-
-  100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-.leaflet-popup.leaflet-zoom-animated {
-  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-}
-
-.leaflet-popup-closing {
-  animation: popupFadeOut 0.2s cubic-bezier(0.4, 0, 1, 1) forwards !important;
-}
-
-@keyframes popupFadeOut {
-  0% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-
-  100% {
-    opacity: 0;
-    transform: scale(0.3) translateY(10px);
-  }
 }
 
 /* Prevent scrolling ONLY on map page */
@@ -458,7 +217,21 @@ html:has(.map-page-container) {
   bottom: 0 !important;
 }
 
+/* Recharts transparent backgrounds */
+.recharts-surface,
+.recharts-wrapper,
+.recharts-responsive-container {
+  background: transparent !important;
+}
+
+.recharts-surface > rect:first-child {
+  fill: transparent !important;
+  display: none !important;
+}
+
 @theme inline {
+  --font-sans: "Inter", "Inter Fallback", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", "JetBrains Mono Fallback", "Courier New", monospace;
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);

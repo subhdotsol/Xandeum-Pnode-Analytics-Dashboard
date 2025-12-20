@@ -1,44 +1,82 @@
-import { Server, Database, Cpu, HardDrive, Activity } from "lucide-react";
 import { pnodeClient } from "@/lib/pnode-client";
 import { analyzeNetwork } from "@/lib/network-analytics";
 import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
 import { NodesTable } from "@/components/dashboard/nodes-table";
 import { VersionDistribution } from "@/components/dashboard/version-distribution";
 import { AutoRefresh } from "@/components/dashboard/auto-refresh";
+import { DashboardClient } from "@/components/dashboard/dashboard-client";
 import { Navbar } from "@/components/sections/navbar";
 import { Footer } from "@/components/sections/footer";
-import { FeatureCard } from "@/components/ui/feature-card";
-import { Tag } from "@/components/ui/tag";
-import { formatBytes } from "@/lib/utils";
+import type { PNodeStats } from "@/types/pnode";
 
 async function getNetworkData() {
   try {
     const pnodes = await pnodeClient.getAllPNodes();
     const analytics = analyzeNetwork(pnodes);
 
+    // Fetch stats for nodes to get aggregate data
+    const statsPromises = pnodes.slice(0, 50).map(async (node) => {
+      try {
+        const stats = await pnodeClient.getPNodeStats(node.address);
+        return { address: node.address, stats };
+      } catch {
+        return { address: node.address, stats: null };
+      }
+    });
+
+    const statsResults = await Promise.all(statsPromises);
+    const validStats = statsResults
+      .filter((r): r is { address: string; stats: PNodeStats } => r.stats !== null)
+      .map(r => r.stats);
+
+    // Calculate aggregate stats
+    const aggregateStats = {
+      totalStorage: validStats.reduce((sum, s) => sum + (s.total_bytes || 0), 0),
+      totalRam: validStats.reduce((sum, s) => sum + (s.ram_total || 0), 0),
+      avgCpu: validStats.length > 0
+        ? validStats.reduce((sum, s) => sum + (s.cpu_percent || 0), 0) / validStats.length
+        : 0,
+      avgUptime: validStats.length > 0
+        ? validStats.reduce((sum, s) => sum + (s.uptime || 0), 0) / validStats.length
+        : 0,
+      totalData: validStats.reduce((sum, s) => sum + (s.file_size || 0), 0),
+      totalPages: validStats.reduce((sum, s) => sum + (s.total_pages || 0), 0),
+    };
+
+    // Get unique locations from IP addresses
+    const uniqueIPs = new Set(pnodes.map(node => node.address.split(':')[0]));
+    const uniquePrefixes = new Set(
+      Array.from(uniqueIPs).map(ip => ip.split('.').slice(0, 2).join('.'))
+    );
+    const estimatedCountries = Math.min(uniquePrefixes.size, 20);
+
     return {
       pnodes,
       analytics,
+      aggregateStats,
+      estimatedCountries,
     };
   } catch (error) {
     console.error("Error fetching network data:", error);
     return {
       pnodes: [],
       analytics: null,
+      aggregateStats: null,
+      estimatedCountries: 0,
     };
   }
 }
 
 export default async function HomePage() {
-  const { pnodes, analytics } = await getNetworkData();
+  const { pnodes, analytics, aggregateStats, estimatedCountries } = await getNetworkData();
 
-  if (!analytics) {
+  if (!analytics || !aggregateStats) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center space-y-4">
-            <h2 className="text-2xl font-bold">Failed to load network data</h2>
+            <h2 className="text-2xl font-semibold">Failed to load network data</h2>
             <p className="text-muted-foreground">
               Please check your connection and try again
             </p>
@@ -55,60 +93,19 @@ export default async function HomePage() {
       <Navbar />
 
       <main className="flex-1">
-        {/* Hero Section with Tag */}
-        <div id="dashboard" className="container mx-auto px-4 py-12 md:py-16">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <Tag>Real-time Network Monitoring</Tag>
-            <h1 className="text-4xl md:text-6xl font-bold gradient-text-vibrant">
-              Xandeum pNode Analytics
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto">
-              Monitor and visualize the health, distribution, and performance of
-              pNodes in the Xandeum distributed storage network.
-            </p>
-            <div className="flex items-center justify-center gap-2 text-sm">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <span className="text-muted-foreground">
-                Live • {analytics.totals.total} nodes online
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Stats Overview - Feature Cards */}
-        <div id="analytics" className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <FeatureCard
-              title="Total Nodes"
-              description="Active pNodes in the network"
-              icon={<Server className="w-6 h-6" />}
-              value={analytics.totals.total}
-            />
-            <FeatureCard
-              title="Health Score"
-              description="Overall network health rating"
-              icon={<Activity className="w-6 h-6" />}
-              value={`${analytics.health.score}/100`}
-            />
-            <FeatureCard
-              title="Network Storage"
-              description={`${analytics.storage.utilizationPercentage.toFixed(1)}% utilized`}
-              icon={<Database className="w-6 h-6" />}
-              value={formatBytes(analytics.storage.totalCapacity)}
-            />
-            <FeatureCard
-              title="Avg CPU Usage"
-              description="Across all active nodes"
-              icon={<Cpu className="w-6 h-6" />}
-              value={`${analytics.performance.averageCPU.toFixed(1)}%`}
-            />
-          </div>
+        {/* Dashboard Header with Stats, Charts */}
+        <div id="dashboard">
+          <DashboardClient
+            analytics={analytics}
+            estimatedCountries={estimatedCountries}
+            aggregateStats={aggregateStats}
+          />
         </div>
 
         {/* Main Content Grid */}
-        <div id="network" className="container mx-auto px-4 py-8">
+        <div id="network" className="max-w-6xl mx-auto px-6 py-8">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Network Health Card - larger */}
+            {/* Network Health Card */}
             <div className="lg:col-span-2">
               <NetworkHealthCard
                 score={analytics.health.score}
@@ -130,32 +127,8 @@ export default async function HomePage() {
           </div>
         </div>
 
-        {/* Additional Stats */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard
-              title="Avg Storage/Node"
-              description="Per node storage capacity"
-              icon={<HardDrive className="w-6 h-6" />}
-              value={formatBytes(analytics.storage.averagePerNode)}
-            />
-            <FeatureCard
-              title="Storage Utilization"
-              description="Network-wide storage usage"
-              icon={<Database className="w-6 h-6" />}
-              value={`${analytics.storage.utilizationPercentage.toFixed(1)}%`}
-            />
-            <FeatureCard
-              title="Avg RAM Usage"
-              description="Average memory consumption"
-              icon={<Cpu className="w-6 h-6" />}
-              value={`${analytics.performance.averageRAM.toFixed(1)}%`}
-            />
-          </div>
-        </div>
-
         {/* Nodes Table */}
-        <div id="nodes" className="container mx-auto px-4 py-8">
+        <div id="nodes" className="max-w-6xl mx-auto px-6 py-8">
           <NodesTable nodes={pnodes} />
         </div>
       </main>

@@ -1,8 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, Filter, ChevronDown, ArrowUpRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Filter, ChevronDown, ArrowUpRight, Cpu, HardDrive, Clock } from "lucide-react";
 import Link from "next/link";
 import {
     Table,
@@ -17,11 +16,15 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button-custom";
 import { getNodeHealth } from "@/lib/network-analytics";
-import { formatUptime } from "@/lib/utils";
-import type { PNodeInfo } from "@/types/pnode";
+import { formatUptime, formatBytes } from "@/lib/utils";
+import type { PNodeInfo, PNodeStats } from "@/types/pnode";
 
 interface NodesTableProps {
     nodes: PNodeInfo[];
+}
+
+interface NodeWithStats extends PNodeInfo {
+    stats?: PNodeStats | null;
 }
 
 const INITIAL_DISPLAY_COUNT = 10;
@@ -29,14 +32,45 @@ const INITIAL_DISPLAY_COUNT = 10;
 export function NodesTable({ nodes }: NodesTableProps) {
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [sortField, setSortField] = useState<"address" | "version" | "lastSeen">(
+    const [sortField, setSortField] = useState<"address" | "version" | "lastSeen" | "cpu" | "ram">(
         "lastSeen"
     );
     const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
     const [showAll, setShowAll] = useState(false);
+    const [nodesWithStats, setNodesWithStats] = useState<NodeWithStats[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch stats for all nodes
+    useEffect(() => {
+        const fetchStats = async () => {
+            setLoading(true);
+            const nodesData: NodeWithStats[] = await Promise.all(
+                nodes.map(async (node) => {
+                    try {
+                        const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
+                        if (res.ok) {
+                            const data = await res.json();
+                            return { ...node, stats: data.stats };
+                        }
+                    } catch {
+                        // Silently fail for individual nodes
+                    }
+                    return { ...node, stats: null };
+                })
+            );
+            setNodesWithStats(nodesData);
+            setLoading(false);
+        };
+
+        if (nodes.length > 0) {
+            fetchStats();
+        }
+    }, [nodes]);
 
     const filteredAndSortedNodes = (() => {
-        let filtered = nodes.filter((node) => {
+        const dataSource = nodesWithStats.length > 0 ? nodesWithStats : nodes.map(n => ({ ...n, stats: null }));
+
+        let filtered = dataSource.filter((node) => {
             const matchesSearch =
                 search === "" ||
                 node.address.toLowerCase().includes(search.toLowerCase()) ||
@@ -62,6 +96,14 @@ export function NodesTable({ nodes }: NodesTableProps) {
                     break;
                 case "lastSeen":
                     comparison = a.last_seen_timestamp - b.last_seen_timestamp;
+                    break;
+                case "cpu":
+                    comparison = (a.stats?.cpu_percent || 0) - (b.stats?.cpu_percent || 0);
+                    break;
+                case "ram":
+                    const ramA = a.stats ? (a.stats.ram_used / a.stats.ram_total) * 100 : 0;
+                    const ramB = b.stats ? (b.stats.ram_used / b.stats.ram_total) * 100 : 0;
+                    comparison = ramA - ramB;
                     break;
             }
 
@@ -101,16 +143,32 @@ export function NodesTable({ nodes }: NodesTableProps) {
         return formatUptime(delta) + " ago";
     };
 
+    const formatRamPercent = (stats: PNodeStats | null | undefined) => {
+        if (!stats || !stats.ram_total) return "–";
+        return ((stats.ram_used / stats.ram_total) * 100).toFixed(1) + "%";
+    };
+
+    const formatStorage = (stats: PNodeStats | null | undefined) => {
+        if (!stats) return "–";
+        return formatBytes(stats.file_size || stats.total_bytes || 0);
+    };
+
+    const formatNodeUptime = (stats: PNodeStats | null | undefined) => {
+        if (!stats || !stats.uptime) return "–";
+        return formatUptime(stats.uptime);
+    };
+
     return (
-        <Card className="light-card dark:glass-card border-border">
+        <Card className="border border-border bg-card">
             <CardHeader>
                 <div className="flex items-center justify-between">
-                    <CardTitle className="flex items-center gap-2">
-                        <Filter className="w-5 h-5 text-accent" />
-                        <span className="dark:notion-text-gradient">Network Nodes</span>
+                    <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                        <Filter className="w-5 h-5" />
+                        Node Registry
                     </CardTitle>
                     <div className="text-sm text-muted-foreground">
                         {displayedNodes.length} / {filteredAndSortedNodes.length} nodes
+                        {loading && <span className="ml-2">(Loading stats...)</span>}
                     </div>
                 </div>
             </CardHeader>
@@ -139,10 +197,11 @@ export function NodesTable({ nodes }: NodesTableProps) {
                 </div>
 
                 {/* Table */}
-                <div className="rounded-md border border-border overflow-hidden">
+                <div className="rounded-md border border-border overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
+                                <TableHead>Status</TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:text-foreground"
                                     onClick={() => handleSort("address")}
@@ -150,13 +209,41 @@ export function NodesTable({ nodes }: NodesTableProps) {
                                     Address{" "}
                                     {sortField === "address" && (sortOrder === "asc" ? "↑" : "↓")}
                                 </TableHead>
-                                <TableHead>Status</TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:text-foreground"
                                     onClick={() => handleSort("version")}
                                 >
                                     Version{" "}
                                     {sortField === "version" && (sortOrder === "asc" ? "↑" : "↓")}
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:text-foreground"
+                                    onClick={() => handleSort("cpu")}
+                                >
+                                    <div className="flex items-center gap-1">
+                                        <Cpu className="w-3 h-3" />
+                                        CPU{" "}
+                                        {sortField === "cpu" && (sortOrder === "asc" ? "↑" : "↓")}
+                                    </div>
+                                </TableHead>
+                                <TableHead
+                                    className="cursor-pointer hover:text-foreground"
+                                    onClick={() => handleSort("ram")}
+                                >
+                                    RAM{" "}
+                                    {sortField === "ram" && (sortOrder === "asc" ? "↑" : "↓")}
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-1">
+                                        <HardDrive className="w-3 h-3" />
+                                        Storage
+                                    </div>
+                                </TableHead>
+                                <TableHead>
+                                    <div className="flex items-center gap-1">
+                                        <Clock className="w-3 h-3" />
+                                        Uptime
+                                    </div>
                                 </TableHead>
                                 <TableHead
                                     className="cursor-pointer hover:text-foreground"
@@ -171,52 +258,60 @@ export function NodesTable({ nodes }: NodesTableProps) {
                         <TableBody>
                             {displayedNodes.length === 0 ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="text-center py-8">
+                                    <TableCell colSpan={9} className="text-center py-8">
                                         <p className="text-muted-foreground">No nodes found</p>
                                     </TableCell>
                                 </TableRow>
                             ) : (
-                                <AnimatePresence mode="popLayout">
-                                    {displayedNodes.map((node, index) => (
-                                        <motion.tr
-                                            key={node.address}
-                                            initial={{ opacity: 0, x: -20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            exit={{ opacity: 0, x: 20 }}
-                                            transition={{ delay: index * 0.02 }}
-                                            className="border-b border-border hover:bg-muted/50 transition-colors"
-                                        >
-                                            <TableCell className="font-mono text-sm">
-                                                <div className="flex items-center gap-2">
-                                                    <span>{node.address}</span>
-                                                    <Link
-                                                        href={`/pnode/${encodeURIComponent(node.address)}`}
-                                                        className="text-muted-foreground hover:text-primary active:text-primary/70 transition-all hover:scale-110 active:scale-95"
-                                                        title="View node details"
-                                                    >
-                                                        <ArrowUpRight className="w-4 h-4" />
-                                                    </Link>
-                                                </div>
-                                            </TableCell>
-                                            <TableCell>{getHealthBadge(node.last_seen_timestamp)}</TableCell>
-                                            <TableCell>
-                                                <span className="font-mono text-sm">{node.version || "unknown"}</span>
-                                            </TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">
-                                                {getTimeAgo(node.last_seen_timestamp)}
-                                            </TableCell>
-                                            <TableCell className="font-mono text-xs text-muted-foreground truncate max-w-[200px]">
-                                                {node.pubkey || "N/A"}
-                                            </TableCell>
-                                        </motion.tr>
-                                    ))}
-                                </AnimatePresence>
+                                displayedNodes.map((node) => (
+                                    <TableRow
+                                        key={node.address}
+                                        className="hover:bg-muted/50 transition-colors"
+                                    >
+                                        <TableCell>{getHealthBadge(node.last_seen_timestamp)}</TableCell>
+                                        <TableCell className="font-mono text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <span>{node.address}</span>
+                                                <Link
+                                                    href={`/pnode/${encodeURIComponent(node.address)}`}
+                                                    className="text-muted-foreground hover:text-foreground transition-colors"
+                                                    title="View node details"
+                                                >
+                                                    <ArrowUpRight className="w-4 h-4" />
+                                                </Link>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <span className="font-mono text-sm">{node.version || "–"}</span>
+                                        </TableCell>
+                                        <TableCell className="text-sm">
+                                            {node.stats?.cpu_percent !== undefined
+                                                ? `${node.stats.cpu_percent.toFixed(1)}%`
+                                                : "–"}
+                                        </TableCell>
+                                        <TableCell className="text-sm">
+                                            {formatRamPercent(node.stats)}
+                                        </TableCell>
+                                        <TableCell className="text-sm">
+                                            {formatStorage(node.stats)}
+                                        </TableCell>
+                                        <TableCell className="text-sm text-muted-foreground">
+                                            {formatNodeUptime(node.stats)}
+                                        </TableCell>
+                                        <TableCell className="text-xs text-muted-foreground">
+                                            {getTimeAgo(node.last_seen_timestamp)}
+                                        </TableCell>
+                                        <TableCell className="font-mono text-xs text-muted-foreground">
+                                            {node.pubkey ? `${node.pubkey.slice(0, 8)}...` : "–"}
+                                        </TableCell>
+                                    </TableRow>
+                                ))
                             )}
                         </TableBody>
                     </Table>
                 </div>
 
-                {/* View More button - Outside table */}
+                {/* View More button */}
                 {hasMore && !showAll && (
                     <div className="flex justify-center py-4">
                         <Button

@@ -38,27 +38,27 @@ const socialLinks = [
 
 export function Footer() {
     return (
-        <footer className="border-t border-border/50 mt-20">
+        <footer className="border-t border-border mt-16">
             <div className="container mx-auto px-4 py-12">
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
                     {/* Brand Column */}
                     <div className="col-span-2">
                         <Link href="/" className="flex items-center gap-2 mb-4">
-                            <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-                                <Activity className="w-5 h-5 text-accent" />
+                            <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                                <Activity className="w-5 h-5" />
                             </div>
-                            <span className="font-bold text-lg">Xandeum Analytics</span>
+                            <span className="font-semibold">Xandeum Analytics</span>
                         </Link>
                         <p className="text-sm text-muted-foreground max-w-xs mb-4">
                             Real-time monitoring and visualization of the Xandeum distributed
                             storage network.
                         </p>
-                        <div className="flex gap-4">
+                        <div className="flex gap-3">
                             {socialLinks.map((social) => (
                                 <a
                                     key={social.label}
                                     href={social.href}
-                                    className="w-9 h-9 rounded-full border border-border/50 flex items-center justify-center hover:border-accent hover:text-accent transition-colors"
+                                    className="w-9 h-9 rounded-full border border-border flex items-center justify-center hover:bg-muted transition-colors"
                                     aria-label={social.label}
                                 >
                                     <social.icon className="w-4 h-4" />
@@ -70,7 +70,7 @@ export function Footer() {
                     {/* Links Columns */}
                     {footerLinks.map((column) => (
                         <div key={column.title}>
-                            <h3 className="font-semibold mb-4">{column.title}</h3>
+                            <h3 className="font-medium mb-4">{column.title}</h3>
                             <ul className="space-y-3">
                                 {column.links.map((link) => (
                                     <li key={link.label}>
@@ -88,7 +88,7 @@ export function Footer() {
                 </div>
 
                 {/* Bottom Bar */}
-                <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-sm text-muted-foreground">
                         © {new Date().getFullYear()} Xandeum Labs. All rights reserved.
                     </p>

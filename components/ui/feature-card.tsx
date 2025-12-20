@@ -10,20 +10,20 @@ interface FeatureCardProps {
 
 export function FeatureCard({ title, description, icon, value }: FeatureCardProps) {
     return (
-        <Card className="glass-card border-border/50 hover:border-accent/50 transition-all group">
+        <Card className="border border-border bg-card hover:bg-accent/50 transition-colors">
             <CardContent className="p-6">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                     {icon && (
-                        <div className="w-12 h-12 rounded-lg bg-accent/5 dark:bg-accent/10 flex items-center justify-center text-accent group-hover:scale-110 transition-transform">
+                        <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center text-muted-foreground">
                             {icon}
                         </div>
                     )}
                     {value && (
-                        <div className="text-4xl font-bold dark:notion-text-gradient">{value}</div>
+                        <div className="text-3xl font-bold">{value}</div>
                     )}
                     <div>
-                        <h3 className="text-lg font-semibold mb-2">{title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
+                        <h3 className="text-sm font-medium text-muted-foreground">{title}</h3>
+                        <p className="text-xs text-muted-foreground mt-1">
                             {description}
                         </p>
                     </div>

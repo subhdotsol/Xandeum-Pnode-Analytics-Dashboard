@@ -1,7 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { motion } from "framer-motion";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { PackageCheck, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,25 +13,14 @@ interface VersionDistributionProps {
     total: number;
 }
 
-// Use CSS variables for dynamic theming
-const getChartColors = () => {
-    if (typeof window === "undefined") return [];
-    const styles = getComputedStyle(document.documentElement);
-    return [
-        styles.getPropertyValue("--chart-1").trim() || "217 91% 60%",
-        styles.getPropertyValue("--chart-2").trim() || "25 95% 53%",
-        styles.getPropertyValue("--chart-3").trim() || "142 71% 45%",
-        styles.getPropertyValue("--chart-4").trim() || "280 65% 60%",
-        styles.getPropertyValue("--chart-5").trim() || "340 82% 52%",
-    ].map(hsl => `hsl(${hsl})`);
-};
-
-const FALLBACK_COLORS = [
-    "hsl(217 91% 60%)",  // Blue
-    "hsl(25 95% 53%)",   // Orange
-    "hsl(142 71% 45%)",  // Green
-    "hsl(280 65% 60%)",  // Purple
-    "hsl(340 82% 52%)",  // Pink
+// Vibrant chart colors
+const CHART_COLORS = [
+    "#6366f1", // Indigo
+    "#f59e0b", // Amber
+    "#10b981", // Emerald
+    "#ec4899", // Pink
+    "#8b5cf6", // Violet
+    "#06b6d4", // Cyan
 ];
 
 export function VersionDistribution({
@@ -42,15 +30,6 @@ export function VersionDistribution({
     outdatedPercentage,
     total,
 }: VersionDistributionProps) {
-    const [colors, setColors] = React.useState(FALLBACK_COLORS);
-
-    React.useEffect(() => {
-        const chartColors = getChartColors();
-        if (chartColors.length > 0) {
-            setColors(chartColors);
-        }
-    }, []);
-
     const data = Object.entries(distribution).map(([version, count]) => ({
         name: version,
         value: count,
@@ -58,16 +37,16 @@ export function VersionDistribution({
     }));
 
     return (
-        <Card className="glass-card-strong border-border h-full">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <PackageCheck className="w-5 h-5 text-primary" />
-                    <span>Version Distribution</span>
+        <Card className="border border-border bg-card h-full">
+            <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold">
+                    <PackageCheck className="w-5 h-5" />
+                    Version Distribution
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
                 {/* Chart */}
-                <div className="h-64">
+                <div className="h-44">
                     <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                             <Pie
@@ -75,84 +54,74 @@ export function VersionDistribution({
                                 cx="50%"
                                 cy="50%"
                                 labelLine={false}
-                                label={({ percentage }) => `${percentage}%`}
-                                outerRadius={80}
+                                outerRadius={65}
                                 fill="#8884d8"
                                 dataKey="value"
                             >
                                 {data.map((entry, index) => (
                                     <Cell
                                         key={`cell-${index}`}
-                                        fill={colors[index % colors.length]}
+                                        fill={CHART_COLORS[index % CHART_COLORS.length]}
                                     />
                                 ))}
                             </Pie>
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: "hsl(var(--card))",
-                                    border: "1px solid hsl(var(--border))",
+                                    backgroundColor: "var(--card)",
+                                    border: "1px solid var(--border)",
                                     borderRadius: "8px",
-                                    color: "hsl(var(--foreground))",
+                                    color: "var(--foreground)",
                                 }}
+                                formatter={(value: number, name: string) => [`${value} nodes`, `v${name}`]}
                             />
                         </PieChart>
                     </ResponsiveContainer>
                 </div>
 
                 {/* Version List */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                     {data.map((item, index) => (
-                        <motion.div
+                        <div
                             key={item.name}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.1 }}
-                            className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                            className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50 transition-colors"
                         >
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 min-w-0">
                                 <div
-                                    className="w-3 h-3 rounded-full"
-                                    style={{ backgroundColor: colors[index % colors.length] }}
+                                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
                                 />
-                                <span className="font-mono text-sm">
+                                <span className="text-sm font-mono truncate">
                                     v{item.name}
-                                    {item.name === latest && (
-                                        <span className="ml-2 text-xs text-primary font-semibold">
-                                            (Latest)
-                                        </span>
-                                    )}
                                 </span>
+                                {item.name === latest && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 flex-shrink-0">
+                                        Latest
+                                    </span>
+                                )}
                             </div>
-                            <div className="text-sm">
-                                <span className="font-bold">{item.value}</span>{" "}
-                                <span className="text-muted-foreground">
-                                    ({item.percentage}%)
-                                </span>
+                            <div className="text-sm text-muted-foreground flex-shrink-0 ml-2">
+                                <span className="font-medium text-foreground">{item.value}</span>
+                                <span className="ml-1 text-xs">({item.percentage}%)</span>
                             </div>
-                        </motion.div>
+                        </div>
                     ))}
                 </div>
 
                 {/* Outdated Warning */}
                 {outdatedPercentage > 20 && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20"
-                    >
-                        <div className="flex items-start gap-3">
-                            <AlertCircle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                    <div className="p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800">
+                        <div className="flex items-start gap-2">
+                            <AlertCircle className="w-4 h-4 text-yellow-600 dark:text-yellow-500 mt-0.5 flex-shrink-0" />
                             <div>
-                                <p className="text-sm font-medium text-yellow-500">
-                                    {outdatedCount} nodes running outdated versions
+                                <p className="text-xs font-medium text-yellow-800 dark:text-yellow-400">
+                                    {outdatedCount} nodes outdated
                                 </p>
-                                <p className="text-xs text-muted-foreground mt-1">
-                                    {outdatedPercentage.toFixed(1)}% of the network should upgrade
-                                    to v{latest}
+                                <p className="text-[10px] text-yellow-700 dark:text-yellow-500 mt-0.5">
+                                    {outdatedPercentage.toFixed(1)}% should upgrade to v{latest}
                                 </p>
                             </div>
                         </div>
-                    </motion.div>
+                    </div>
                 )}
             </CardContent>
         </Card>
