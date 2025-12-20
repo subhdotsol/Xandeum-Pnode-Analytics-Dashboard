@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -92,52 +92,54 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
         return () => clearInterval(interval);
     }, []);
 
+    const geoFetchStarted = useRef(false);
+
     useEffect(() => {
-        if (activeTab === "map" && !isLoadingGeo && !geoLoadingComplete) {
+        if (activeTab === "map" && !geoFetchStarted.current && pnodes.length > 0) {
+            geoFetchStarted.current = true;
             setIsLoadingGeo(true);
             setGeoLoadedCount(0);
-            setShowToast(false);
 
             const fetchGeo = async () => {
+                const BATCH_SIZE = 20;
                 const results: any[] = [];
+                const nodesToFetch = [...pnodes]; // Copy to avoid issues
 
-                for (let i = 0; i < pnodes.length; i++) {
-                    const node = pnodes[i];
-                    try {
-                        const ip = node.address.split(':')[0];
-                        const res = await fetch(`/api/geo?ip=${ip}`);
-                        if (res.ok) {
-                            const geo = await res.json();
-                            results.push({ ...node, lat: geo.lat, lng: geo.lon, city: geo.city, country: geo.country });
-                        } else {
-                            results.push(node);
-                        }
-                    } catch {
-                        results.push(node);
-                    }
+                for (let i = 0; i < nodesToFetch.length; i += BATCH_SIZE) {
+                    const batch = nodesToFetch.slice(i, i + BATCH_SIZE);
 
-                    setGeoLoadedCount(i + 1);
+                    // Fetch batch in parallel
+                    const batchPromises = batch.map(async (node) => {
+                        try {
+                            const ip = node.address.split(':')[0];
+                            const res = await fetch(`/api/geo?ip=${ip}`);
+                            if (res.ok) {
+                                const geo = await res.json();
+                                return { ...node, lat: geo.lat, lng: geo.lon, city: geo.city, country: geo.country };
+                            }
+                        } catch { }
+                        return node;
+                    });
 
-                    // After first 10 nodes, show map and enable toast for progress
-                    if (i === 9) {
-                        setPnodesWithGeo([...results]);
+                    const batchResults = await Promise.all(batchPromises);
+                    results.push(...batchResults);
+
+                    setGeoLoadedCount(results.length);
+                    setPnodesWithGeo([...results]);
+
+                    // After first batch, hide loading spinner and show toast
+                    if (i === 0) {
                         setIsLoadingGeo(false);
                         setShowToast(true);
-                    } else if (i > 9 && i % 10 === 0) {
-                        // Update map every 10 nodes
-                        setPnodesWithGeo([...results]);
                     }
                 }
 
-                setPnodesWithGeo(results);
                 setGeoLoadingComplete(true);
-
-                // Hide toast after 3 seconds
                 setTimeout(() => setShowToast(false), 3000);
             };
             fetchGeo();
         }
-    }, [activeTab, pnodes, isLoadingGeo, geoLoadingComplete]);
+    }, [activeTab, pnodes.length]);
 
     const handleRefresh = useCallback(() => {
         setIsRefreshing(true);
@@ -268,10 +270,19 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
 
                         {/* Progress Toast */}
                         {showToast && !geoLoadingComplete && (
-                            <div className="fixed bottom-4 right-4 bg-card border border-border rounded-lg shadow-lg p-4 z-50 animate-in slide-in-from-bottom-4">
-                                <div className="flex items-center gap-3">
+                            <div className="fixed bottom-4 right-4 bg-card border border-border rounded-lg shadow-lg p-4 z-50 min-w-[280px]">
+                                <div className="flex items-center gap-3 mb-2">
                                     <div className="animate-spin w-4 h-4 border-2 border-foreground/20 border-t-foreground rounded-full" />
-                                    <span className="text-sm">{geoLoadedCount} out of {totalNodes} nodes loaded</span>
+                                    <span className="text-sm font-medium">Loading nodes...</span>
+                                </div>
+                                <div className="space-y-1">
+                                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-foreground/70 rounded-full transition-all duration-300"
+                                            style={{ width: `${(geoLoadedCount / totalNodes) * 100}%` }}
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground text-right">{geoLoadedCount} / {totalNodes}</p>
                                 </div>
                             </div>
                         )}
