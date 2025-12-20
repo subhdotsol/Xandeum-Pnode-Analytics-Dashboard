@@ -257,8 +257,8 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
 
                 {/* Map Tab */}
                 {activeTab === "map" && (
-                    <Card className="border border-border overflow-hidden">
-                        <div className="h-[500px]">
+                    <Card className="border border-border overflow-hidden rounded-xl">
+                        <div className="h-[600px]">
                             {isLoadingGeo ? (
                                 <div className="h-full flex items-center justify-center bg-muted/50">
                                     <p className="text-muted-foreground">Loading node locations...</p>

@@ -122,10 +122,10 @@ function DraggablePopup({
 
     return (
         <div
-            className="fixed z-[1001] select-none"
+            className="absolute z-[1001] select-none"
             style={{
-                left: `${position.x}px`,
-                top: `${position.y}px`,
+                left: `${Math.min(position.x, 400)}px`,
+                top: `${Math.min(position.y, 300)}px`,
                 cursor: isDragging ? 'grabbing' : 'grab'
             }}
             onMouseDown={handleMouseDown}
@@ -308,7 +308,7 @@ export default function MapComponent({ pnodes }: { pnodes: PNode[] }) {
     };
 
     return (
-        <>
+        <div className="relative h-full w-full">
             <MapContainer
                 center={[20, 0]}
                 zoom={2}
@@ -352,7 +352,7 @@ export default function MapComponent({ pnodes }: { pnodes: PNode[] }) {
                     initialY={popupPosition.y}
                 />
             )}
-        </>
+        </div>
     );
 }
 
