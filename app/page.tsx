@@ -1,12 +1,7 @@
 import { pnodeClient } from "@/lib/pnode-client";
 import { analyzeNetwork } from "@/lib/network-analytics";
-import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
-import { NodesTable } from "@/components/dashboard/nodes-table";
-import { VersionDistribution } from "@/components/dashboard/version-distribution";
+import { MainDashboard } from "@/components/dashboard/main-dashboard";
 import { AutoRefresh } from "@/components/dashboard/auto-refresh";
-import { DashboardClient } from "@/components/dashboard/dashboard-client";
-import { Navbar } from "@/components/sections/navbar";
-import { Footer } from "@/components/sections/footer";
 import type { PNodeStats } from "@/types/pnode";
 
 async function getNetworkData() {
@@ -14,8 +9,8 @@ async function getNetworkData() {
     const pnodes = await pnodeClient.getAllPNodes();
     const analytics = analyzeNetwork(pnodes);
 
-    // Fetch stats for nodes to get aggregate data
-    const statsPromises = pnodes.slice(0, 50).map(async (node) => {
+    // Fetch stats for a small sample of nodes (10 only for faster load)
+    const statsPromises = pnodes.slice(0, 10).map(async (node) => {
       try {
         const stats = await pnodeClient.getPNodeStats(node.address);
         return { address: node.address, stats };
@@ -72,68 +67,26 @@ export default async function HomePage() {
 
   if (!analytics || !aggregateStats) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl font-semibold">Failed to load network data</h2>
-            <p className="text-muted-foreground">
-              Please check your connection and try again
-            </p>
-          </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl font-semibold">Failed to load network data</h2>
+          <p className="text-muted-foreground">
+            Please check your connection and try again
+          </p>
         </div>
-        <Footer />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <>
       <AutoRefresh interval={60000} />
-      <Navbar />
-
-      <main className="flex-1">
-        {/* Dashboard Header with Stats, Charts */}
-        <div id="dashboard">
-          <DashboardClient
-            analytics={analytics}
-            estimatedCountries={estimatedCountries}
-            aggregateStats={aggregateStats}
-          />
-        </div>
-
-        {/* Main Content Grid */}
-        <div id="network" className="max-w-6xl mx-auto px-6 py-8">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Network Health Card */}
-            <div className="lg:col-span-2">
-              <NetworkHealthCard
-                score={analytics.health.score}
-                totals={analytics.totals}
-                health={analytics.health}
-              />
-            </div>
-
-            {/* Version Distribution */}
-            <div>
-              <VersionDistribution
-                distribution={analytics.versions.distribution}
-                latest={analytics.versions.latest}
-                outdatedCount={analytics.versions.outdatedCount}
-                outdatedPercentage={analytics.versions.outdatedPercentage}
-                total={analytics.totals.total}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Nodes Table */}
-        <div id="nodes" className="max-w-6xl mx-auto px-6 py-8">
-          <NodesTable nodes={pnodes} />
-        </div>
-      </main>
-
-      <Footer />
-    </div>
+      <MainDashboard
+        analytics={analytics}
+        pnodes={pnodes}
+        estimatedCountries={estimatedCountries}
+        aggregateStats={aggregateStats}
+      />
+    </>
   );
 }
