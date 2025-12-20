@@ -39,7 +39,7 @@ const tabs: { id: TabType; label: string }[] = [
     { id: "dashboard", label: "Dashboard" },
     { id: "analytics", label: "Analytics" },
     { id: "map", label: "Map" },
-    { id: "nodes", label: "Nodes Data" },
+    { id: "nodes", label: "Registry" },
 ];
 
 function StatCard({ title, value, subtitle, icon: Icon }: { title: string; value: string | number; subtitle: string; icon: React.ElementType }) {
