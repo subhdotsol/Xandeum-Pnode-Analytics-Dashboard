@@ -97,7 +97,6 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const [pnodesWithGeo, setPnodesWithGeo] = useState<any[]>([]);
     const [isLoadingGeo, setIsLoadingGeo] = useState(false);
 
-    // Update seconds counter
     useEffect(() => {
         const interval = setInterval(() => {
             setSecondsAgo((prev) => prev + 1);
@@ -105,12 +104,9 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
         return () => clearInterval(interval);
     }, []);
 
-    // Fetch geo data when map tab is selected (client-side only)
     useEffect(() => {
         if (activeTab === "map" && pnodesWithGeo.length === 0 && !isLoadingGeo) {
             setIsLoadingGeo(true);
-
-            // Fetch geo for first 50 nodes only
             const fetchGeo = async () => {
                 const geoPromises = pnodes.slice(0, 50).map(async (node) => {
                     try {
@@ -120,17 +116,13 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                             const geo = await res.json();
                             return { ...node, lat: geo.lat, lng: geo.lon, city: geo.city, country: geo.country };
                         }
-                    } catch {
-                        // Silently fail
-                    }
+                    } catch { }
                     return node;
                 });
-
                 const results = await Promise.all(geoPromises);
                 setPnodesWithGeo(results);
                 setIsLoadingGeo(false);
             };
-
             fetchGeo();
         }
     }, [activeTab, pnodes, pnodesWithGeo.length, isLoadingGeo]);
@@ -153,160 +145,92 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
 
     return (
         <div className="min-h-screen bg-background">
-            {/* Header */}
-            <header className="border-b border-border bg-background sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-6">
-                    <div className="flex items-center justify-between h-14">
-                        {/* Logo */}
-                        <div className="flex items-center gap-2">
-                            <Image
-                                src="/xandeum-logo.png"
-                                alt="Xandeum"
-                                width={28}
-                                height={28}
-                                className="rounded"
-                            />
-                            <span className="font-semibold">Xandeum</span>
-                        </div>
-
-                        {/* Center Tabs */}
-                        <nav className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === tab.id
-                                        ? "bg-background text-foreground shadow-sm"
-                                        : "text-muted-foreground hover:text-foreground"
-                                        }`}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
-                        </nav>
-
-                        {/* Right: Last Sync + Theme Toggle */}
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <span className="text-xs hidden sm:inline">Last sync {formatTime(secondsAgo)}</span>
-                                <button
-                                    onClick={handleRefresh}
-                                    disabled={isRefreshing}
-                                    className="p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50"
-                                    title="Refresh data"
-                                >
-                                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                                </button>
-                            </div>
-                            <ThemeToggle />
-                        </div>
+            <main className="max-w-6xl mx-auto px-6 py-8">
+                {/* Header: Logo + Title + Sync/Theme */}
+                <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                        <Image src="/icon.png" alt="Xandeum" width={32} height={32} className="rounded" />
+                        <span className="font-semibold text-lg">Xandeum</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Last sync {formatTime(secondsAgo)}</span>
+                        <button
+                            onClick={handleRefresh}
+                            disabled={isRefreshing}
+                            className="p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50"
+                        >
+                            <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                        </button>
+                        <ThemeToggle />
                     </div>
                 </div>
-            </header>
 
-            {/* Main Content */}
-            <main className="max-w-6xl mx-auto px-6 py-8">
+                {/* Title + Subtitle */}
+                <div className="text-center mb-4">
+                    <h1 className="text-3xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
+                    <p className="text-muted-foreground">Real-time monitoring of the Xandeum distributed storage network</p>
+                </div>
+
+                {/* Navigation Tabs - BELOW the subtitle */}
+                <div className="flex justify-center mb-8">
+                    <nav className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
+                        {tabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                onClick={() => setActiveTab(tab.id)}
+                                className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === tab.id
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground"
+                                    }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
+                    </nav>
+                </div>
+
                 {/* Dashboard Tab */}
                 {activeTab === "dashboard" && (
                     <div className="space-y-8">
-                        {/* Header */}
-                        <div>
-                            <h1 className="text-3xl font-bold tracking-tight mb-2">
-                                Xandeum pNode Analytics
-                            </h1>
-                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                <div className="w-2 h-2 rounded-full bg-green-500" />
-                                <span>{analytics.totals.total} nodes active</span>
-                            </div>
+                        <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                            <div className="w-2 h-2 rounded-full bg-green-500" />
+                            <span>{analytics.totals.total} nodes active</span>
                         </div>
 
-                        {/* Primary Stats Row */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                            <StatCard
-                                title="Total Nodes"
-                                value={analytics.totals.total}
-                                subtitle="Active in cluster"
-                                icon={Server}
-                            />
-                            <StatCard
-                                title="Online Status"
-                                value={analytics.health.healthy}
-                                subtitle={`${onlinePercentage}% operational`}
-                                icon={Globe}
-                            />
-                            <StatCard
-                                title="Version Count"
-                                value={uniqueVersions}
-                                subtitle={`Latest: ${analytics.versions.latest}`}
-                                icon={Package}
-                            />
-                            <StatCard
-                                title="Locations"
-                                value={estimatedCountries}
-                                subtitle="Countries worldwide"
-                                icon={MapPin}
-                            />
+                            <StatCard title="Total Nodes" value={analytics.totals.total} subtitle="Active in cluster" icon={Server} />
+                            <StatCard title="Online Status" value={analytics.health.healthy} subtitle={`${onlinePercentage}% operational`} icon={Globe} />
+                            <StatCard title="Version Count" value={uniqueVersions} subtitle={`Latest: ${analytics.versions.latest}`} icon={Package} />
+                            <StatCard title="Locations" value={estimatedCountries} subtitle="Countries worldwide" icon={MapPin} />
                         </div>
 
-                        {/* Resources, Performance, Throughput Row */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Card className="border border-border bg-card">
                                 <CardContent className="p-6">
                                     <h3 className="text-sm font-medium mb-4">Resources</h3>
-                                    <MetricRow
-                                        label="Storage"
-                                        value={formatBytes(aggregateStats.totalStorage)}
-                                        icon={HardDrive}
-                                    />
-                                    <MetricRow
-                                        label="RAM"
-                                        value={formatBytes(aggregateStats.totalRam)}
-                                        icon={Database}
-                                    />
+                                    <MetricRow label="Storage" value={formatBytes(aggregateStats.totalStorage)} icon={HardDrive} />
+                                    <MetricRow label="RAM" value={formatBytes(aggregateStats.totalRam)} icon={Database} />
                                 </CardContent>
                             </Card>
-
                             <Card className="border border-border bg-card">
                                 <CardContent className="p-6">
                                     <h3 className="text-sm font-medium mb-4">Performance</h3>
-                                    <MetricRow
-                                        label="Avg CPU"
-                                        value={`${aggregateStats.avgCpu.toFixed(1)}%`}
-                                        icon={Cpu}
-                                    />
-                                    <MetricRow
-                                        label="Uptime"
-                                        value={formatUptime(aggregateStats.avgUptime)}
-                                        icon={Clock}
-                                    />
+                                    <MetricRow label="Avg CPU" value={`${aggregateStats.avgCpu.toFixed(1)}%`} icon={Cpu} />
+                                    <MetricRow label="Uptime" value={formatUptime(aggregateStats.avgUptime)} icon={Clock} />
                                 </CardContent>
                             </Card>
-
                             <Card className="border border-border bg-card">
                                 <CardContent className="p-6">
                                     <h3 className="text-sm font-medium mb-4">Throughput</h3>
-                                    <MetricRow
-                                        label="Data"
-                                        value={formatBytes(aggregateStats.totalData)}
-                                        icon={Activity}
-                                    />
-                                    <MetricRow
-                                        label="Pages"
-                                        value={aggregateStats.totalPages.toLocaleString()}
-                                        icon={FileText}
-                                    />
+                                    <MetricRow label="Data" value={formatBytes(aggregateStats.totalData)} icon={Activity} />
+                                    <MetricRow label="Pages" value={aggregateStats.totalPages.toLocaleString()} icon={FileText} />
                                 </CardContent>
                             </Card>
                         </div>
 
-                        {/* Network Health + Version Distribution */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                             <div className="lg:col-span-2">
-                                <NetworkHealthCard
-                                    score={analytics.health.score}
-                                    totals={analytics.totals}
-                                    health={analytics.health}
-                                />
+                                <NetworkHealthCard score={analytics.health.score} totals={analytics.totals} health={analytics.health} />
                             </div>
                             <div>
                                 <VersionDistribution
@@ -326,38 +250,28 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     <div className="flex items-center justify-center min-h-[400px]">
                         <div className="text-center space-y-4">
                             <h2 className="text-2xl font-semibold">Analytics</h2>
-                            <p className="text-muted-foreground">
-                                Advanced analytics coming soon...
-                            </p>
+                            <p className="text-muted-foreground">Advanced analytics coming soon...</p>
                         </div>
                     </div>
                 )}
 
                 {/* Map Tab */}
                 {activeTab === "map" && (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-bold">Network Map</h2>
-                        <Card className="border border-border overflow-hidden">
-                            <div className="h-[500px]">
-                                {isLoadingGeo ? (
-                                    <div className="h-full flex items-center justify-center bg-muted/50">
-                                        <p className="text-muted-foreground">Loading node locations...</p>
-                                    </div>
-                                ) : (
-                                    <MapComponent pnodes={pnodesWithGeo.length > 0 ? pnodesWithGeo : pnodes} />
-                                )}
-                            </div>
-                        </Card>
-                    </div>
+                    <Card className="border border-border overflow-hidden">
+                        <div className="h-[500px]">
+                            {isLoadingGeo ? (
+                                <div className="h-full flex items-center justify-center bg-muted/50">
+                                    <p className="text-muted-foreground">Loading node locations...</p>
+                                </div>
+                            ) : (
+                                <MapComponent pnodes={pnodesWithGeo.length > 0 ? pnodesWithGeo : pnodes} />
+                            )}
+                        </div>
+                    </Card>
                 )}
 
                 {/* Nodes Data Tab */}
-                {activeTab === "nodes" && (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-bold">Node Registry</h2>
-                        <NodesTable nodes={pnodes} />
-                    </div>
-                )}
+                {activeTab === "nodes" && <NodesTable nodes={pnodes} />}
             </main>
         </div>
     );

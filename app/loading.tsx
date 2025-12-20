@@ -3,19 +3,18 @@ import Image from "next/image";
 export default function Loading() {
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center">
-            {/* Logo and spinner */}
             <div className="flex flex-col items-center gap-6">
                 <div className="relative">
                     <Image
-                        src="/xandeum-logo.png"
+                        src="/icon.png"
                         alt="Xandeum"
                         width={64}
                         height={64}
                         className="rounded-lg"
                     />
-                    {/* Spinning ring around logo */}
+                    {/* Spinning ring */}
                     <div className="absolute inset-0 -m-2">
-                        <div className="w-[80px] h-[80px] rounded-full border-2 border-transparent border-t-primary animate-spin" />
+                        <div className="w-20 h-20 rounded-full border-2 border-transparent border-t-foreground/30 animate-spin" />
                     </div>
                 </div>
 
@@ -24,9 +23,10 @@ export default function Loading() {
                     <p className="text-sm text-muted-foreground">Loading network data...</p>
                 </div>
 
-                {/* Loading bar */}
-                <div className="w-48 h-1 bg-muted rounded-full overflow-hidden">
-                    <div className="h-full bg-primary rounded-full animate-pulse w-1/2" />
+                <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <div className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <div className="w-2 h-2 bg-foreground/30 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                 </div>
             </div>
         </div>
