@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
 import { NodesTable } from "@/components/dashboard/nodes-table";
 import { VersionDistribution } from "@/components/dashboard/version-distribution";
+import { ActivityGraph } from "@/components/dashboard/activity-graph";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
@@ -216,7 +217,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                             <StatCard title="Locations" value={estimatedCountries} subtitle="Countries worldwide" icon={MapPin} />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <Card className="border border-border bg-card">
                                 <CardContent className="p-6">
                                     <h3 className="text-sm font-medium mb-4">Resources</h3>
@@ -238,20 +239,38 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                     <MetricRow label="Pages" value={aggregateStats.totalPages.toLocaleString()} icon={FileText} />
                                 </CardContent>
                             </Card>
-                            <Card className="border border-border bg-card">
-                                <CardContent className="p-6">
-                                    <h3 className="text-sm font-medium mb-4">Activity</h3>
-                                    <MetricRow label="Packets" value={formatLargeNumber(aggregateStats.totalPackets || 0)} icon={Activity} />
-                                    <MetricRow label="Streams" value={(aggregateStats.totalStreams || 0).toLocaleString()} icon={Wifi} />
-                                </CardContent>
-                            </Card>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <div className="lg:col-span-2">
+                        {/* Activity Monitor + Network Health | Version Distribution */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {/* Left Column: Activity + Health */}
+                            <div className="space-y-6">
+                                {/* Activity Monitor */}
+                                <Card className="border border-border bg-card">
+                                    <CardContent className="p-6">
+                                        <h3 className="text-sm font-medium mb-4">Activity Monitor</h3>
+                                        <div className="grid grid-cols-2 gap-4 mb-4">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-[#14F1C6]" />
+                                                <span className="text-xs text-muted-foreground">Packets</span>
+                                                <span className="text-sm font-medium ml-auto">{formatLargeNumber(aggregateStats.totalPackets || 0)}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-2 h-2 rounded-full bg-[#8B5CF6]" />
+                                                <span className="text-xs text-muted-foreground">Streams</span>
+                                                <span className="text-sm font-medium ml-auto">{(aggregateStats.totalStreams || 0).toLocaleString()}</span>
+                                            </div>
+                                        </div>
+                                        <ActivityGraph packets={aggregateStats.totalPackets || 0} streams={aggregateStats.totalStreams || 0} />
+                                    </CardContent>
+                                </Card>
+
+                                {/* Network Health (compact) */}
                                 <NetworkHealthCard score={analytics.health.score} totals={analytics.totals} health={analytics.health} />
                             </div>
-                            <div>
+
+                            {/* Right Column: Version Distribution (full height) */}
+                            <div className="h-full">
                                 <VersionDistribution distribution={analytics.versions.distribution} latest={analytics.versions.latest} outdatedCount={analytics.versions.outdatedCount} outdatedPercentage={analytics.versions.outdatedPercentage} total={analytics.totals.total} />
                             </div>
                         </div>

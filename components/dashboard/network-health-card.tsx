@@ -68,57 +68,52 @@ export function NetworkHealthCard({
     ];
 
     return (
-        <Card className="border border-border bg-card h-full">
-            <CardHeader className="pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                    <Activity className="w-5 h-5" />
+        <Card className="border border-border bg-card">
+            <CardHeader className="pb-2 pt-4 px-4">
+                <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+                    <Activity className="w-4 h-4" />
                     Network Health
                 </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
-                {/* Score Display */}
-                <div className="flex items-center justify-between p-6 rounded-lg bg-muted/50">
-                    <div>
-                        <div className={`text-5xl font-bold ${getScoreColor(score)}`}>
+            <CardContent className="space-y-3 px-4 pb-4">
+                {/* Score Display - Compact */}
+                <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-baseline gap-2">
+                        <span className={`text-3xl font-bold ${getScoreColor(score)}`}>
                             {score}
-                        </div>
-                        <div className="text-sm text-muted-foreground mt-1">
-                            out of 100
-                        </div>
+                        </span>
+                        <span className="text-xs text-muted-foreground">/ 100</span>
                     </div>
-                    <Badge variant="secondary" className="text-sm">
+                    <Badge variant="secondary" className="text-xs">
                         {getScoreLabel(score)}
                     </Badge>
                 </div>
 
-                {/* Health Metrics */}
-                <div className="grid grid-cols-3 gap-4">
+                {/* Health Metrics - Compact */}
+                <div className="grid grid-cols-3 gap-2">
                     {metrics.map((metric) => (
                         <div
                             key={metric.label}
-                            className="flex flex-col items-center gap-2 p-4 rounded-lg bg-muted/30"
+                            className="flex flex-col items-center gap-1 p-2 rounded-lg bg-muted/30"
                         >
-                            <div className={`p-2 rounded-lg ${metric.bgColor}`}>
-                                <metric.icon className={`w-4 h-4 ${metric.color}`} />
+                            <div className={`p-1.5 rounded-lg ${metric.bgColor}`}>
+                                <metric.icon className={`w-3 h-3 ${metric.color}`} />
                             </div>
-                            <div className="text-xl font-bold">{metric.value}</div>
+                            <div className="text-lg font-bold">{metric.value}</div>
                             <div className="text-xs text-muted-foreground">
-                                {metric.label}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                                {metric.percentage.toFixed(1)}%
+                                {metric.label} ({metric.percentage.toFixed(0)}%)
                             </div>
                         </div>
                     ))}
                 </div>
 
                 {/* Progress Bar */}
-                <div className="space-y-2">
+                <div className="space-y-1">
                     <div className="flex justify-between text-xs text-muted-foreground">
                         <span>Distribution</span>
                         <span>{totals.total} nodes</span>
                     </div>
-                    <div className="h-2 bg-muted rounded-full overflow-hidden flex">
+                    <div className="h-1.5 bg-muted rounded-full overflow-hidden flex">
                         <div
                             style={{ width: `${healthyPercentage}%` }}
                             className="bg-green-500"
@@ -137,3 +132,4 @@ export function NetworkHealthCard({
         </Card>
     );
 }
+

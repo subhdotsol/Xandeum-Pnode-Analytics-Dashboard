@@ -33,7 +33,7 @@ export function DashboardSkeleton() {
                 ))}
             </div>
 
-            {/* Resource cards skeleton */}
+            {/* Resource cards skeleton (3 cards) */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {[1, 2, 3].map((i) => (
                     <Card key={i} className="border border-border">
@@ -54,30 +54,57 @@ export function DashboardSkeleton() {
                 ))}
             </div>
 
-            {/* Health + Version skeleton */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="lg:col-span-2 border border-border">
-                    <CardHeader>
-                        <Skeleton className="w-32 h-5" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                            <Skeleton className="w-full h-24 rounded-lg" />
-                            <div className="grid grid-cols-3 gap-4">
-                                <Skeleton className="h-16 rounded-lg" />
-                                <Skeleton className="h-16 rounded-lg" />
-                                <Skeleton className="h-16 rounded-lg" />
+            {/* Activity + Health | Distribution (2-column layout) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Left Column */}
+                <div className="space-y-6">
+                    {/* Activity Monitor Skeleton */}
+                    <Card className="border border-border">
+                        <CardContent className="p-6">
+                            <Skeleton className="w-28 h-4 mb-4" />
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <div className="flex items-center gap-2">
+                                    <Skeleton className="w-2 h-2 rounded-full" />
+                                    <Skeleton className="w-12 h-3" />
+                                    <Skeleton className="w-16 h-4 ml-auto" />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Skeleton className="w-2 h-2 rounded-full" />
+                                    <Skeleton className="w-12 h-3" />
+                                    <Skeleton className="w-16 h-4 ml-auto" />
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="border border-border">
+                            <Skeleton className="w-full h-[120px] rounded-lg" />
+                        </CardContent>
+                    </Card>
+
+                    {/* Network Health Skeleton */}
+                    <Card className="border border-border">
+                        <CardHeader>
+                            <Skeleton className="w-32 h-5" />
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                <Skeleton className="w-full h-20 rounded-lg" />
+                                <div className="grid grid-cols-3 gap-4">
+                                    <Skeleton className="h-12 rounded-lg" />
+                                    <Skeleton className="h-12 rounded-lg" />
+                                    <Skeleton className="h-12 rounded-lg" />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Right Column - Version Distribution */}
+                <Card className="border border-border h-full">
                     <CardHeader>
                         <Skeleton className="w-32 h-5" />
                     </CardHeader>
                     <CardContent>
                         <Skeleton className="w-full h-40 rounded-lg mb-4" />
                         <div className="space-y-2">
+                            <Skeleton className="w-full h-8 rounded" />
                             <Skeleton className="w-full h-8 rounded" />
                             <Skeleton className="w-full h-8 rounded" />
                             <Skeleton className="w-full h-8 rounded" />

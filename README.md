@@ -29,87 +29,89 @@ We welcome all feedback and contributions! If you find any issues or have sugges
 
 ### Key Concepts:
 
-- **pNodes (Persistent Nodes)**: Individual nodes in the Xandeum network that store and serve data chunks. Each pNode maintains a portion of the distributed storage system.
-
-- **Decentralized Discovery**: The network uses a peer-to-peer discovery mechanism where each pNode maintains knowledge of other active pNodes in the network.
-
-- **Health Monitoring**: pNodes report their status through timestamps, version information, and availability metrics, allowing the network to self-organize and maintain reliability.
-
-- **No Central Authority**: Unlike traditional storage systems, Xandeum operates without central coordinators. Nodes discover each other through seed nodes and maintain a distributed registry.
-
-### How pNodes Work:
-
-1. **Registration**: When a pNode comes online, it registers itself with seed nodes
-2. **Discovery**: Nodes query seed pNodes to discover the full network topology
-3. **Data Storage**: Files are chunked and distributed across multiple pNodes for redundancy
-4. **Health Reporting**: Each pNode periodically updates its `last_seen_timestamp` to indicate it's active
-5. **Version Management**: Nodes report their software version for compatibility checking
+- **pNodes (Persistent Nodes)**: Individual nodes in the Xandeum network that store and serve data chunks
+- **Decentralized Discovery**: Peer-to-peer discovery mechanism where each pNode maintains knowledge of other active pNodes
+- **Health Monitoring**: pNodes report their status through timestamps, version information, and availability metrics
+- **No Central Authority**: Nodes discover each other through seed nodes and maintain a distributed registry
 
 ---
 
 ## ✨ Features
 
-### 🎯 Core Analytics
+### 🎯 Dashboard Overview
 
-- **Real-time Network Health Monitoring** - Live tracking of 215+ pNodes with health scoring (0-100)
-- **Network Health Score** - Comprehensive scoring based on:
-  - Healthy nodes percentage (60% weight)
-  - Up-to-date software versions (30% weight)
-  - Network stability (10% weight)
-- **Node Classification** - Automatic categorization into:
+- **Real-time Network Health Monitoring** - Live tracking of 250+ pNodes with health scoring (0-100)
+- **Node Classification** - Automatic categorization:
   - 🟢 **Healthy**: Last seen < 5 minutes
   - 🟡 **Degraded**: Last seen < 1 hour
   - 🔴 **Offline**: Last seen > 1 hour
+- **4 Key Metrics**: Total Nodes, Online Status, Version Count, Global Locations
 
-### 📊 Visualizations
+### 📊 Analytics Cards
 
-- **3-Column Health Metrics Grid** - Visual breakdown of healthy, degraded, and offline nodes
-- **Animated Progress Bar** - Real-time distribution visualization
-- **Version Distribution Pie Chart** - Software version adoption across the network
-- **Trend Indicators** - Network growth and stability metrics
-- **Interactive Nodes Table** - Search, filter, and sort functionality
+| Card | Metrics |
+|------|---------|
+| **Resources** | Total Storage, Total RAM |
+| **Performance** | Average CPU, Average Uptime |
+| **Throughput** | Data Processed, Pages Processed |
+| **Activity Monitor** | Total Packets (with graph), Active Streams |
+
+### 🗺️ Interactive Map
+
+- **Progressive Loading** - 8-second spinner, then skeleton, then map
+- **Batch Loading** - Loads 20 nodes at a time with progress toast
+- **Geo-location** - Real-time node locations with city/country info
+- **Node Popups** - Click markers to see node details
+
+### 📋 Node Registry
+
+- **Pagination** - 10, 25, 50, or 100 items per page
+- **Sortable Columns** - Address, Version, CPU, RAM, Last Seen
+- **Filterable** - Search by address/pubkey, filter by status
+- **10 Columns**: Status, Address, Version, CPU, RAM, Storage, Uptime, Last Seen, Public Key, Action
+
+### 🔍 Node Details Popup
+
+- **Copyable Fields** - Click to copy Node ID, Gossip Address, RPC Address
+- **Location Info** - Country, City, Region, Coordinates, Timezone
+- **Resource Metrics** - CPU/RAM progress bars, Storage, Uptime
+- **Activity Stats** - Streams, Pages Processed, Packets RX/TX
+- **Blurred Backdrop** - Modern modal with backdrop-blur effect
+
+### 📈 Visualizations
+
+- **Activity Monitor Graph** - Gradient area chart with cyan (packets) and purple (streams)
+- **Network Health Card** - Score display with healthy/degraded/offline breakdown
+- **Version Distribution** - Pie chart showing software version adoption
+- **Progress Bars** - Visual distribution of node health states
 
 ### 🎨 Design Features
 
-- **Notion-Inspired Light Mode** - Clean, professional aesthetic with gradient text
-- **Dark Mode with Glassmorphism** - Premium glass effects with 24px blur
-- **Smooth Scroll Navigation** - Navbar links smoothly scroll to sections
-- **Ubuntu Typography** - Modern, professional font system
-- **Responsive Design** - Mobile, tablet, and desktop optimized
-- **Click Effects** - Satisfying button interactions with scale animations
-
-### 🔧 Technical Features
-
-- **Parallel Data Fetching** - Queries 9 seed pNodes simultaneously
-- **Automatic Deduplication** - Merges results and keeps most recent data
-- **Error Handling** - Graceful degradation when seed nodes are unavailable
-- **Auto-refresh** - 60-second intervals for live data updates
-- **Type Safety** - Full TypeScript implementation with strict types
+- **Dark Mode** - Premium glassmorphism with blur effects
+- **Light Mode** - Clean Notion-inspired aesthetic
+- **Loading Skeletons** - Matching skeletons for all components
+- **Responsive** - Mobile, tablet, and desktop optimized
 
 ---
 
-## 🏗️ Architecture
+## 🔌 API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /api/pnodes` | Get all pNodes from the network |
+| `GET /api/analytics` | Get network health analytics |
+| `GET /api/stats` | Get aggregate stats from 8 seed nodes |
+| `GET /api/pnodes/[address]` | Get individual node stats |
+| `GET /api/geo?ip=` | Get geo-location for an IP |
 
 ### Data Flow
 
 ```
-Seed pNodes → JSON-RPC "get-pods" → Parallel Fetch → Deduplication → Analytics → UI
-```
-
-### Health Scoring Algorithm
-
-```typescript
-score = (healthy_nodes_pct × 60) + (up_to_date_versions_pct × 30) + (degraded_nodes_pct × 10)
-```
-
-### Node Classification Logic
-
-```typescript
-const delta = now - last_seen_timestamp;
-
-if (delta < 300) return "healthy";        // < 5 minutes
-else if (delta < 3600) return "degraded"; // < 1 hour
-else return "offline";                     // > 1 hour
+Seed pNodes → JSON-RPC → Parallel Fetch → Deduplication → Analytics → UI
+     ↓
+/api/stats → 8 reliable seed nodes → Aggregate metrics
+     ↓
+/api/geo → ip-api.com → Location data
 ```
 
 ---
@@ -130,13 +132,9 @@ cd Xandeum-Pnode-Analytics-Dashboard
 
 # Install dependencies
 pnpm install
-# or
-npm install
 
 # Run development server
 pnpm dev
-# or
-npm run dev
 ```
 
 Open [http://localhost:3001](http://localhost:3001) to view the dashboard.
@@ -155,181 +153,73 @@ pnpm start
 ```
 pnode/
 ├── app/
-│   ├── api/               # API routes for pNode data
-│   │   ├── pnodes/        # Get all pNodes
-│   │   └── network/       # Network analytics
-│   ├── globals.css        # Global styles with glassmorphism
-│   ├── layout.tsx         # Root layout with Ubuntu font
-│   └── page.tsx           # Main dashboard page
+│   ├── api/
+│   │   ├── pnodes/           # Node list & individual stats
+│   │   ├── analytics/        # Network analytics
+│   │   ├── stats/            # Aggregate stats from seed nodes
+│   │   └── geo/              # Geo-location API
+│   ├── globals.css
+│   ├── layout.tsx
+│   └── page.tsx              # Main dashboard (client-side)
 ├── components/
-│   ├── dashboard/         # Dashboard-specific components
-│   │   ├── network-health-card.tsx
-│   │   ├── nodes-table.tsx
-│   │   ├── version-distribution.tsx
-│   │   └── auto-refresh.tsx
-│   ├── sections/          # Page sections
-│   │   ├── navbar.tsx
-│   │   └── footer.tsx
-│   └── ui/                # Reusable UI components
-│       ├── card.tsx
-│       ├── badge.tsx
-│       ├── button-custom.tsx
-│       ├── feature-card.tsx
-│       ├── tag.tsx
-│       └── theme-toggle.tsx
+│   ├── dashboard/
+│   │   ├── main-dashboard.tsx      # Main layout with tabs
+│   │   ├── network-health-card.tsx # Health score display
+│   │   ├── nodes-table.tsx         # Node Registry with pagination
+│   │   ├── activity-graph.tsx      # Recharts area graph
+│   │   ├── version-distribution.tsx # Pie chart
+│   │   └── skeletons.tsx           # Loading skeletons
+│   ├── MapComponent.tsx       # Leaflet map
+│   └── ui/                    # shadcn/ui components
 ├── lib/
-│   ├── pnode-client.ts    # JSON-RPC client for pNodes
-│   ├── network-analytics.ts # Health scoring engine
-│   └── utils.ts           # Utility functions
+│   ├── pnode-client.ts        # JSON-RPC client
+│   ├── network-analytics.ts   # Health scoring engine
+│   └── utils.ts               # Utility functions
 └── types/
-    └── pnode.ts           # TypeScript type definitions
-```
-
----
-
-## 🔌 API Endpoints
-
-### Get All pNodes
-```typescript
-GET /api/pnodes
-Response: PNodeInfo[]
-```
-
-### Get Network Overview
-```typescript
-GET /api/network/overview
-Response: NetworkAnalytics
-```
-
-### Get Network Health
-```typescript
-GET /api/network/health
-Response: NetworkHealth
-```
-
-### Get Individual pNode Stats
-```typescript
-GET /api/pnodes/[address]
-Response: PNodeStats | null
+    └── pnode.ts               # TypeScript definitions
 ```
 
 ---
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **Framework**: Next.js 15.1.5 (App Router)
-- **Language**: TypeScript 5.0
-- **Styling**: TailwindCSS 4.0
-- **UI Components**: shadcn/ui
-- **Animations**: Framer Motion
-- **Charts**: Recharts
-- **Font**: Ubuntu (300, 400, 500, 700)
-
-### Backend
-- **Runtime**: Node.js (Next.js API Routes)
-- **RPC Client**: Native Node.js HTTP module
-- **Data Processing**: Custom analytics engine
-
-### Design System
-- **Light Mode**: Notion-inspired clean design
-- **Dark Mode**: Glassmorphism with purple/peach/blue palette
-- **Responsive**: Mobile-first approach
-- **Accessibility**: ARIA labels and semantic HTML
+| Category | Technologies |
+|----------|--------------|
+| **Framework** | Next.js 15.1.5 (App Router) |
+| **Language** | TypeScript 5.0 |
+| **Styling** | TailwindCSS 4.0 |
+| **UI Components** | shadcn/ui |
+| **Charts** | Recharts |
+| **Maps** | Leaflet + react-leaflet |
+| **Icons** | Lucide React |
 
 ---
 
-## 📊 Technical Report
+## 📊 Health Scoring Algorithm
 
-### Network Discovery Implementation
+```typescript
+score = (healthy_nodes_pct × 60) + (up_to_date_versions_pct × 30) + (degraded_nodes_pct × 10)
+```
 
-The dashboard implements a **parallel discovery pattern** to maximize data freshness and reliability:
+### Node Classification
 
-1. **Seed Node Selection**: 9 geographically distributed seed pNodes
-2. **Parallel Queries**: All seeds queried simultaneously using `Promise.all()`
-3. **Timeout Handling**: 10-second timeout per request
-4. **Result Merging**: Deduplication based on node address
-5. **Timestamp Priority**: Most recent `last_seen_timestamp` wins
+```typescript
+const delta = now - last_seen_timestamp;
 
-### Performance Optimizations
-
-- **Parallel Fetching**: Reduces total query time to ~10 seconds (limited by slowest seed)
-- **Static Generation**: Dashboard pre-rendered at build time
-- **Auto-refresh**: Client-side updates every 60 seconds
-- **Conditional Rendering**: Only show limited nodes initially (10 visible)
-- **Code Splitting**: Dynamic imports for heavy components
-
-### Analytics Engine
-
-The `network-analytics.ts` module provides:
-
-- **Health Classification**: Categorizes nodes into 3 states
-- **Score Calculation**: Weighted algorithm for network health
-- **Version Analysis**: Identifies outdated nodes
-- **Risk Detection**: Flags single-version dominance, stale nodes
-
-### Data Reliability
-
-- **Error Handling**: Graceful degradation when seeds fail
-- **Silent Failures**: Unreachable nodes don't block the UI
-- **Data Freshness**: Prioritizes most recent timestamps
-- **Consistency**: Deduplication ensures single source of truth
-
----
-
-## 🎨 Design Philosophy
-
-### Light Mode (Notion-Inspired)
-- Clean white backgrounds
-- Soft purple/peach/blue accents
-- No shadows, minimal visual noise
-- Black text for maximum readability
-
-### Dark Mode (Premium Glassmorphism)
-- Deep black gradient background
-- 24px blur with 200% saturation
-- Vibrant gradients (purple → pink → orange)
-- Strong glass effects on cards
-
-### Interaction Design
-- **Smooth Scrolling**: Navbar links scroll to sections
-- **Click Effects**: Scale-down animation on button press
-- **Hover States**: Subtle transforms and glow effects
-- **Loading States**: Skeleton screens during data fetch
-
----
-
-## 📈 Metrics & Insights
-
-The dashboard tracks:
-
-- **Total Nodes**: Active pNodes in the network (~215)
-- **Health Score**: 0-100 rating of network reliability
-- **Version Distribution**: Software version adoption rates
-- **Storage Metrics**: Total capacity and utilization
-- **Performance**: Average CPU and RAM usage
-- **Uptime**: Average node uptime across the network
+if (delta < 300) return "healthy";        // < 5 minutes (green)
+else if (delta < 3600) return "degraded"; // < 1 hour (yellow)
+else return "offline";                     // > 1 hour (red)
+```
 
 ---
 
 ## 🤝 Contributing
-
-Contributions are welcome! This project was built for a bounty and we're open to improvements.
-
-### How to Contribute
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
 3. Commit your changes (`git commit -m 'Add amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-### Feedback
-
-Found a bug or have a suggestion? Please:
-- Open an issue on GitHub
-- Provide detailed information about the problem
-- Include screenshots if applicable
 
 ---
 
@@ -343,16 +233,9 @@ This project is open source and available under the MIT License.
 
 - **Xandeum Team** - For building the decentralized storage network
 - **Superteam** - For hosting the bounty program
+- **AvhiMaz** - For the reference implementation
 - **shadcn/ui** - For the excellent component library
 - **Vercel** - For Next.js and deployment platform
-
----
-
-## 📞 Contact
-
-- **GitHub**: [@subhdotsol](https://github.com/subhdotsol)
-- **Project Link**: [Xandeum pNode Analytics Dashboard](https://github.com/subhdotsol/Xandeum-Pnode-Analytics-Dashboard)
-- **Bounty Page**: [Superteam Earn](https://earn.superteam.fun/listing/build-analytics-platform-for-xandeum-pnodes)
 
 ---
 
