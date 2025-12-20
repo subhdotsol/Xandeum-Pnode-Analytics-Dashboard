@@ -184,8 +184,8 @@ export default function HomePage() {
       });
 
       // Estimate countries
-      const uniqueIPs = new Set((pnodesData.pnodes || []).map((node: PNodeInfo) => node.address.split(':')[0]));
-      const uniquePrefixes = new Set(Array.from(uniqueIPs).map((ip: string) => ip.split('.').slice(0, 2).join('.')));
+      const uniqueIPs: Set<string> = new Set((pnodesData.pnodes || []).map((node: PNodeInfo) => node.address.split(':')[0]));
+      const uniquePrefixes = new Set(Array.from(uniqueIPs).map((ip) => ip.split('.').slice(0, 2).join('.')));
       setEstimatedCountries(Math.min(uniquePrefixes.size, 20));
 
       setLoadingPhase("ready");
