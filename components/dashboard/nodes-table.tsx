@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye, Copy, Check, MapPin, Globe } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -23,9 +23,48 @@ interface NodesTableProps {
 
 interface NodeWithStats extends PNodeInfo {
     stats?: PNodeStats | null;
+    geo?: {
+        country: string;
+        city: string;
+        regionName: string;
+        lat: number;
+        lon: number;
+        timezone: string;
+    } | null;
 }
 
 const PAGE_SIZES = [10, 25, 50, 100];
+
+// Copyable Field Component
+function CopyableField({ label, value, mono = true }: { label: string; value: string; mono?: boolean }) {
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(value);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="space-y-1">
+            <label className="text-xs text-muted-foreground">{label}</label>
+            <div className="flex items-center gap-2 bg-muted px-3 py-2 rounded-md group">
+                <code className={`text-sm flex-1 break-all ${mono ? 'font-mono' : ''}`}>{value}</code>
+                <button
+                    onClick={handleCopy}
+                    className="p-1 rounded hover:bg-background/50 transition-colors opacity-0 group-hover:opacity-100"
+                    title="Copy to clipboard"
+                >
+                    {copied ? (
+                        <Check className="w-3.5 h-3.5 text-green-500" />
+                    ) : (
+                        <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                    )}
+                </button>
+            </div>
+        </div>
+    );
+}
 
 export function NodesTable({ nodes }: NodesTableProps) {
     const [search, setSearch] = useState("");
@@ -39,7 +78,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
     const [loadingNodeStats, setLoadingNodeStats] = useState(false);
 
     useEffect(() => {
-        setNodesWithStats(nodes.map(n => ({ ...n, stats: null })));
+        setNodesWithStats(nodes.map(n => ({ ...n, stats: null, geo: null })));
     }, [nodes]);
 
     const filteredAndSortedNodes = (() => {
@@ -137,18 +176,43 @@ export function NodesTable({ nodes }: NodesTableProps) {
 
     const openNodeModal = async (node: NodeWithStats) => {
         setSelectedNode(node);
+        setLoadingNodeStats(true);
 
-        if (!node.stats) {
-            setLoadingNodeStats(true);
-            try {
-                const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setSelectedNode({ ...node, stats: data });
+        const ip = node.address.split(':')[0];
+
+        // Fetch stats and geo in parallel
+        try {
+            const [statsRes, geoRes] = await Promise.all([
+                fetch(`/api/pnodes/${encodeURIComponent(node.address)}`).catch(() => null),
+                fetch(`/api/geo?ip=${ip}`).catch(() => null)
+            ]);
+
+            let stats = null;
+            let geo = null;
+
+            if (statsRes?.ok) {
+                const data = await statsRes.json();
+                stats = data;
+            }
+
+            if (geoRes?.ok) {
+                const geoData = await geoRes.json();
+                if (geoData.status !== 'fail') {
+                    geo = {
+                        country: geoData.country,
+                        city: geoData.city,
+                        regionName: geoData.regionName,
+                        lat: geoData.lat,
+                        lon: geoData.lon,
+                        timezone: geoData.timezone
+                    };
                 }
-            } catch { }
-            setLoadingNodeStats(false);
-        }
+            }
+
+            setSelectedNode({ ...node, stats, geo });
+        } catch { }
+
+        setLoadingNodeStats(false);
     };
 
     const closeModal = () => setSelectedNode(null);
@@ -156,6 +220,11 @@ export function NodesTable({ nodes }: NodesTableProps) {
     useEffect(() => {
         setCurrentPage(1);
     }, [search, statusFilter, pageSize]);
+
+    const getIpAndPort = (address: string) => {
+        const parts = address.split(':');
+        return { ip: parts[0], port: parts[1] || '9001' };
+    };
 
     return (
         <>
@@ -321,8 +390,8 @@ export function NodesTable({ nodes }: NodesTableProps) {
                 <div className="fixed inset-0 z-50 flex items-center justify-center">
                     <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" onClick={closeModal} />
 
-                    <div className="relative bg-card border border-border rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[80vh] overflow-y-auto">
-                        <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between">
+                    <div className="relative bg-card border border-border rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto">
+                        <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between z-10">
                             <h3 className="text-lg font-semibold">Node Details</h3>
                             <button onClick={closeModal} className="p-2 rounded-md hover:bg-muted transition-colors">
                                 <X className="w-4 h-4" />
@@ -330,94 +399,124 @@ export function NodesTable({ nodes }: NodesTableProps) {
                         </div>
 
                         <div className="p-4 space-y-4">
-                            <div className="flex items-center justify-between">
-                                {getHealthBadge(selectedNode.last_seen_timestamp)}
-                                <span className="text-xs text-muted-foreground">
-                                    Last seen: {getTimeAgo(selectedNode.last_seen_timestamp)}
-                                </span>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs text-muted-foreground">Address</label>
-                                <code className="block text-sm bg-muted px-3 py-2 rounded-md break-all">{selectedNode.address}</code>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-xs text-muted-foreground">Version</label>
-                                    <p className="text-sm font-mono">{selectedNode.version || "Unknown"}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs text-muted-foreground">Public Key</label>
-                                    <p className="text-sm font-mono truncate" title={selectedNode.pubkey || undefined}>
-                                        {selectedNode.pubkey ? `${selectedNode.pubkey.slice(0, 12)}...` : "–"}
-                                    </p>
-                                </div>
-                            </div>
-
                             {loadingNodeStats ? (
-                                <div className="flex items-center justify-center py-8">
-                                    <div className="animate-spin w-6 h-6 border-2 border-foreground/20 border-t-foreground rounded-full" />
+                                <div className="flex items-center justify-center py-12">
+                                    <div className="animate-spin w-8 h-8 border-2 border-foreground/20 border-t-foreground rounded-full" />
                                 </div>
-                            ) : selectedNode.stats ? (
-                                <>
-                                    <div className="border-t border-border pt-4 space-y-4">
-                                        <h4 className="text-sm font-medium flex items-center gap-2">
-                                            <Cpu className="w-4 h-4" /> Resources
-                                        </h4>
-
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-muted-foreground">CPU</span>
-                                                <span>{selectedNode.stats.cpu_percent?.toFixed(1) || 0}%</span>
-                                            </div>
-                                            <Progress value={selectedNode.stats.cpu_percent || 0} className="h-2" />
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-muted-foreground">RAM</span>
-                                                <span>{formatBytes(selectedNode.stats.ram_used || 0)} / {formatBytes(selectedNode.stats.ram_total || 0)}</span>
-                                            </div>
-                                            <Progress value={selectedNode.stats.ram_total ? (selectedNode.stats.ram_used / selectedNode.stats.ram_total) * 100 : 0} className="h-2" />
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-muted-foreground">Storage</span>
-                                                <span>{formatBytes(selectedNode.stats.total_bytes || 0)}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="border-t border-border pt-4 grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <label className="text-xs text-muted-foreground flex items-center gap-1">
-                                                <Clock className="w-3 h-3" /> Uptime
-                                            </label>
-                                            <p className="text-sm">{formatUptime(selectedNode.stats.uptime || 0)}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs text-muted-foreground flex items-center gap-1">
-                                                <Wifi className="w-3 h-3" /> Active Streams
-                                            </label>
-                                            <p className="text-sm">{selectedNode.stats.active_streams || 0}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs text-muted-foreground">Pages Processed</label>
-                                            <p className="text-sm">{selectedNode.stats.total_pages?.toLocaleString() || 0}</p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <label className="text-xs text-muted-foreground">Packets RX/TX</label>
-                                            <p className="text-sm">{selectedNode.stats.packets_received || 0} / {selectedNode.stats.packets_sent || 0}</p>
-                                        </div>
-                                    </div>
-                                </>
                             ) : (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    <p>Stats not available for this node</p>
-                                    <p className="text-xs mt-1">The node may be behind a firewall</p>
-                                </div>
+                                <>
+                                    {/* Node ID (Pubkey) */}
+                                    <CopyableField
+                                        label="Node ID (Pubkey)"
+                                        value={selectedNode.pubkey || "Unknown"}
+                                    />
+
+                                    {/* Gossip Address */}
+                                    <CopyableField
+                                        label="Gossip Address"
+                                        value={selectedNode.address}
+                                    />
+
+                                    {/* RPC Address */}
+                                    <CopyableField
+                                        label="RPC Address"
+                                        value={`${getIpAndPort(selectedNode.address).ip}:6000`}
+                                    />
+
+                                    {/* Version & Status */}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-muted-foreground">Version</label>
+                                            <p className="text-sm font-mono bg-muted px-3 py-2 rounded-md">
+                                                {selectedNode.version || "Unknown"}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <label className="text-xs text-muted-foreground">Status</label>
+                                            <div className="bg-muted px-3 py-2 rounded-md">
+                                                {getHealthBadge(selectedNode.last_seen_timestamp)}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Location */}
+                                    {selectedNode.geo && (
+                                        <div className="space-y-2">
+                                            <label className="text-xs text-muted-foreground flex items-center gap-1">
+                                                <MapPin className="w-3 h-3" /> Location
+                                            </label>
+                                            <div className="bg-muted px-3 py-3 rounded-md space-y-1">
+                                                <p className="text-sm font-medium flex items-center gap-2">
+                                                    <Globe className="w-4 h-4 text-muted-foreground" />
+                                                    {selectedNode.geo.country}
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                    {selectedNode.geo.city}, {selectedNode.geo.regionName}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground font-mono">
+                                                    {selectedNode.geo.lat.toFixed(2)}°, {selectedNode.geo.lon.toFixed(2)}°
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                    ({selectedNode.geo.timezone})
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Last Seen */}
+                                    <div className="space-y-1">
+                                        <label className="text-xs text-muted-foreground flex items-center gap-1">
+                                            <Clock className="w-3 h-3" /> Last Seen
+                                        </label>
+                                        <p className="text-sm bg-muted px-3 py-2 rounded-md">
+                                            {new Date(selectedNode.last_seen_timestamp * 1000).toLocaleString()}
+                                        </p>
+                                    </div>
+
+                                    {/* Resources (if available) */}
+                                    {selectedNode.stats && (
+                                        <div className="border-t border-border pt-4 space-y-4">
+                                            <h4 className="text-sm font-medium flex items-center gap-2">
+                                                <Cpu className="w-4 h-4" /> Resources
+                                            </h4>
+
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-muted-foreground">CPU</span>
+                                                    <span>{selectedNode.stats.cpu_percent?.toFixed(1) || 0}%</span>
+                                                </div>
+                                                <Progress value={selectedNode.stats.cpu_percent || 0} className="h-2" />
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <div className="flex justify-between text-sm">
+                                                    <span className="text-muted-foreground">RAM</span>
+                                                    <span>{formatBytes(selectedNode.stats.ram_used || 0)} / {formatBytes(selectedNode.stats.ram_total || 0)}</span>
+                                                </div>
+                                                <Progress value={selectedNode.stats.ram_total ? (selectedNode.stats.ram_used / selectedNode.stats.ram_total) * 100 : 0} className="h-2" />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                                <div>
+                                                    <span className="text-muted-foreground">Storage:</span>{' '}
+                                                    <span>{formatBytes(selectedNode.stats.total_bytes || 0)}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-muted-foreground">Uptime:</span>{' '}
+                                                    <span>{formatUptime(selectedNode.stats.uptime || 0)}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-muted-foreground">Streams:</span>{' '}
+                                                    <span>{selectedNode.stats.active_streams || 0}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="text-muted-foreground">Pages:</span>{' '}
+                                                    <span>{selectedNode.stats.total_pages?.toLocaleString() || 0}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
                         </div>
                     </div>
