@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw } from "lucide-react";
+import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw, Wifi } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
@@ -30,10 +30,20 @@ interface MainDashboardProps {
         avgUptime: number;
         totalData: number;
         totalPages: number;
+        totalPackets?: number;
+        totalStreams?: number;
     };
 }
 
 type TabType = "dashboard" | "analytics" | "map" | "nodes";
+
+// Format large numbers (e.g., 293960000 -> "293.96M")
+function formatLargeNumber(num: number): string {
+    if (num >= 1e9) return `${(num / 1e9).toFixed(2)}B`;
+    if (num >= 1e6) return `${(num / 1e6).toFixed(2)}M`;
+    if (num >= 1e3) return `${(num / 1e3).toFixed(2)}K`;
+    return num.toLocaleString();
+}
 
 const tabs: { id: TabType; label: string }[] = [
     { id: "dashboard", label: "Dashboard" },
@@ -206,7 +216,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                             <StatCard title="Locations" value={estimatedCountries} subtitle="Countries worldwide" icon={MapPin} />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             <Card className="border border-border bg-card">
                                 <CardContent className="p-6">
                                     <h3 className="text-sm font-medium mb-4">Resources</h3>
@@ -226,6 +236,13 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                     <h3 className="text-sm font-medium mb-4">Throughput</h3>
                                     <MetricRow label="Data" value={formatBytes(aggregateStats.totalData)} icon={Activity} />
                                     <MetricRow label="Pages" value={aggregateStats.totalPages.toLocaleString()} icon={FileText} />
+                                </CardContent>
+                            </Card>
+                            <Card className="border border-border bg-card">
+                                <CardContent className="p-6">
+                                    <h3 className="text-sm font-medium mb-4">Activity</h3>
+                                    <MetricRow label="Packets" value={formatLargeNumber(aggregateStats.totalPackets || 0)} icon={Activity} />
+                                    <MetricRow label="Streams" value={(aggregateStats.totalStreams || 0).toLocaleString()} icon={Wifi} />
                                 </CardContent>
                             </Card>
                         </div>

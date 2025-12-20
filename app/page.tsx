@@ -170,6 +170,8 @@ export default function HomePage() {
           avgUptime: statsData.avgUptime || 0,
           totalData: statsData.totalData || 0,
           totalPages: statsData.totalPages || 0,
+          totalPackets: statsData.totalPackets || 0,
+          totalStreams: statsData.totalStreams || 0,
         });
       }
 

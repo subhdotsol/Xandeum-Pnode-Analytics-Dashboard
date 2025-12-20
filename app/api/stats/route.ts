@@ -32,6 +32,8 @@ export async function GET() {
                 avgUptime: 0,
                 totalData: 0,
                 totalPages: 0,
+                totalPackets: 0,
+                totalStreams: 0,
                 nodeCount: 0,
             });
         }
@@ -44,6 +46,8 @@ export async function GET() {
             avgUptime: validStats.reduce((sum, s) => sum + (s?.uptime || 0), 0) / validStats.length,
             totalData: validStats.reduce((sum, s) => sum + (s?.file_size || 0), 0),
             totalPages: validStats.reduce((sum, s) => sum + (s?.total_pages || 0), 0),
+            totalPackets: validStats.reduce((sum, s) => sum + (s?.packets_received || 0) + (s?.packets_sent || 0), 0),
+            totalStreams: validStats.reduce((sum, s) => sum + (s?.active_streams || 0), 0),
             nodeCount: validStats.length,
         };
 
@@ -57,7 +61,10 @@ export async function GET() {
             avgUptime: 0,
             totalData: 0,
             totalPages: 0,
+            totalPackets: 0,
+            totalStreams: 0,
             nodeCount: 0,
         });
     }
 }
+
