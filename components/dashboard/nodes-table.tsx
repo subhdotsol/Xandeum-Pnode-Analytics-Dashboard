@@ -311,7 +311,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
                     <div className="flex items-center justify-between">
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold">
                             <Server className="w-5 h-5" />
-                            Node Registry
+                            Node Directory
                             {loadingVisibleStats && (
                                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                             )}
