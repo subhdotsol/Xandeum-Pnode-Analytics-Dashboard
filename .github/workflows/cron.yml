@@ -11,7 +11,7 @@ jobs:
     steps:
       - name: Collect Snapshot
         run: |
-          response=$(curl -s -w "\n%{http_code}" -X GET \
+          response=$(curl -sL -w "\n%{http_code}" -X GET \
             -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
             "${{ secrets.API_URL }}/api/cron/collect-snapshot")
           
