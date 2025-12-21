@@ -75,8 +75,11 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                     try {
                         const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
                         if (res.ok) {
-                            const stats = await res.json();
-                            if (stats) newStats.set(node.address, stats);
+                            const response = await res.json();
+                            // Extract stats from nested data.stats structure
+                            if (response?.success && response?.data?.stats) {
+                                newStats.set(node.address, response.data.stats);
+                            }
                         }
                     } catch { }
                 })
@@ -199,8 +202,8 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                             key={cat.id}
                             onClick={() => setCategory(cat.id)}
                             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${category === cat.id
-                                    ? "bg-background text-foreground shadow-sm"
-                                    : "text-muted-foreground hover:text-foreground"
+                                ? "bg-background text-foreground shadow-sm"
+                                : "text-muted-foreground hover:text-foreground"
                                 }`}
                         >
                             <cat.icon className="w-3 h-3" />

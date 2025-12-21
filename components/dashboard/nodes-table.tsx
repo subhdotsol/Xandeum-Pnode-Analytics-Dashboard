@@ -174,9 +174,12 @@ export function NodesTable({ nodes }: NodesTableProps) {
                 try {
                     const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
                     if (res.ok) {
-                        const stats = await res.json();
-                        statsCache.current.set(node.address, stats);
-                        return { address: node.address, stats };
+                        const response = await res.json();
+                        // Extract stats from nested data.stats structure
+                        if (response?.success && response?.data?.stats) {
+                            statsCache.current.set(node.address, response.data.stats);
+                            return { address: node.address, stats: response.data.stats };
+                        }
                     }
                 } catch { }
                 return { address: node.address, stats: null };
@@ -267,10 +270,11 @@ export function NodesTable({ nodes }: NodesTableProps) {
             let geo = null;
 
             if (statsRes?.ok) {
-                const fetchedStats = await statsRes.json();
-                if (fetchedStats) {
-                    stats = fetchedStats;
-                    statsCache.current.set(node.address, fetchedStats);
+                const response = await statsRes.json();
+                // Extract stats from nested data.stats structure
+                if (response?.success && response?.data?.stats) {
+                    stats = response.data.stats;
+                    statsCache.current.set(node.address, response.data.stats);
                 }
             }
 
