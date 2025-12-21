@@ -213,8 +213,10 @@ export function HistoricalCharts() {
                                         dataKey="uptimePercent"
                                         stroke="#3b82f6"
                                         strokeWidth={2}
+                                        strokeDasharray="5 5"
                                         fill="url(#colorUptime)"
                                         name="Uptime %"
+                                        dot={{ r: 3, fill: '#3b82f6' }}
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
@@ -248,7 +250,8 @@ export function HistoricalCharts() {
                                         dataKey="avgCpu"
                                         stroke="#f97316"
                                         strokeWidth={2}
-                                        dot={false}
+                                        strokeDasharray="5 5"
+                                        dot={{ r: 3, fill: '#f97316' }}
                                         name="CPU %"
                                     />
                                     <Line
@@ -256,7 +259,8 @@ export function HistoricalCharts() {
                                         dataKey="avgRam"
                                         stroke="#8B5CF6"
                                         strokeWidth={2}
-                                        dot={false}
+                                        strokeDasharray="5 5"
+                                        dot={{ r: 3, fill: '#8B5CF6' }}
                                         name="RAM %"
                                     />
                                 </LineChart>
@@ -333,7 +337,8 @@ export function HistoricalCharts() {
                                     dataKey="uniqueCountries"
                                     stroke="#ec4899"
                                     strokeWidth={2}
-                                    dot={false}
+                                    strokeDasharray="5 5"
+                                    dot={{ r: 3, fill: '#ec4899' }}
                                     name="Countries"
                                 />
                                 <Line
@@ -341,7 +346,8 @@ export function HistoricalCharts() {
                                     dataKey="uniqueVersions"
                                     stroke="#06b6d4"
                                     strokeWidth={2}
-                                    dot={false}
+                                    strokeDasharray="5 5"
+                                    dot={{ r: 3, fill: '#06b6d4' }}
                                     name="Versions"
                                 />
                             </LineChart>
