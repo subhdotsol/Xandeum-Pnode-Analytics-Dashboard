@@ -15,10 +15,9 @@
 
 ## 🎬 Demo
 
-https://github.com/user-attachments/assets/YOUR_VIDEO_ID_HERE
+https://github.com/user-attachments/assets/d32fabd4-1faf-4fb1-8ee0-cfcc3d2b820e
 
-> *Click to watch the full demo video showcasing all dashboard features*
-
+## LIVE : [Xandeum-explorer](https://explorerxandeum.vercel.app/)
 ---
 
 ## ✨ Features
