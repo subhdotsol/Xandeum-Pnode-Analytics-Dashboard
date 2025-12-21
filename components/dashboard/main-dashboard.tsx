@@ -11,6 +11,7 @@ import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
 import { NodesTable } from "@/components/dashboard/nodes-table";
 import { VersionDistribution } from "@/components/dashboard/version-distribution";
 import { ActivityGraph } from "@/components/dashboard/activity-graph";
+import { HistoricalCharts } from "@/components/dashboard/historical-charts";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
@@ -278,11 +279,9 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 )}
 
                 {activeTab === "analytics" && (
-                    <div className="flex items-center justify-center min-h-[400px]">
-                        <div className="text-center space-y-4">
-                            <h2 className="text-2xl font-semibold">Analytics</h2>
-                            <p className="text-muted-foreground">Advanced analytics coming soon...</p>
-                        </div>
+                    <div className="space-y-6">
+                        <h2 className="text-2xl font-semibold">Historical Analytics</h2>
+                        <HistoricalCharts />
                     </div>
                 )}
 
