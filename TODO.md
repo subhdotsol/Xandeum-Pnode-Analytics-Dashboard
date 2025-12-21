@@ -25,7 +25,7 @@ This document tracks features we want to implement to improve the dashboard.
 | Feature | Description | Status |
 |---------|-------------|--------|
 | **Real-time WebSocket Updates** | Live updates without page refresh - instant updates instead of polling | ⭐ Good Idea |
-| **Performance Leaderboard** | Rank nodes by uptime, CPU efficiency, storage - gamification | ⭐ Good Idea |
+| **Performance Leaderboard** | Rank nodes by uptime, CPU efficiency, storage - gamification | ✅ Done |
 | **Alerts & Notifications** | Browser notifications when nodes go offline | ⭐ Good Idea |
 
 ### 💡 Medium Priority

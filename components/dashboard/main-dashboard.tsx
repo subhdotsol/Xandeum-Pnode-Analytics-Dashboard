@@ -12,6 +12,7 @@ import { NodesTable } from "@/components/dashboard/nodes-table";
 import { VersionDistribution } from "@/components/dashboard/version-distribution";
 import { ActivityGraph } from "@/components/dashboard/activity-graph";
 import { HistoricalCharts } from "@/components/dashboard/historical-charts";
+import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
@@ -37,7 +38,7 @@ interface MainDashboardProps {
     };
 }
 
-type TabType = "dashboard" | "analytics" | "map" | "nodes";
+type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes";
 
 // Format large numbers (e.g., 293960000 -> "293.96M")
 function formatLargeNumber(num: number): string {
@@ -50,6 +51,7 @@ function formatLargeNumber(num: number): string {
 const tabs: { id: TabType; label: string }[] = [
     { id: "dashboard", label: "Dashboard" },
     { id: "analytics", label: "Analytics" },
+    { id: "leaderboard", label: "Leaderboard" },
     { id: "map", label: "Map" },
     { id: "nodes", label: "Registry" },
 ];
@@ -279,10 +281,14 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 )}
 
                 {activeTab === "analytics" && (
-                    <div className="space-y-6">
+                    <div className="space-y-6 max-w-[1400px]">
                         <h2 className="text-2xl font-semibold">Historical Analytics</h2>
                         <HistoricalCharts />
                     </div>
+                )}
+
+                {activeTab === "leaderboard" && (
+                    <Leaderboard nodes={pnodes} />
                 )}
 
                 {activeTab === "map" && (
