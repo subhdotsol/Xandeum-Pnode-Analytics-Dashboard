@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye, Copy, Check, MapPin, Globe } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye, Copy, Check, MapPin, Globe, Loader2 } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -31,11 +31,40 @@ interface NodeWithStats extends PNodeInfo {
         lon: number;
         timezone: string;
     } | null;
+    statsLoading?: boolean;
 }
 
 const PAGE_SIZES = [10, 25, 50, 100];
 
-// Copyable Field Component
+// Click to Copy Component with animated popup
+function ClickToCopy({ value, display }: { value: string; display?: string }) {
+    const [showCopied, setShowCopied] = useState(false);
+
+    const handleClick = async () => {
+        await navigator.clipboard.writeText(value);
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 1500);
+    };
+
+    return (
+        <div className="relative inline-block">
+            <button
+                onClick={handleClick}
+                className="font-mono text-sm hover:text-primary hover:underline cursor-pointer transition-colors"
+                title="Click to copy"
+            >
+                {display || value}
+            </button>
+            {showCopied && (
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs px-2 py-1 rounded shadow-lg animate-fade-in-out whitespace-nowrap z-50">
+                    ✓ Copied!
+                </div>
+            )}
+        </div>
+    );
+}
+
+// Copyable Field Component for modal
 function CopyableField({ label, value, mono = true }: { label: string; value: string; mono?: boolean }) {
     const [copied, setCopied] = useState(false);
 
@@ -76,9 +105,11 @@ export function NodesTable({ nodes }: NodesTableProps) {
     const [nodesWithStats, setNodesWithStats] = useState<NodeWithStats[]>([]);
     const [selectedNode, setSelectedNode] = useState<NodeWithStats | null>(null);
     const [loadingNodeStats, setLoadingNodeStats] = useState(false);
+    const [loadingVisibleStats, setLoadingVisibleStats] = useState(false);
+    const statsCache = useRef<Map<string, PNodeStats>>(new Map());
 
     useEffect(() => {
-        setNodesWithStats(nodes.map(n => ({ ...n, stats: null, geo: null })));
+        setNodesWithStats(nodes.map(n => ({ ...n, stats: statsCache.current.get(n.address) || null, geo: null })));
     }, [nodes]);
 
     const filteredAndSortedNodes = (() => {
@@ -127,6 +158,51 @@ export function NodesTable({ nodes }: NodesTableProps) {
     const startIndex = (currentPage - 1) * pageSize;
     const endIndex = Math.min(startIndex + pageSize, totalNodes);
     const displayedNodes = filteredAndSortedNodes.slice(startIndex, endIndex);
+
+    // Fetch stats for visible nodes
+    const fetchVisibleStats = useCallback(async (nodesToFetch: NodeWithStats[]) => {
+        const nodesToLoad = nodesToFetch.filter(n => !statsCache.current.has(n.address));
+        if (nodesToLoad.length === 0) return;
+
+        setLoadingVisibleStats(true);
+
+        // Fetch stats in parallel (limit to 10 concurrent for faster loading)
+        const batchSize = 10;
+        for (let i = 0; i < nodesToLoad.length; i += batchSize) {
+            const batch = nodesToLoad.slice(i, i + batchSize);
+            const promises = batch.map(async (node) => {
+                try {
+                    const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
+                    if (res.ok) {
+                        const stats = await res.json();
+                        statsCache.current.set(node.address, stats);
+                        return { address: node.address, stats };
+                    }
+                } catch { }
+                return { address: node.address, stats: null };
+            });
+
+            const results = await Promise.all(promises);
+
+            // Update state with fetched stats
+            setNodesWithStats(prev => prev.map(n => {
+                const result = results.find(r => r.address === n.address);
+                if (result) {
+                    return { ...n, stats: result.stats };
+                }
+                return n;
+            }));
+        }
+
+        setLoadingVisibleStats(false);
+    }, []);
+
+    // Fetch stats when displayed nodes change
+    useEffect(() => {
+        if (displayedNodes.length > 0) {
+            fetchVisibleStats(displayedNodes);
+        }
+    }, [currentPage, pageSize, search, statusFilter, fetchVisibleStats, displayedNodes.map(n => n.address).join(',')]);
 
     const handleSort = (field: typeof sortField) => {
         if (sortField === field) {
@@ -187,12 +263,12 @@ export function NodesTable({ nodes }: NodesTableProps) {
                 fetch(`/api/geo?ip=${ip}`).catch(() => null)
             ]);
 
-            let stats = null;
+            let stats = node.stats;
             let geo = null;
 
             if (statsRes?.ok) {
-                const data = await statsRes.json();
-                stats = data;
+                stats = await statsRes.json();
+                statsCache.current.set(node.address, stats);
             }
 
             if (geoRes?.ok) {
@@ -234,6 +310,9 @@ export function NodesTable({ nodes }: NodesTableProps) {
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold">
                             <Server className="w-5 h-5" />
                             Node Registry
+                            {loadingVisibleStats && (
+                                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                            )}
                         </CardTitle>
                         <div className="text-sm text-muted-foreground">
                             {totalNodes} nodes
@@ -315,17 +394,40 @@ export function NodesTable({ nodes }: NodesTableProps) {
                                     displayedNodes.map((node) => (
                                         <TableRow key={node.address} className="hover:bg-muted/50 transition-colors">
                                             <TableCell>{getHealthBadge(node.last_seen_timestamp)}</TableCell>
-                                            <TableCell className="font-mono text-sm">{node.address}</TableCell>
+                                            <TableCell>
+                                                <ClickToCopy value={node.address} />
+                                            </TableCell>
                                             <TableCell className="font-mono text-sm">{node.version || "–"}</TableCell>
                                             <TableCell className="text-sm">
-                                                {node.stats?.cpu_percent !== undefined ? `${node.stats.cpu_percent.toFixed(1)}%` : "–"}
+                                                {node.stats?.cpu_percent !== undefined ? (
+                                                    `${node.stats.cpu_percent.toFixed(1)}%`
+                                                ) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : "–"}
                                             </TableCell>
-                                            <TableCell className="text-sm">{formatRamPercent(node.stats)}</TableCell>
-                                            <TableCell className="text-sm">{formatStorage(node.stats)}</TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">{formatNodeUptime(node.stats)}</TableCell>
+                                            <TableCell className="text-sm">
+                                                {node.stats ? formatRamPercent(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : "–"}
+                                            </TableCell>
+                                            <TableCell className="text-sm">
+                                                {node.stats ? formatStorage(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : "–"}
+                                            </TableCell>
+                                            <TableCell className="text-sm text-muted-foreground">
+                                                {node.stats ? formatNodeUptime(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : "–"}
+                                            </TableCell>
                                             <TableCell className="text-xs text-muted-foreground">{getTimeAgo(node.last_seen_timestamp)}</TableCell>
-                                            <TableCell className="font-mono text-xs text-muted-foreground">
-                                                {node.pubkey ? `${node.pubkey.slice(0, 8)}...` : "–"}
+                                            <TableCell>
+                                                {node.pubkey ? (
+                                                    <ClickToCopy
+                                                        value={node.pubkey}
+                                                        display={`${node.pubkey.slice(0, 8)}...`}
+                                                    />
+                                                ) : "–"}
                                             </TableCell>
                                             <TableCell>
                                                 <button
