@@ -2,9 +2,10 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw, Wifi } from "lucide-react";
+import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw, Wifi, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
@@ -13,6 +14,9 @@ import { VersionDistribution } from "@/components/dashboard/version-distribution
 import { ActivityGraph } from "@/components/dashboard/activity-graph";
 import { HistoricalCharts } from "@/components/dashboard/historical-charts";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
+import { GeographicDistribution } from "@/components/dashboard/geographic-distribution";
+import { SwapWidget } from "@/components/swap-widget";
+import { StakingWidget } from "@/components/staking-widget";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
@@ -38,7 +42,7 @@ interface MainDashboardProps {
     };
 }
 
-type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes";
+type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes" | "swap" | "stake";
 
 // Format large numbers (e.g., 293960000 -> "293.96M")
 function formatLargeNumber(num: number): string {
@@ -54,6 +58,8 @@ const tabs: { id: TabType; label: string }[] = [
     { id: "leaderboard", label: "Leaderboard" },
     { id: "map", label: "Map" },
     { id: "nodes", label: "Directory" },
+    { id: "swap", label: "Swap" },
+    { id: "stake", label: "Stake" },
 ];
 
 function StatCard({ title, value, subtitle, icon: Icon }: { title: string; value: string | number; subtitle: string; icon: React.ElementType }) {
@@ -183,6 +189,13 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                         <button onClick={handleRefresh} disabled={isRefreshing} className="p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50">
                             <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                         </button>
+                        <Link
+                            href="/docs"
+                            className="p-1.5 rounded-md hover:bg-muted transition-colors flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                        >
+                            <BookOpen className="w-4 h-4" />
+                            <span className="hidden sm:inline">Docs</span>
+                        </Link>
                         <ThemeToggle />
                     </div>
                 </div>
@@ -331,6 +344,10 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 )}
 
                 {activeTab === "nodes" && <NodesTable nodes={pnodes} />}
+
+                {activeTab === "swap" && <SwapWidget />}
+
+                {activeTab === "stake" && <StakingWidget />}
             </main>
         </div>
     );
