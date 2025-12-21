@@ -26,7 +26,7 @@ export async function GET() {
             .from('historical_snapshots')
             .select('*')
             .order('timestamp', { ascending: true })
-            .limit(168); // Last 7 days of 5-minute snapshots
+            .limit(2016); // 7 days × 24 hours × 12 snapshots/hour (5-min intervals)
 
         if (error) {
             console.error('Supabase fetch error:', error);

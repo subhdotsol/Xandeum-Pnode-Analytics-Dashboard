@@ -237,20 +237,20 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 </div>
 
                 {activeTab === "dashboard" && (
-                    <div className="space-y-8">
+                    <div className="space-y-10">
                         <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                             <div className="w-2 h-2 rounded-full bg-green-500" />
                             <span>{analytics.totals.total} nodes active</span>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                             <StatCard title="Total Nodes" value={analytics.totals.total} subtitle="Active in cluster" icon={Server} />
                             <StatCard title="Online Status" value={analytics.health.healthy} subtitle={`${onlinePercentage}% operational`} icon={Globe} />
                             <StatCard title="Version Count" value={uniqueVersions} subtitle={`Latest: ${analytics.versions.latest}`} icon={Package} />
                             <StatCard title="Locations" value={estimatedCountries} subtitle="Countries worldwide" icon={MapPin} />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             <Card className="border border-border bg-card">
                                 <CardContent className="p-6">
                                     <h3 className="text-sm font-medium mb-4">Resources</h3>
