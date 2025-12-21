@@ -63,27 +63,37 @@ We welcome all feedback and contributions! If you find any issues or have sugges
 - **Geo-location** - Real-time node locations with city/country info
 - **Node Popups** - Click markers to see node details
 
+### 📊 Historical Analytics (NEW)
+
+- **Time Range Filter** - 1H, 4H, 12H, 24H, 7D, 30D, All
+- **5 Visualization Charts**:
+  - **Node Population** - Total nodes over time (gradient area)
+  - **Availability Rate** - Online percentage (dotted line)
+  - **Resource Utilization** - CPU & RAM usage (dotted lines)
+  - **Storage Capacity** - Aggregate storage (gradient area)
+  - **Geographic Spread** - Countries & versions (dotted lines)
+- **Supabase Backend** - Stores 7 days of 5-minute snapshots
+- **Automated Collection** - GitHub Actions cron job every 5 minutes
+
+### 🏆 Performance Leaderboard (NEW)
+
+- **Node Rankings** by 4 categories:
+  - **Overall** - Weighted score (40% uptime, 30% CPU, 30% storage)
+  - **Uptime** - Longest running nodes
+  - **CPU Efficiency** - Lowest CPU usage
+  - **Storage** - Most storage contributed
+- **Top 3 Podium** - Gold, silver, bronze cards with icons
+- **Full Rankings Table** - Top 25 nodes with all stats
+- **Click for Details** - Opens modal with full node info
+
 ### 📋 Node Registry
 
 - **Pagination** - 10, 25, 50, or 100 items per page
 - **Sortable Columns** - Address, Version, CPU, RAM, Last Seen
 - **Filterable** - Search by address/pubkey, filter by status
+- **Click-to-Copy** - Click address/pubkey for animated "Copied!" popup
+- **Real-time Stats** - CPU, RAM, Storage, Uptime fetched on page load
 - **10 Columns**: Status, Address, Version, CPU, RAM, Storage, Uptime, Last Seen, Public Key, Action
-
-### 🔍 Node Details Popup
-
-- **Copyable Fields** - Click to copy Node ID, Gossip Address, RPC Address
-- **Location Info** - Country, City, Region, Coordinates, Timezone
-- **Resource Metrics** - CPU/RAM progress bars, Storage, Uptime
-- **Activity Stats** - Streams, Pages Processed, Packets RX/TX
-- **Blurred Backdrop** - Modern modal with backdrop-blur effect
-
-### 📈 Visualizations
-
-- **Activity Monitor Graph** - Gradient area chart with cyan (packets) and purple (streams)
-- **Network Health Card** - Score display with healthy/degraded/offline breakdown
-- **Version Distribution** - Pie chart showing software version adoption
-- **Progress Bars** - Visual distribution of node health states
 
 ### 🎨 Design Features
 
@@ -103,6 +113,9 @@ We welcome all feedback and contributions! If you find any issues or have sugges
 | `GET /api/stats` | Get aggregate stats from 8 seed nodes |
 | `GET /api/pnodes/[address]` | Get individual node stats |
 | `GET /api/geo?ip=` | Get geo-location for an IP |
+| `GET /api/historical` | Get historical analytics data |
+| `POST /api/historical/save` | Save a new snapshot |
+| `GET /api/cron/collect-snapshot` | Trigger snapshot collection |
 
 ### Data Flow
 
@@ -112,6 +125,8 @@ Seed pNodes → JSON-RPC → Parallel Fetch → Deduplication → Analytics → 
 /api/stats → 8 reliable seed nodes → Aggregate metrics
      ↓
 /api/geo → ip-api.com → Location data
+     ↓
+/api/cron → Collect snapshot → Supabase → Historical charts
 ```
 
 ---
@@ -157,6 +172,11 @@ pnode/
 │   │   ├── pnodes/           # Node list & individual stats
 │   │   ├── analytics/        # Network analytics
 │   │   ├── stats/            # Aggregate stats from seed nodes
+│   │   ├── historical/       # Historical data endpoints
+│   │   │   ├── route.ts      # GET historical data
+│   │   │   └── save/route.ts # POST save snapshot
+│   │   ├── cron/             # Cron job endpoint
+│   │   │   └── collect-snapshot/route.ts
 │   │   └── geo/              # Geo-location API
 │   ├── globals.css
 │   ├── layout.tsx
@@ -164,6 +184,8 @@ pnode/
 ├── components/
 │   ├── dashboard/
 │   │   ├── main-dashboard.tsx      # Main layout with tabs
+│   │   ├── historical-charts.tsx   # Analytics line charts
+│   │   ├── leaderboard.tsx         # Performance leaderboard
 │   │   ├── network-health-card.tsx # Health score display
 │   │   ├── nodes-table.tsx         # Node Registry with pagination
 │   │   ├── activity-graph.tsx      # Recharts area graph
@@ -172,9 +194,13 @@ pnode/
 │   ├── MapComponent.tsx       # Leaflet map
 │   └── ui/                    # shadcn/ui components
 ├── lib/
+│   ├── supabase.ts            # Supabase client
 │   ├── pnode-client.ts        # JSON-RPC client
 │   ├── network-analytics.ts   # Health scoring engine
 │   └── utils.ts               # Utility functions
+├── .github/
+│   └── workflows/
+│       └── cron.yml           # GitHub Actions cron job
 └── types/
     └── pnode.ts               # TypeScript definitions
 ```
@@ -188,10 +214,12 @@ pnode/
 | **Framework** | Next.js 15.1.5 (App Router) |
 | **Language** | TypeScript 5.0 |
 | **Styling** | TailwindCSS 4.0 |
+| **Database** | Supabase (PostgreSQL) |
 | **UI Components** | shadcn/ui |
 | **Charts** | Recharts |
 | **Maps** | Leaflet + react-leaflet |
 | **Icons** | Lucide React |
+| **Automation** | GitHub Actions |
 
 ---
 
