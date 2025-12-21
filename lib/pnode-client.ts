@@ -53,7 +53,7 @@ export class PNodeClient {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(postData),
         },
-        timeout: 10000,
+        timeout: 3000,
       };
 
       const req = http.request(options, (res) => {

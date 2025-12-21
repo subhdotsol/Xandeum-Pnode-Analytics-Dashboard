@@ -134,13 +134,13 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Phase 1: Show spinner for 8 seconds
-    const spinnerTimer = setTimeout(() => {
-      setLoadingPhase("skeleton");
-    }, 8000);
-
-    // Fetch data
+    // Fetch data immediately
     fetchData();
+
+    // Phase 1: Show spinner for 3 seconds max, then skeleton while loading
+    const spinnerTimer = setTimeout(() => {
+      setLoadingPhase((current) => current === "spinner" ? "skeleton" : current);
+    }, 3000);
 
     return () => clearTimeout(spinnerTimer);
   }, []);

@@ -166,36 +166,31 @@ export function NodesTable({ nodes }: NodesTableProps) {
 
         setLoadingVisibleStats(true);
 
-        // Fetch stats in parallel (limit to 10 concurrent for faster loading)
-        const batchSize = 10;
-        for (let i = 0; i < nodesToLoad.length; i += batchSize) {
-            const batch = nodesToLoad.slice(i, i + batchSize);
-            const promises = batch.map(async (node) => {
-                try {
-                    const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
-                    if (res.ok) {
-                        const response = await res.json();
-                        // Extract stats from nested data.stats structure
-                        if (response?.success && response?.data?.stats) {
-                            statsCache.current.set(node.address, response.data.stats);
-                            return { address: node.address, stats: response.data.stats };
-                        }
+        // Fetch ALL visible nodes in parallel for maximum speed
+        const promises = nodesToLoad.map(async (node) => {
+            try {
+                const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
+                if (res.ok) {
+                    const response = await res.json();
+                    if (response?.success && response?.data?.stats) {
+                        statsCache.current.set(node.address, response.data.stats);
+                        return { address: node.address, stats: response.data.stats };
                     }
-                } catch { }
-                return { address: node.address, stats: null };
-            });
-
-            const results = await Promise.all(promises);
-
-            // Update state with fetched stats
-            setNodesWithStats(prev => prev.map(n => {
-                const result = results.find(r => r.address === n.address);
-                if (result) {
-                    return { ...n, stats: result.stats };
                 }
-                return n;
-            }));
-        }
+            } catch { }
+            return { address: node.address, stats: null };
+        });
+
+        const results = await Promise.all(promises);
+
+        // Update state with fetched stats
+        setNodesWithStats(prev => prev.map(n => {
+            const result = results.find(r => r.address === n.address);
+            if (result && result.stats) {
+                return { ...n, stats: result.stats };
+            }
+            return n;
+        }));
 
         setLoadingVisibleStats(false);
     }, []);

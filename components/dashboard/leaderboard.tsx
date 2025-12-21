@@ -64,32 +64,28 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
         setLoadingStats(true);
 
         const nodesToFetch = nodes.slice(0, 50);
-        const newStats = new Map(nodeStats);
+        const newStats = new Map<string, PNodeStats>();
 
-        // Fetch in batches of 10
-        const batchSize = 10;
-        for (let i = 0; i < nodesToFetch.length; i += batchSize) {
-            const batch = nodesToFetch.slice(i, i + batchSize);
-            await Promise.all(
-                batch.map(async (node) => {
-                    try {
-                        const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
-                        if (res.ok) {
-                            const response = await res.json();
-                            // Extract stats from nested data.stats structure
-                            if (response?.success && response?.data?.stats) {
-                                newStats.set(node.address, response.data.stats);
-                            }
+        // Fetch ALL nodes in parallel for maximum speed
+        await Promise.all(
+            nodesToFetch.map(async (node) => {
+                try {
+                    const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
+                    if (res.ok) {
+                        const response = await res.json();
+                        if (response?.success && response?.data?.stats) {
+                            newStats.set(node.address, response.data.stats);
                         }
-                    } catch { }
-                })
-            );
-            setNodeStats(new Map(newStats));
-        }
+                    }
+                } catch { }
+            })
+        );
 
+        // Update state once after all fetches complete
+        setNodeStats(newStats);
         setLoadingStats(false);
         setHasLoadedStats(true);
-    }, [nodes, hasLoadedStats, loadingStats, nodeStats]);
+    }, [nodes, hasLoadedStats, loadingStats]);
 
     useEffect(() => {
         if (nodes.length > 0 && !hasLoadedStats) {
