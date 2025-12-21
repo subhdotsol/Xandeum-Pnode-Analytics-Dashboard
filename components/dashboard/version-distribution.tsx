@@ -67,10 +67,15 @@ export function VersionDistribution({
                             </Pie>
                             <Tooltip
                                 contentStyle={{
-                                    backgroundColor: "var(--card)",
-                                    border: "1px solid var(--border)",
+                                    backgroundColor: "hsl(var(--card))",
+                                    border: "1px solid hsl(var(--border))",
                                     borderRadius: "8px",
-                                    color: "var(--foreground)",
+                                }}
+                                labelStyle={{
+                                    color: "hsl(var(--foreground))",
+                                }}
+                                itemStyle={{
+                                    color: "hsl(var(--foreground))",
                                 }}
                                 formatter={(value: number, name: string) => [`${value} nodes`, `v${name}`]}
                             />
