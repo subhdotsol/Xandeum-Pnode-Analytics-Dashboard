@@ -267,8 +267,11 @@ export function NodesTable({ nodes }: NodesTableProps) {
             let geo = null;
 
             if (statsRes?.ok) {
-                stats = await statsRes.json();
-                statsCache.current.set(node.address, stats);
+                const fetchedStats = await statsRes.json();
+                if (fetchedStats) {
+                    stats = fetchedStats;
+                    statsCache.current.set(node.address, fetchedStats);
+                }
             }
 
             if (geoRes?.ok) {
