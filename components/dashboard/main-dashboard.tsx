@@ -15,6 +15,9 @@ import { ActivityGraph } from "@/components/dashboard/activity-graph";
 import { HistoricalCharts } from "@/components/dashboard/historical-charts";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { GeographicDistribution } from "@/components/dashboard/geographic-distribution";
+import { GlobalNodeDistribution } from "@/components/dashboard/global-node-distribution";
+import { GeographicInsights } from "@/components/dashboard/geographic-insights";
+import { StatusDistribution } from "@/components/dashboard/status-distribution";
 import { SwapWidget } from "@/components/swap-widget";
 import { StakingWidget } from "@/components/staking-widget";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
@@ -25,6 +28,18 @@ const MapComponent = dynamic(() => import("@/components/MapComponent"), {
     ssr: false,
     loading: () => <MapSkeleton />,
 });
+
+const DashboardNodeMap = dynamic(
+    () => import("@/components/dashboard/dashboard-node-map").then(mod => ({ default: mod.DashboardNodeMap })),
+    {
+        ssr: false,
+        loading: () => (
+            <div className="h-[320px] bg-muted/50 rounded-lg flex items-center justify-center">
+                <div className="animate-spin w-6 h-6 border-2 border-foreground/20 border-t-foreground rounded-full" />
+            </div>
+        ),
+    }
+);
 
 interface MainDashboardProps {
     analytics: NetworkAnalytics;
@@ -39,6 +54,7 @@ interface MainDashboardProps {
         totalPages: number;
         totalPackets?: number;
         totalStreams?: number;
+        publicRpcCount?: number;
     };
 }
 
@@ -115,7 +131,8 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const geoFetchStarted = useRef(false);
 
     useEffect(() => {
-        if (activeTab === "map" && !geoFetchStarted.current && pnodes.length > 0) {
+        // Start geo-fetching on dashboard tab (or map tab)
+        if ((activeTab === "dashboard" || activeTab === "map") && !geoFetchStarted.current && pnodes.length > 0) {
             geoFetchStarted.current = true;
             setIsLoadingGeo(true);
             setGeoLoadedCount(0);
@@ -159,7 +176,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
             };
             fetchGeo();
         }
-    }, [activeTab, pnodes.length]);
+    }, [activeTab, pnodes.length, pnodes]);
 
     const handleRefresh = useCallback(() => {
         setIsRefreshing(true);
@@ -281,13 +298,33 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                     </CardContent>
                                 </Card>
 
-                                {/* Network Health (compact) */}
-                                <NetworkHealthCard score={analytics.health.score} totals={analytics.totals} health={analytics.health} />
+                                {/* Status Distribution with pie chart */}
+                                <StatusDistribution totals={analytics.totals} publicRpcCount={aggregateStats.publicRpcCount || 0} />
                             </div>
 
                             {/* Right Column: Version Distribution (full height) */}
                             <div className="h-full">
                                 <VersionDistribution distribution={analytics.versions.distribution} latest={analytics.versions.latest} outdatedCount={analytics.versions.outdatedCount} outdatedPercentage={analytics.versions.outdatedPercentage} total={analytics.totals.total} />
+                            </div>
+                        </div>
+
+                        {/* Geographic Distribution Section - Map + Network Health | Insights */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            <div className="lg:col-span-2 space-y-6">
+                                <DashboardNodeMap
+                                    nodes={pnodesWithGeo}
+                                    isLoading={isLoadingGeo || (!geoLoadingComplete && pnodesWithGeo.length < totalNodes)}
+                                    loadedCount={geoLoadedCount}
+                                    totalCount={totalNodes}
+                                />
+                                {/* Network Health under the map */}
+                                <NetworkHealthCard score={analytics.health.score} totals={analytics.totals} health={analytics.health} />
+                            </div>
+                            <div className="lg:col-span-1">
+                                <GeographicInsights
+                                    nodes={pnodesWithGeo}
+                                    isLoading={isLoadingGeo}
+                                />
                             </div>
                         </div>
                     </div>

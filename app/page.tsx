@@ -172,6 +172,7 @@ export default function HomePage() {
           totalPages: statsData.totalPages || 0,
           totalPackets: statsData.totalPackets || 0,
           totalStreams: statsData.totalStreams || 0,
+          publicRpcCount: statsData.nodeCount || 0,
         });
       }
 

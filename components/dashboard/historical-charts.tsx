@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, TrendingUp, Activity, Server, Globe, HardDrive, Clock } from "lucide-react";
+import { Loader2, TrendingUp, Activity, Server, Globe, HardDrive, Clock, MapPin, WifiOff, Eye } from "lucide-react";
 
 interface HistoricalDataPoint {
     timestamp: number;
@@ -44,6 +44,125 @@ const formatStorage = (bytes: number) => {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 };
+
+// Country flag emoji lookup
+const countryFlags: Record<string, string> = {
+    "Germany": "🇩🇪", "United States": "🇺🇸", "Finland": "🇫🇮", "France": "🇫🇷",
+    "Netherlands": "🇳🇱", "United Kingdom": "🇬🇧", "Canada": "🇨🇦", "Japan": "🇯🇵",
+    "Singapore": "🇸🇬", "Australia": "🇦🇺", "Poland": "🇵🇱", "Sweden": "🇸🇪",
+};
+
+// Inline Global Node Distribution component (uses live data, not historical)
+function GlobalNodeDistributionInline() {
+    const [data, setData] = useState<{ countries: { country: string; count: number }[]; total: number; health: { healthy: number; degraded: number; offline: number } } | null>(null);
+
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const [pnodesRes, analyticsRes] = await Promise.all([
+                    fetch("/api/pnodes"),
+                    fetch("/api/analytics")
+                ]);
+
+                const pnodes = await pnodesRes.json();
+                const analytics = await analyticsRes.json();
+
+                // Count by country
+                const countryCount = new Map<string, number>();
+                const nodeList = pnodes.pnodes || [];
+                nodeList.forEach((n: { country?: string }) => {
+                    if (n.country) countryCount.set(n.country, (countryCount.get(n.country) || 0) + 1);
+                });
+
+                const countries = Array.from(countryCount.entries())
+                    .map(([country, count]) => ({ country, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 6);
+
+                setData({
+                    countries,
+                    total: countryCount.size,
+                    health: analytics.health || { healthy: 0, degraded: 0, offline: 0 }
+                });
+            } catch (err) {
+                console.error("Failed to fetch node distribution", err);
+            }
+        }
+        fetchData();
+    }, []);
+
+    if (!data) {
+        return (
+            <Card className="border border-border bg-card">
+                <CardContent className="p-8 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                </CardContent>
+            </Card>
+        );
+    }
+
+    return (
+        <Card className="border border-border bg-card">
+            <CardHeader className="pb-2">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium">
+                    <Globe className="w-4 h-4 text-blue-500" />
+                    Global Node Distribution
+                </CardTitle>
+                <p className="text-xs text-muted-foreground">Live network geography and status</p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                {/* Stats Row */}
+                <div className="grid grid-cols-4 gap-3">
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <MapPin className="w-4 h-4 mx-auto mb-1 text-blue-500" />
+                        <p className="text-xl font-bold">{data.total}</p>
+                        <p className="text-xs text-muted-foreground">Locations</p>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <Server className="w-4 h-4 mx-auto mb-1 text-green-500" />
+                        <p className="text-xl font-bold text-green-500">{data.health.healthy}</p>
+                        <p className="text-xs text-muted-foreground">Online</p>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <Eye className="w-4 h-4 mx-auto mb-1 text-yellow-500" />
+                        <p className="text-xl font-bold text-yellow-500">{data.health.degraded}</p>
+                        <p className="text-xs text-muted-foreground">Degraded</p>
+                    </div>
+                    <div className="text-center p-3 rounded-lg bg-muted/50">
+                        <WifiOff className="w-4 h-4 mx-auto mb-1 text-red-500" />
+                        <p className="text-xl font-bold text-red-500">{data.health.offline}</p>
+                        <p className="text-xs text-muted-foreground">Offline</p>
+                    </div>
+                </div>
+
+                {/* Geographic Insights */}
+                <div>
+                    <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Geographic Insights</h4>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                        {data.countries.map((item) => (
+                            <div key={item.country} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
+                                <span className="text-lg">{countryFlags[item.country] || "🌍"}</span>
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{item.country}</p>
+                                    <p className="text-xs text-muted-foreground">{item.count} nodes</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Distribution Bar */}
+                <div>
+                    <div className="h-2.5 rounded-full overflow-hidden flex bg-muted">
+                        <div className="bg-green-500" style={{ width: `${(data.health.healthy / (data.health.healthy + data.health.degraded + data.health.offline)) * 100 || 0}%` }} />
+                        <div className="bg-yellow-500" style={{ width: `${(data.health.degraded / (data.health.healthy + data.health.degraded + data.health.offline)) * 100 || 0}%` }} />
+                        <div className="bg-red-500" style={{ width: `${(data.health.offline / (data.health.healthy + data.health.degraded + data.health.offline)) * 100 || 0}%` }} />
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+    );
+}
 
 export function HistoricalCharts() {
     const [data, setData] = useState<HistoricalDataPoint[]>([]);
@@ -333,47 +452,8 @@ export function HistoricalCharts() {
                     </Card>
                 </div>
 
-                {/* Row 3: Geographic Spread */}
-                <Card className="border border-border bg-card">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="flex items-center gap-2 text-sm font-medium">
-                            <Globe className="w-4 h-4 text-pink-500" />
-                            Geographic Spread
-                        </CardTitle>
-                        <p className="text-xs text-muted-foreground">Regional distribution and version count</p>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-[220px]">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                    <XAxis dataKey="time" tick={{ fontSize: 10 }} tickLine={false} />
-                                    <YAxis tick={{ fontSize: 10 }} tickLine={false} />
-                                    <Tooltip contentStyle={tooltipStyle} />
-                                    <Legend />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="uniqueCountries"
-                                        stroke="#ec4899"
-                                        strokeWidth={2}
-                                        strokeDasharray="5 5"
-                                        dot={{ r: 3, fill: '#ec4899' }}
-                                        name="Countries"
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="uniqueVersions"
-                                        stroke="#06b6d4"
-                                        strokeWidth={2}
-                                        strokeDasharray="5 5"
-                                        dot={{ r: 3, fill: '#06b6d4' }}
-                                        name="Versions"
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Row 3: Global Node Distribution (uses live data) */}
+                <GlobalNodeDistributionInline />
             </div>
         </div>
     );

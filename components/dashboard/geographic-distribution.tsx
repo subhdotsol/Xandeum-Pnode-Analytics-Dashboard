@@ -10,7 +10,7 @@ interface GeoNode {
 }
 
 interface GeographicDistributionProps {
-    nodes: GeoNode[];
+    nodes: Array<{ country?: string; city?: string }>;
 }
 
 // Country flag emoji map
