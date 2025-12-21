@@ -4,7 +4,6 @@ import { useState, useEffect, useMemo } from "react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Area, AreaChart } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, TrendingUp, Activity, HardDrive, Clock } from "lucide-react";
-import { MarketDataCharts } from "./market-data-charts";
 
 interface HistoricalDataPoint {
     timestamp: number;
@@ -164,7 +163,7 @@ export function HistoricalCharts() {
             </div>
 
             {/* Charts with fade transition */}
-            <div className={`transition-opacity duration-300 ${reloading ? 'opacity-30' : 'opacity-100'}`}>
+            <div className={`space-y-8 transition-opacity duration-300 ${reloading ? 'opacity-30' : 'opacity-100'}`}>
 
                 {/* Row 1: Network Growth & Network Uptime */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -333,9 +332,6 @@ export function HistoricalCharts() {
                         </CardContent>
                     </Card>
                 </div>
-
-                {/* Row 3: Market Data Charts (XAND Price & Liquidity) */}
-                <MarketDataCharts />
             </div>
         </div>
     );

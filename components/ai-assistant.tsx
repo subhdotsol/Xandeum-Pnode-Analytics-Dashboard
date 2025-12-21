@@ -14,7 +14,17 @@ export function AiAssistant() {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Message[]>([]);
     const [isLoading, setIsLoading] = useState(false);
+    const [isMounted, setIsMounted] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    // Hide button until dashboard loads
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsMounted(true);
+        }, 1500); // Show after 1.5 seconds
+
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -58,42 +68,49 @@ export function AiAssistant() {
 
     return (
         <>
-            {/* Ask AI Button */}
-            <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${isOpen
-                    ? "bg-muted text-foreground"
-                    : "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-purple-500/25"
-                    }`}
-            >
-                <AnimatePresence mode="wait">
-                    {isOpen ? (
-                        <motion.div
-                            key="close"
-                            initial={{ rotate: -90, opacity: 0 }}
-                            animate={{ rotate: 0, opacity: 1 }}
-                            exit={{ rotate: 90, opacity: 0 }}
-                            className="flex items-center gap-2"
-                        >
-                            <X className="w-4 h-4" />
-                            <span className="text-sm font-medium">Close</span>
-                        </motion.div>
-                    ) : (
-                        <motion.div
-                            key="open"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="flex items-center gap-2"
-                        >
-                            <Bot className="w-4 h-4" />
-                            <span className="text-sm font-medium">Ask AI</span>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-            </motion.button>
+            {/* Ask AI Button - Only visible after dashboard loads */}
+            <AnimatePresence>
+                {isMounted && (
+                    <motion.button
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => setIsOpen(!isOpen)}
+                        className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${isOpen
+                            ? "bg-muted text-foreground"
+                            : "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-purple-500/25"
+                            }`}
+                    >
+                        <AnimatePresence mode="wait">
+                            {isOpen ? (
+                                <motion.div
+                                    key="close"
+                                    initial={{ rotate: -90, opacity: 0 }}
+                                    animate={{ rotate: 0, opacity: 1 }}
+                                    exit={{ rotate: 90, opacity: 0 }}
+                                    className="flex items-center gap-2"
+                                >
+                                    <X className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Close</span>
+                                </motion.div>
+                            ) : (
+                                <motion.div
+                                    key="open"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Bot className="w-4 h-4" />
+                                    <span className="text-sm font-medium">Ask AI</span>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </motion.button>
+                )}
+            </AnimatePresence>
 
             {/* Chat Window */}
             <AnimatePresence>

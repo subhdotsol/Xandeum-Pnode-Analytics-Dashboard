@@ -13,11 +13,13 @@ import { NodesTable } from "@/components/dashboard/nodes-table";
 import { VersionDistribution } from "@/components/dashboard/version-distribution";
 import { ActivityGraph } from "@/components/dashboard/activity-graph";
 import { HistoricalCharts } from "@/components/dashboard/historical-charts";
+import { PerformanceCharts } from "@/components/dashboard/performance-charts";
 import { Leaderboard } from "@/components/dashboard/leaderboard";
 import { GeographicDistribution } from "@/components/dashboard/geographic-distribution";
 import { GlobalNodeDistribution } from "@/components/dashboard/global-node-distribution";
 import { GeographicInsights } from "@/components/dashboard/geographic-insights";
 import { StatusDistribution } from "@/components/dashboard/status-distribution";
+import { MarketDataCharts } from "@/components/dashboard/market-data-charts";
 import { SwapWidget } from "@/components/swap-widget";
 import { StakingWidget } from "@/components/staking-widget";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
@@ -105,6 +107,61 @@ function MetricRow({ label, value, icon: Icon }: { label: string; value: string;
                 <span className="text-sm text-muted-foreground">{label}</span>
             </div>
             <span className="text-sm font-medium">{value}</span>
+        </div>
+    );
+}
+
+// Analytics Tab with toggle between Historical and Performance
+function AnalyticsTabContent() {
+    const [view, setView] = useState<"historical" | "performance">("historical");
+
+    return (
+        <div className="space-y-6 max-w-[1400px]">
+            {/* Header with Toggle */}
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold">
+                    {view === "historical" ? "Historical Analytics" : "Performance Metrics"}
+                </h2>
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                    <button
+                        onClick={() => setView("historical")}
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === "historical"
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                            }`}
+                    >
+                        Historical
+                    </button>
+                    <button
+                        onClick={() => setView("performance")}
+                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === "performance"
+                            ? "bg-background text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                            }`}
+                    >
+                        Performance
+                    </button>
+                </div>
+            </div>
+
+            {/* Content based on view with slide animation */}
+            <div className="relative overflow-hidden">
+                <div
+                    className={`transition-transform duration-500 ease-in-out ${view === "historical" ? "translate-x-0" : "-translate-x-full"
+                        }`}
+                >
+                    {view === "historical" && <HistoricalCharts />}
+                </div>
+                <div
+                    className={`transition-transform duration-500 ease-in-out ${view === "performance" ? "translate-x-0" : "translate-x-full"
+                        } ${view === "historical" ? "absolute inset-0" : ""}`}
+                >
+                    {view === "performance" && <PerformanceCharts />}
+                </div>
+            </div>
+
+            {/* Market Data Charts - Common to both views */}
+            <MarketDataCharts />
         </div>
     );
 }
@@ -331,10 +388,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 )}
 
                 {activeTab === "analytics" && (
-                    <div className="space-y-6 max-w-[1400px]">
-                        <h2 className="text-2xl font-semibold">Historical Analytics</h2>
-                        <HistoricalCharts />
-                    </div>
+                    <AnalyticsTabContent />
                 )}
 
                 {activeTab === "leaderboard" && (

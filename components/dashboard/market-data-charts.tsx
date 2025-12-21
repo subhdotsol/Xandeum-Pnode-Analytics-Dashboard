@@ -125,7 +125,7 @@ export function MarketDataCharts() {
 
     if (loading) {
         return (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {[1, 2].map((i) => (
                     <Card key={i} className="border border-border bg-card">
                         <CardContent className="h-[320px] flex items-center justify-center">
@@ -138,7 +138,7 @@ export function MarketDataCharts() {
     }
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 my-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* XAND Price Chart */}
             <Card className="border border-border bg-card">
                 <CardHeader className="pb-2">
