@@ -53,13 +53,19 @@ const searchableItems: SearchItem[] = [
     { id: "docs", label: "Documentation", icon: BookOpen, keywords: ["docs", "documentation", "help", "guide"], type: "docs", href: "/docs" },
     { id: "docs-pnodes", label: "Docs: pNodes", icon: Server, keywords: ["pnodes", "persistent nodes", "node setup", "docs"], type: "docs", href: "/docs/pnodes" },
     { id: "docs-architecture", label: "Docs: Architecture", icon: Layers, keywords: ["architecture", "structure", "design", "solana", "docs"], type: "docs", href: "/docs/architecture" },
+    { id: "docs-infrastructure", label: "Docs: Infrastructure", icon: Database, keywords: ["infrastructure", "redis", "supabase", "caching", "database", "docs"], type: "docs", href: "/docs/infrastructure" },
     { id: "docs-analytics", label: "Docs: Analytics", icon: BarChart3, keywords: ["analytics docs", "metrics guide", "charts", "docs"], type: "docs", href: "/docs/analytics" },
     { id: "docs-leaderboard", label: "Docs: Leaderboard", icon: Trophy, keywords: ["leaderboard docs", "pod credits", "ranking system", "docs"], type: "docs", href: "/docs/leaderboard" },
     { id: "docs-map", label: "Docs: Global Map", icon: Map, keywords: ["map docs", "geographic distribution", "docs"], type: "docs", href: "/docs/map" },
+    { id: "docs-shortcuts", label: "Docs: Keyboard Shortcuts", icon: Zap, keywords: ["shortcuts", "keyboard", "hotkeys", "keybindings", "docs"], type: "docs", href: "/docs/shortcuts" },
     { id: "docs-api", label: "Docs: API Reference", icon: Database, keywords: ["api", "reference", "endpoints", "rest", "docs"], type: "docs", href: "/docs/api" },
     { id: "docs-swap", label: "Docs: Swap", icon: ArrowRightLeft, keywords: ["swap docs", "exchange", "trade", "docs"], type: "docs", href: "/docs/swap" },
     { id: "docs-staking", label: "Docs: Staking", icon: Coins, keywords: ["staking docs", "stake guide", "rewards", "docs"], type: "docs", href: "/docs/staking" },
     { id: "docs-xandai", label: "Docs: XandAI", icon: Zap, keywords: ["xandai", "ai assistant", "chatbot", "docs"], type: "docs", href: "/docs/xandai" },
+    { id: "docs-faq", label: "Docs: FAQ", icon: BookOpen, keywords: ["faq", "questions", "answers", "help", "docs"], type: "docs", href: "/docs/faq" },
+    { id: "docs-troubleshooting", label: "Docs: Troubleshooting", icon: Zap, keywords: ["troubleshooting", "problems", "issues", "bugs", "fix", "docs"], type: "docs", href: "/docs/troubleshooting" },
+    { id: "docs-contributing", label: "Docs: Contributing", icon: BookOpen, keywords: ["contributing", "contribute", "github", "fork", "pr", "docs"], type: "docs", href: "/docs/contributing" },
+    { id: "docs-changelog", label: "Docs: Changelog", icon: BookOpen, keywords: ["changelog", "releases", "updates", "version", "history", "docs"], type: "docs", href: "/docs/changelog" },
 ];
 
 export function SpotlightSearch({ isOpen, onClose, onNavigate }: SpotlightSearchProps) {

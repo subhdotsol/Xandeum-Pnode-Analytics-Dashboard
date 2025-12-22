@@ -77,8 +77,8 @@ https://github.com/user-attachments/assets/d32fabd4-1faf-4fb1-8ee0-cfcc3d2b820e
 - **Historical Charts**: Time range filters from 1H to 90D
 - **5 Interactive Visualizations**: Network trends, version distribution, and more
 - **Automated Snapshots**: GitHub Actions cron job every 5 minutes
-- **7-Day Retention**: Supabase PostgreSQL storage with efficient querying
-- **Performance**: In-memory caching with 60s TTL for sub-10ms responses
+- **Redis Caching**: Upstash Redis for 10ms API responses (100x faster)
+- **Supabase Storage**: PostgreSQL for unlimited historical data retention
 
 ### 🗺️ Geographic Distribution
 - **Interactive World Map**: Leaflet-based visualization with clustered markers
@@ -96,6 +96,16 @@ https://github.com/user-attachments/assets/d32fabd4-1faf-4fb1-8ee0-cfcc3d2b820e
 - **Theme Toggle**: Circular animated transition between dark/light modes
 - **Smart Navigation**: Instant page switching with prefetching and caching
 - **Spotlight Search**: Quick navigation to any page with `Cmd+J`
+
+### 📚 Comprehensive Documentation
+- **[Infrastructure](/docs/infrastructure)**: Redis caching, Supabase storage, GitHub Actions setup
+- **[Troubleshooting](/docs/troubleshooting)**: Common issues and solutions
+- **[FAQ](/docs/faq)**: Frequently asked questions with expandable answers
+- **[Contributing](/docs/contributing)**: Step-by-step guide for contributors
+- **[Changelog](/docs/changelog)**: Version history with timeline view
+- **[Keyboard Shortcuts](/docs/shortcuts)**: Complete reference with visual key badges
+- **[API Reference](/docs/api)**: All endpoints with examples
+- **Auto-scroll**: Seamless navigation between doc pages
 
 ---
 

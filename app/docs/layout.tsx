@@ -3,7 +3,7 @@
 import { useState, ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database } from "lucide-react";
+import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database, HelpCircle, Heart, History, MessageCircle, Keyboard } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -28,6 +28,7 @@ const sidebarSections = [
             { href: "/docs/analytics", label: "Analytics", icon: BarChart3 },
             { href: "/docs/leaderboard", label: "Pod Credits", icon: Trophy },
             { href: "/docs/map", label: "Global Map", icon: Globe },
+            { href: "/docs/shortcuts", label: "Shortcuts", icon: Keyboard },
         ]
     },
     {
@@ -44,6 +45,15 @@ const sidebarSections = [
             { href: "/docs/api", label: "API Reference", icon: Code },
         ]
     },
+    {
+        title: "Resources",
+        items: [
+            { href: "/docs/faq", label: "FAQ", icon: MessageCircle },
+            { href: "/docs/troubleshooting", label: "Troubleshooting", icon: HelpCircle },
+            { href: "/docs/contributing", label: "Contributing", icon: Heart },
+            { href: "/docs/changelog", label: "Changelog", icon: History },
+        ]
+    },
 ];
 
 // Flattened doc order for auto-scroll navigation
@@ -55,10 +65,15 @@ const docOrder = [
     "/docs/analytics",
     "/docs/leaderboard",
     "/docs/map",
+    "/docs/shortcuts",
     "/docs/swap",
     "/docs/staking",
     "/docs/xandai",
     "/docs/api",
+    "/docs/faq",
+    "/docs/troubleshooting",
+    "/docs/contributing",
+    "/docs/changelog",
 ];
 
 export default function DocsLayout({ children }: DocsLayoutProps) {
