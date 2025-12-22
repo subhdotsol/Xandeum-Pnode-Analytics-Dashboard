@@ -69,33 +69,42 @@ export async function GET(request: Request) {
     const analytics = analyzeNetwork(pnodes, statsMap);
     console.log(`[Cron] Calculated analytics`);
 
-    // 3. Store pNodes in database (upsert)
-    const pnodePromises = pnodes.map(async (pnode) => {
-      const ipAddress = pnode.address.split(":")[0];
-      // Generate lastSeen from timestamp if not provided
-      const lastSeen = pnode.last_seen || new Date(pnode.last_seen_timestamp * 1000).toISOString();
-      
-      return prisma.pNode.upsert({
-        where: { address: pnode.address },
-        update: {
-          version: pnode.version,
-          lastSeenTimestamp: pnode.last_seen_timestamp,
-          lastSeen: lastSeen,
-          ipAddress,
-          updatedAt: new Date(),
-        },
-        create: {
-          address: pnode.address,
-          version: pnode.version,
-          lastSeenTimestamp: pnode.last_seen_timestamp,
-          lastSeen: lastSeen,
-          ipAddress,
-        },
+    // 3. Store pNodes in database (upsert in batches to avoid connection pool exhaustion)
+    console.log(`[Cron] Storing ${pnodes.length} pNodes in batches...`);
+    const batchSize = 10;
+    let stored = 0;
+    
+    for (let i = 0; i < pnodes.length; i += batchSize) {
+      const batch = pnodes.slice(i, i + batchSize);
+      const batchPromises = batch.map(async (pnode) => {
+        const ipAddress = pnode.address.split(":")[0];
+        const lastSeen = pnode.last_seen || new Date(pnode.last_seen_timestamp * 1000).toISOString();
+        
+        return prisma.pNode.upsert({
+          where: { address: pnode.address },
+          update: {
+            version: pnode.version,
+            lastSeenTimestamp: pnode.last_seen_timestamp,
+            lastSeen: lastSeen,
+            ipAddress,
+            updatedAt: new Date(),
+          },
+          create: {
+            address: pnode.address,
+            version: pnode.version,
+            lastSeenTimestamp: pnode.last_seen_timestamp,
+            lastSeen: lastSeen,
+            ipAddress,
+          },
+        });
       });
-    });
+      
+      await Promise.all(batchPromises);
+      stored += batch.length;
+      console.log(`[Cron] Stored ${stored}/${pnodes.length} pNodes`);
+    }
 
-    await Promise.all(pnodePromises);
-    console.log(`[Cron] Stored ${pnodes.length} pNodes in database`);
+    console.log(`[Cron] Stored all ${pnodes.length} pNodes in database`);
 
     // 4. Create snapshot record
     const timestamp = BigInt(Math.floor(Date.now() / 1000));
