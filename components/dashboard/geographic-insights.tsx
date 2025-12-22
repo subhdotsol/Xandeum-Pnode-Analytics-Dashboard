@@ -146,19 +146,19 @@ export function GeographicInsights({ nodes, isLoading }: GeographicInsightsProps
             <CardContent className="space-y-4">
                 {/* Coverage Stats */}
                 <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20">
                         <div className="flex items-center gap-2 mb-1">
-                            <MapPin className="w-4 h-4 text-muted-foreground" />
+                            <MapPin className="w-4 h-4 text-violet-500" />
                         </div>
-                        <div className="text-2xl font-bold">{stats.locationCount}</div>
-                        <div className="text-xs text-muted-foreground">Locations</div>
+                        <div className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">{stats.locationCount}</div>
+                        <div className="text-xs text-violet-600 dark:text-violet-400 font-medium">Locations</div>
                     </div>
-                    <div className="p-3 rounded-lg bg-muted/50">
+                    <div className="p-3 rounded-lg bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border border-blue-500/20">
                         <div className="flex items-center gap-2 mb-1">
-                            <Globe className="w-4 h-4 text-muted-foreground" />
+                            <Globe className="w-4 h-4 text-blue-500" />
                         </div>
-                        <div className="text-2xl font-bold">{stats.countryCount}</div>
-                        <div className="text-xs text-muted-foreground">Countries</div>
+                        <div className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">{stats.countryCount}</div>
+                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium">Countries</div>
                     </div>
                 </div>
 
@@ -183,24 +183,41 @@ export function GeographicInsights({ nodes, isLoading }: GeographicInsightsProps
                 <div>
                     <div className="text-xs text-muted-foreground mb-2">Top Countries</div>
                     <div className="space-y-1.5">
-                        {stats.topCountries.map(([country, count], index) => (
-                            <div key={country} className="flex items-center gap-2 text-sm">
-                                <span className="w-8 shrink-0 font-medium">
-                                    {getCountryAbbrev(country)}
-                                </span>
-                                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                                    <motion.div
-                                        className="h-full rounded-full bg-primary/60"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${(count / stats.maxCountryCount) * 100}%` }}
-                                        transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.1 }}
-                                    />
+                        {stats.topCountries.map(([country, count], index) => {
+                            const gradients = [
+                                'from-violet-500 to-purple-500',
+                                'from-blue-500 to-cyan-500',
+                                'from-emerald-500 to-teal-500',
+                                'from-amber-500 to-orange-500',
+                                'from-pink-500 to-rose-500',
+                            ];
+                            const textColors = [
+                                'text-violet-600 dark:text-violet-400',
+                                'text-blue-600 dark:text-blue-400',
+                                'text-emerald-600 dark:text-emerald-400',
+                                'text-amber-600 dark:text-amber-400',
+                                'text-pink-600 dark:text-pink-400',
+                            ];
+
+                            return (
+                                <div key={country} className="flex items-center gap-2 text-sm">
+                                    <span className={`w-8 shrink-0 font-bold ${textColors[index]}`}>
+                                        {getCountryAbbrev(country)}
+                                    </span>
+                                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden shadow-inner">
+                                        <motion.div
+                                            className={`h-full rounded-full bg-gradient-to-r ${gradients[index]} shadow-sm`}
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(count / stats.maxCountryCount) * 100}%` }}
+                                            transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.1 }}
+                                        />
+                                    </div>
+                                    <span className={`${textColors[index]} font-bold tabular-nums w-8 text-right shrink-0`}>
+                                        {count}
+                                    </span>
                                 </div>
-                                <span className="text-muted-foreground tabular-nums w-8 text-right shrink-0">
-                                    {count}
-                                </span>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 
@@ -210,24 +227,39 @@ export function GeographicInsights({ nodes, isLoading }: GeographicInsightsProps
                 <div>
                     <div className="text-xs text-muted-foreground mb-2">Top Cities</div>
                     <div className="space-y-1.5">
-                        {stats.topCities.map(([city, count], index) => (
-                            <div key={city} className="flex items-center gap-2 text-sm">
-                                <span className="w-10 shrink-0 font-medium">
-                                    {getCityAbbrev(city)}
-                                </span>
-                                <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
-                                    <motion.div
-                                        className="h-full rounded-full bg-primary/60"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${(count / stats.maxCityCount) * 100}%` }}
-                                        transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.1 + 0.3 }}
-                                    />
+                        {stats.topCities.map(([city, count], index) => {
+                            const gradients = [
+                                'from-indigo-500 to-blue-500',
+                                'from-cyan-500 to-teal-500',
+                                'from-green-500 to-emerald-500',
+                                'from-orange-500 to-amber-500',
+                            ];
+                            const textColors = [
+                                'text-indigo-600 dark:text-indigo-400',
+                                'text-cyan-600 dark:text-cyan-400',
+                                'text-green-600 dark:text-green-400',
+                                'text-orange-600 dark:text-orange-400',
+                            ];
+
+                            return (
+                                <div key={city} className="flex items-center gap-2 text-sm">
+                                    <span className={`w-10 shrink-0 font-bold ${textColors[index]}`}>
+                                        {getCityAbbrev(city)}
+                                    </span>
+                                    <div className="flex-1 h-2 rounded-full bg-muted overflow-hidden shadow-inner">
+                                        <motion.div
+                                            className={`h-full rounded-full bg-gradient-to-r ${gradients[index]} shadow-sm`}
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${(count / stats.maxCityCount) * 100}%` }}
+                                            transition={{ duration: 0.8, ease: "easeOut", delay: index * 0.1 + 0.3 }}
+                                        />
+                                    </div>
+                                    <span className={`${textColors[index]} font-bold tabular-nums w-6 text-right shrink-0`}>
+                                        {count}
+                                    </span>
                                 </div>
-                                <span className="text-muted-foreground tabular-nums w-6 text-right shrink-0">
-                                    {count}
-                                </span>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
             </CardContent>
