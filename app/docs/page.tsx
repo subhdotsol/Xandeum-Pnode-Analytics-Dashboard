@@ -20,8 +20,12 @@ export default function DocsPage() {
                         <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘K</kbd>
                     </div>
                     <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Open AI Assistant</span>
+                        <span className="text-muted-foreground">Spotlight Search</span>
                         <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘J</kbd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Open AI Assistant</span>
+                        <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘A</kbd>
                     </div>
                     <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Toggle Dark Mode</span>

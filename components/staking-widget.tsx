@@ -1,12 +1,19 @@
 "use client";
 
 import { useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Coins, ExternalLink, Info, ArrowDown, Wallet } from "lucide-react";
 
 export function StakingWidget() {
     const [amount, setAmount] = useState("");
-    const [isConnected] = useState(false); // Would use wallet adapter
+    const { connected, publicKey, disconnect } = useWallet();
+
+    // Helper to format wallet address
+    const formatAddress = (address: string) => {
+        return `${address.slice(0, 4)}...${address.slice(-4)}`;
+    };
 
     return (
         <div className="max-w-lg mx-auto">
@@ -21,6 +28,24 @@ export function StakingWidget() {
                     </p>
                 </CardHeader>
                 <CardContent className="space-y-6">
+                    {/* Wallet Connection Status */}
+                    {connected && publicKey && (
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                            <div className="flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-green-500" />
+                                <span className="text-sm font-medium">
+                                    {formatAddress(publicKey.toString())}
+                                </span>
+                            </div>
+                            <button
+                                onClick={disconnect}
+                                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                                Disconnect
+                            </button>
+                        </div>
+                    )}
+
                     {/* Staking Input */}
                     <div className="space-y-4">
                         <div className="p-4 rounded-xl bg-muted/50 border border-border">
@@ -32,6 +57,7 @@ export function StakingWidget() {
                                     value={amount}
                                     onChange={(e) => setAmount(e.target.value)}
                                     className="flex-1 bg-transparent text-2xl font-semibold outline-none placeholder:text-muted-foreground/50"
+                                    disabled={!connected}
                                 />
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg border border-border">
                                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-500 to-blue-500" />
@@ -73,11 +99,10 @@ export function StakingWidget() {
                     </div>
 
                     {/* Connect Wallet / Stake Button */}
-                    {!isConnected ? (
-                        <button className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
-                            <Wallet className="w-5 h-5" />
-                            Connect Wallet to Stake
-                        </button>
+                    {!connected ? (
+                        <div className="wallet-adapter-button-wrapper">
+                            <WalletMultiButton className="!w-full !py-3 !px-4 !rounded-xl !bg-gradient-to-r !from-green-500 !to-teal-500 !text-white !font-semibold hover:!opacity-90 !transition-opacity" />
+                        </div>
                     ) : (
                         <button
                             className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"

@@ -28,6 +28,7 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarToggle } from "@/components/sidebar/sidebar-toggle";
 import { Watchlist } from "@/components/dashboard/watchlist";
 import { Compare } from "@/components/dashboard/compare";
+import { SpotlightSearch } from "@/components/spotlight-search";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
 
@@ -189,6 +190,11 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
         opacity: 0,
     });
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
+    const [spotlightOpen, setSpotlightOpen] = useState(false);
+    const contentRef = useRef<HTMLDivElement>(null);
+
+    // Tab order for auto-scroll
+    const tabOrder: TabType[] = ["dashboard", "analytics", "leaderboard", "map", "nodes", "watchlist", "compare", "swap", "stake"];
 
     // Sidebar persistence and keyboard shortcuts
     useEffect(() => {
@@ -202,8 +208,14 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 setSidebarOpen(prev => !prev);
             }
 
-            // Cmd/Ctrl + J for AI assistant
+            // Cmd/Ctrl + J for Spotlight Search
             if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+                e.preventDefault();
+                setSpotlightOpen(prev => !prev);
+            }
+
+            // Cmd/Ctrl + A for AI assistant
+            if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
                 e.preventDefault();
                 // Find and click the Ask AI button
                 const askAiButton = document.querySelector('[aria-label="Ask AI"]') as HTMLButtonElement;
@@ -220,6 +232,32 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     useEffect(() => {
         localStorage.setItem('sidebar-open', sidebarOpen.toString());
     }, [sidebarOpen]);
+
+    // Auto-scroll tab switching
+    useEffect(() => {
+        const handleScroll = () => {
+            if (!contentRef.current) return;
+
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100; // 100px threshold
+
+            if (scrolledToBottom) {
+                const currentIndex = tabOrder.indexOf(activeTab);
+                if (currentIndex !== -1 && currentIndex < tabOrder.length - 1) {
+                    // Switch to next tab
+                    const nextTab = tabOrder[currentIndex + 1];
+                    setActiveTab(nextTab);
+                    // Smooth scroll to top for seamless transition
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [activeTab]);
 
 
     useEffect(() => {
@@ -295,7 +333,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const uniqueVersions = Object.keys(analytics.versions.distribution).length;
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background" ref={contentRef}>
             {/* Sidebar */}
             <AppSidebar
                 isOpen={sidebarOpen}
@@ -306,6 +344,13 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
 
             {/* Sidebar Toggle - Only show when sidebar is closed */}
             {!sidebarOpen && <SidebarToggle onClick={() => setSidebarOpen(true)} />}
+
+            {/* Spotlight Search */}
+            <SpotlightSearch
+                isOpen={spotlightOpen}
+                onClose={() => setSpotlightOpen(false)}
+                onNavigate={(tab) => setActiveTab(tab)}
+            />
 
             {/* Main Content - Shifts when sidebar is open on desktop */}
             <div className={`transition-all duration-300 ease-in-out ${sidebarOpen ? 'lg:ml-[280px]' : 'ml-0'}`}>

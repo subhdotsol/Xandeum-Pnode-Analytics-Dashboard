@@ -179,10 +179,17 @@ export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSideb
                                         </kbd>
                                     </div>
                                     <div className="flex items-center justify-between text-xs">
-                                        <span className="text-muted-foreground">Ask AI</span>
+                                        <span className="text-muted-foreground">Spotlight</span>
                                         <kbd className="px-2 py-1 bg-muted rounded text-[10px] font-mono border border-border flex items-center gap-0.5">
                                             <Command className="w-2.5 h-2.5" />
                                             <span>J</span>
+                                        </kbd>
+                                    </div>
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="text-muted-foreground">Ask AI</span>
+                                        <kbd className="px-2 py-1 bg-muted rounded text-[10px] font-mono border border-border flex items-center gap-0.5">
+                                            <Command className="w-2.5 h-2.5" />
+                                            <span>A</span>
                                         </kbd>
                                     </div>
                                 </div>
