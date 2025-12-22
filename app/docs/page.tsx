@@ -1,12 +1,34 @@
-import { Server, Layers, Zap, Shield, Globe, Database } from "lucide-react";
+import { Server, Layers, Zap, Shield, Globe, Database, Keyboard, BarChart3, Trophy, Map as MapIcon } from "lucide-react";
 
 export default function DocsPage() {
     return (
         <article className="prose dark:prose-invert max-w-none">
-            <h1 className="text-4xl font-bold mb-2">Xandeum Documentation</h1>
+            <h1 className="text-4xl font-bold mb-2">Xandeum pNode Analytics</h1>
             <p className="text-xl text-muted-foreground mb-8">
-                Everything you need to understand the Xandeum distributed storage network
+                Real-time monitoring and analytics for the Xandeum distributed storage network
             </p>
+
+            {/* Keyboard Shortcuts */}
+            <div className="not-prose mb-12 p-6 rounded-xl border border-border bg-card/50">
+                <div className="flex items-center gap-2 mb-4">
+                    <Keyboard className="w-5 h-5 text-primary" />
+                    <h2 className="text-lg font-semibold m-0">Keyboard Shortcuts</h2>
+                </div>
+                <div className="grid gap-3 text-sm">
+                    <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Toggle Sidebar</span>
+                        <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘K</kbd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Open AI Assistant</span>
+                        <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘J</kbd>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Toggle Dark Mode</span>
+                        <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘D</kbd>
+                    </div>
+                </div>
+            </div>
 
             <div className="grid gap-6 md:grid-cols-2 not-prose mb-12">
                 <FeatureCard
@@ -22,10 +44,22 @@ export default function DocsPage() {
                     href="/docs/architecture"
                 />
                 <FeatureCard
-                    icon={Zap}
-                    title="Performance"
-                    description="Explore network health and monitoring"
-                    href="/docs/architecture#performance"
+                    icon={BarChart3}
+                    title="Analytics"
+                    description="Real-time network metrics and historical data"
+                    href="/docs/analytics"
+                />
+                <FeatureCard
+                    icon={Trophy}
+                    title="Leaderboard"
+                    description="Pod credits system and top performing nodes"
+                    href="/docs/leaderboard"
+                />
+                <FeatureCard
+                    icon={MapIcon}
+                    title="Global Map"
+                    description="Geographic distribution of nodes worldwide"
+                    href="/docs/map"
                 />
                 <FeatureCard
                     icon={Database}
@@ -60,6 +94,29 @@ export default function DocsPage() {
                     <strong>No Central Authority</strong>: Nodes discover each other through seed nodes
                     and maintain a distributed registry
                 </li>
+                <li>
+                    <strong>AI-Powered Insights</strong>: Ask questions about the network using natural language
+                    with our integrated AI assistant
+                </li>
+            </ul>
+
+            <h3>Dashboard Features</h3>
+            <ul>
+                <li>
+                    <strong>Real-Time Analytics</strong>: Monitor network health, node versions, and performance metrics
+                </li>
+                <li>
+                    <strong>Geographic Visualization</strong>: Interactive map showing global node distribution
+                </li>
+                <li>
+                    <strong>Pod Credits Leaderboard</strong>: Track top-performing nodes based on uptime, RPC availability, and version compliance
+                </li>
+                <li>
+                    <strong>Historical Charts</strong>: View trends over 1H, 4H, 7D, 30D, and 90D time ranges
+                </li>
+                <li>
+                    <strong>Smart Sidebar Navigation</strong>: Quick access to all features with keyboard shortcuts
+                </li>
             </ul>
 
             <h3>The XAND Token</h3>
@@ -77,7 +134,7 @@ export default function DocsPage() {
             <h2>Getting Started</h2>
             <p>
                 Explore the documentation to learn more about running a pNode, understanding the
-                network architecture, or integrating with our API.
+                network architecture, analyzing network metrics, or integrating with our API.
             </p>
         </article>
     );

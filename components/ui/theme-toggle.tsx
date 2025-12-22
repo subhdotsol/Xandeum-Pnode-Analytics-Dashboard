@@ -14,6 +14,19 @@ export function ThemeToggle() {
         setMounted(true);
     }, []);
 
+    // Global keyboard shortcut: Cmd+D to toggle theme
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if ((e.metaKey || e.ctrlKey) && e.key === 'd') {
+                e.preventDefault();
+                toggleTheme();
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [resolvedTheme]);
+
     const toggleTheme = async () => {
         const newTheme = resolvedTheme === "dark" ? "light" : "dark";
 

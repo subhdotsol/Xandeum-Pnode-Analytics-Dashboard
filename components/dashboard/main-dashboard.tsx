@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw, Wifi, BookOpen } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
@@ -180,6 +181,12 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const [geoLoadingComplete, setGeoLoadingComplete] = useState(false);
     const totalNodes = pnodes.length;
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [cursorPosition, setCursorPosition] = useState({
+        left: 0,
+        width: 0,
+        opacity: 0,
+    });
+    const [hoveredTab, setHoveredTab] = useState<string | null>(null);
 
     // Sidebar persistence and keyboard shortcuts
     useEffect(() => {
@@ -193,8 +200,8 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 setSidebarOpen(prev => !prev);
             }
 
-            // Cmd/Ctrl + Space for AI assistant
-            if ((e.metaKey || e.ctrlKey) && e.code === 'Space') {
+            // Cmd/Ctrl + J for AI assistant
+            if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
                 e.preventDefault();
                 // Find and click the Ask AI button
                 const askAiButton = document.querySelector('[aria-label="Ask AI"]') as HTMLButtonElement;
@@ -332,16 +339,55 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                         className={`flex justify-center mb-8 transition-all duration-200 ${sidebarOpen ? 'opacity-0 max-h-0 overflow-hidden' : 'opacity-100 max-h-20'
                             }`}
                     >
-                        <nav className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === tab.id ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
-                                >
-                                    {tab.label}
-                                </button>
-                            ))}
+                        <nav
+                            onMouseLeave={() => {
+                                setCursorPosition((pv) => ({
+                                    ...pv,
+                                    opacity: 0,
+                                }));
+                                setHoveredTab(null);
+                            }}
+                            className="relative flex w-fit rounded-full border-2 border-border bg-card p-1.5 shadow-lg"
+                        >
+                            {tabs.map((tab) => {
+                                const tabRef = useRef<HTMLButtonElement>(null);
+                                const isHovered = hoveredTab === tab.id;
+
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        ref={tabRef}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        onMouseEnter={() => {
+                                            if (!tabRef?.current) return;
+                                            const { width } = tabRef.current.getBoundingClientRect();
+                                            setCursorPosition({
+                                                left: tabRef.current.offsetLeft,
+                                                width,
+                                                opacity: 1,
+                                            });
+                                            setHoveredTab(tab.id);
+                                        }}
+                                        className={`relative z-10 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${isHovered
+                                                ? "text-white dark:text-black"
+                                                : "text-foreground"
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+
+                            {/* Animated Cursor */}
+                            <motion.div
+                                animate={{
+                                    left: cursorPosition.left,
+                                    width: cursorPosition.width,
+                                    opacity: cursorPosition.opacity,
+                                }}
+                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                className="absolute z-0 h-[34px] top-1.5 rounded-md bg-foreground shadow-sm"
+                            />
                         </nav>
                     </div>
 
@@ -488,9 +534,29 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
 
                     {activeTab === "nodes" && <NodesTable nodes={pnodes} />}
 
-                    {activeTab === "swap" && <SwapWidget />}
+                    {activeTab === "swap" && (
+                        <motion.div
+                            key="swap"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                            <SwapWidget />
+                        </motion.div>
+                    )}
 
-                    {activeTab === "stake" && <StakingWidget />}
+                    {activeTab === "stake" && (
+                        <motion.div
+                            key="stake"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                            <StakingWidget />
+                        </motion.div>
+                    )}
                 </main>
             </div>
         </div>

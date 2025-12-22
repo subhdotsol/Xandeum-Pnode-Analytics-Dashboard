@@ -134,18 +134,54 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Check if user has already visited - skip spinner delay if so
+    const hasVisited = sessionStorage.getItem('dashboard-visited') === 'true';
+    if (hasVisited) {
+      // Skip spinner, go straight to skeleton while data loads
+      setLoadingPhase("skeleton");
+    }
+
+    // Mark dashboard as visited
+    sessionStorage.setItem('dashboard-visited', 'true');
+
     // Fetch data immediately
     fetchData();
 
-    // Phase 1: Show spinner for 3 seconds max, then skeleton while loading
-    const spinnerTimer = setTimeout(() => {
-      setLoadingPhase((current) => current === "spinner" ? "skeleton" : current);
-    }, 3000);
-
-    return () => clearTimeout(spinnerTimer);
+    // Phase 1: Show spinner for 3 seconds max, then skeleton while loading (only if not visited)
+    if (!hasVisited) {
+      const spinnerTimer = setTimeout(() => {
+        setLoadingPhase((current) => current === "spinner" ? "skeleton" : current);
+      }, 3000);
+      return () => clearTimeout(spinnerTimer);
+    }
   }, []);
 
   async function fetchData() {
+    try {
+      // Check if we have cached data from this session
+      const cachedData = sessionStorage.getItem('dashboard-data');
+      if (cachedData) {
+        const parsed = JSON.parse(cachedData);
+        setPnodes(parsed.pnodes || []);
+        setAnalytics(parsed.analytics);
+        setAggregateStats(parsed.aggregateStats);
+        setEstimatedCountries(parsed.estimatedCountries);
+        setLoadingPhase("ready");
+
+        // Still fetch fresh data in background and update
+        fetchFreshData();
+        return;
+      }
+
+      await fetchFreshData();
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError(err instanceof Error ? err.message : "Failed to load data");
+      setLoadingPhase("ready");
+    }
+  }
+
+  async function fetchFreshData() {
     try {
       // Fetch pnodes list
       const pnodesRes = await fetch("/api/pnodes");
@@ -161,8 +197,9 @@ export default function HomePage() {
 
       // Fetch aggregate stats from reliable seed nodes
       const statsRes = await fetch("/api/stats");
+      let statsData = null;
       if (statsRes.ok) {
-        const statsData = await statsRes.json();
+        statsData = await statsRes.json();
         setAggregateStats({
           totalStorage: statsData.totalStorage || 0,
           totalRam: statsData.totalRam || 0,
@@ -179,12 +216,34 @@ export default function HomePage() {
       // Estimate countries
       const uniqueIPs: Set<string> = new Set((pnodesData.pnodes || []).map((node: PNodeInfo) => node.address.split(':')[0]));
       const uniquePrefixes = new Set(Array.from(uniqueIPs).map((ip) => ip.split('.').slice(0, 2).join('.')));
-      setEstimatedCountries(Math.min(uniquePrefixes.size, 20));
+      const countries = Math.min(uniquePrefixes.size, 20);
+      setEstimatedCountries(countries);
+
+      // Cache the data
+      sessionStorage.setItem('dashboard-data', JSON.stringify({
+        pnodes: pnodesData.pnodes || [],
+        analytics: analyticsData,
+        aggregateStats: statsData ? {
+          totalStorage: statsData.totalStorage || 0,
+          totalRam: statsData.totalRam || 0,
+          avgCpu: statsData.avgCpu || 0,
+          avgUptime: statsData.avgUptime || 0,
+          totalData: statsData.totalData || 0,
+          totalPages: statsData.totalPages || 0,
+          totalPackets: statsData.totalPackets || 0,
+          totalStreams: statsData.totalStreams || 0,
+          publicRpcCount: statsData.nodeCount || 0,
+        } : null,
+        estimatedCountries: countries,
+      }));
 
       setLoadingPhase("ready");
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError(err instanceof Error ? err.message : "Failed to load data");
+      console.error("Error fetching fresh data:", err);
+      // Don't set error if we have cached data showing
+      if (!sessionStorage.getItem('dashboard-data')) {
+        setError(err instanceof Error ? err.message : "Failed to load data");
+      }
       setLoadingPhase("ready");
     }
   }

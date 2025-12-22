@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, ReactNode } from "react";
+import { useState, ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe } from "lucide-react";
@@ -15,6 +15,7 @@ const sidebarSections = [
     {
         title: "Getting Started",
         items: [
+            { href: "/", label: "Home", icon: Home },
             { href: "/docs", label: "Overview", icon: Home },
             { href: "/docs/pnodes", label: "pNodes", icon: Server },
             { href: "/docs/architecture", label: "Architecture", icon: Layers },
@@ -49,14 +50,37 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Cmd/Ctrl + K for docs sidebar toggle
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                setIsCollapsed(prev => !prev);
+            }
+
+            // Cmd/Ctrl + J for AI assistant
+            if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+                e.preventDefault();
+                const askAiButton = document.querySelector('[aria-label="Ask AI"]') as HTMLButtonElement;
+                if (askAiButton) {
+                    askAiButton.click();
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
     return (
         <div className="min-h-screen bg-background flex">
-            {/* Desktop Sidebar */}
+            {/* Desktop Docs Sidebar */}
             <motion.aside
                 initial={false}
                 animate={{ width: isCollapsed ? 64 : 280 }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
-                className="hidden lg:flex flex-col fixed top-0 left-0 h-full bg-card border-r border-border z-30"
+                className="hidden lg:flex flex-col fixed top-0 left-0 h-full bg-card border-r border-border z-20 rounded-r-2xl"
             >
                 {/* Header */}
                 <div className="flex items-center justify-between p-4 border-b border-border h-14">
@@ -108,9 +132,10 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
                                             key={item.href}
                                             href={item.href}
                                             title={isCollapsed ? item.label : undefined}
+                                            prefetch={true}
                                             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all ${isActive
-                                                    ? "bg-primary/10 text-primary font-medium"
-                                                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                ? "bg-primary/10 text-primary font-medium"
+                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                                 } ${isCollapsed ? "justify-center" : ""}`}
                                         >
                                             <Icon className="w-4 h-4 flex-shrink-0" />
@@ -196,9 +221,10 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
                                                         key={item.href}
                                                         href={item.href}
                                                         onClick={() => setMobileOpen(false)}
+                                                        prefetch={true}
                                                         className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${isActive
-                                                                ? "bg-primary/10 text-primary font-medium"
-                                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                            ? "bg-primary/10 text-primary font-medium"
+                                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                                             }`}
                                                     >
                                                         <Icon className="w-4 h-4" />
@@ -217,7 +243,9 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
 
             {/* Main content */}
             <motion.main
-                animate={{ marginLeft: isCollapsed ? 64 : 280 }}
+                animate={{
+                    marginLeft: isCollapsed ? 64 : 280,
+                }}
                 transition={{ duration: 0.2, ease: "easeInOut" }}
                 className="flex-1 pt-14 lg:pt-0 hidden lg:block"
             >

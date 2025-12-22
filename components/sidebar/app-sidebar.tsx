@@ -11,7 +11,8 @@ import {
     Map,
     BookOpen,
     X,
-    Command
+    Command,
+    Home
 } from "lucide-react";
 
 interface AppSidebarProps {
@@ -21,13 +22,19 @@ interface AppSidebarProps {
     onTabChange: (tab: 'dashboard' | 'analytics' | 'leaderboard' | 'map') => void;
 }
 
-const navigationItems = [
-    { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", isExternal: false },
-    { id: "analytics", icon: BarChart3, label: "Analytics", isExternal: false },
-    { id: "leaderboard", icon: Trophy, label: "Leaderboard", isExternal: false },
-    { id: "map", icon: Map, label: "Map", isExternal: false },
-    { id: "docs", icon: BookOpen, label: "Documentation", isExternal: true },
-];
+const navigationItems: Array<{
+    id: string;
+    icon: typeof LayoutDashboard;
+    label: string;
+    isExternal: boolean;
+    href?: string;
+}> = [
+        { id: "dashboard", icon: LayoutDashboard, label: "Dashboard", isExternal: false },
+        { id: "analytics", icon: BarChart3, label: "Analytics", isExternal: false },
+        { id: "leaderboard", icon: Trophy, label: "Leaderboard", isExternal: false },
+        { id: "map", icon: Map, label: "Map", isExternal: false },
+        { id: "docs", icon: BookOpen, label: "Documentation", isExternal: true, href: "/docs" },
+    ];
 
 export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSidebarProps) {
     // Close on mobile after navigation
@@ -80,7 +87,7 @@ export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSideb
                         animate={{ x: 0 }}
                         exit={{ x: -280 }}
                         transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                        className="fixed left-0 top-0 h-screen w-[280px] bg-card border-r border-border z-50 flex flex-col shadow-lg"
+                        className="fixed left-0 top-0 h-screen w-[280px] bg-card border-r border-border z-50 flex flex-col shadow-lg rounded-r-2xl"
                     >
                         {/* Header */}
                         <div className="flex items-center justify-between p-6 border-b border-border">
@@ -116,13 +123,14 @@ export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSideb
                                 const isActive = activeTab === item.id;
 
                                 if (item.isExternal) {
-                                    // Docs is a link
+                                    // Home and Docs are links
                                     return (
                                         <Link
                                             key={item.id}
-                                            href="/docs"
+                                            href={item.href || "/docs"}
                                             onClick={onClose}
-                                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-muted-foreground hover:bg-muted hover:text-foreground group"
+                                            prefetch={true}
+                                            className="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 ease-in-out text-muted-foreground hover:bg-muted hover:text-foreground group"
                                         >
                                             <Icon className="w-5 h-5 transition-colors" />
                                             <span className="font-medium text-sm">{item.label}</span>
@@ -134,9 +142,9 @@ export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSideb
                                     <button
                                         key={item.id}
                                         onClick={() => handleItemClick(item)}
-                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive
-                                                ? "bg-primary text-primary-foreground shadow-sm"
-                                                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-300 ease-in-out ${isActive
+                                            ? "bg-primary text-primary-foreground shadow-sm"
+                                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
                                             }`}
                                     >
                                         <Icon className="w-5 h-5" />
@@ -164,7 +172,7 @@ export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSideb
                                         <span className="text-muted-foreground">Ask AI</span>
                                         <kbd className="px-2 py-1 bg-muted rounded text-[10px] font-mono border border-border flex items-center gap-0.5">
                                             <Command className="w-2.5 h-2.5" />
-                                            <span>Space</span>
+                                            <span>J</span>
                                         </kbd>
                                     </div>
                                 </div>
