@@ -1,14 +1,15 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { getSnapshotsByRange, type HistoricalSnapshot } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Get historical snapshots for time-series analytics
+ * GET /api/historical
  * 
+ * Fetches historical snapshots from Supabase.
  * Query params:
- * - range: 1h, 6h, 24h, 7d, 30d (default: 24h)
- * - limit: number of data points (default: 100)
+ *   - range: "1h" | "6h" | "24h" | "7d" | "30d" (default: "24h")
+ *   - limit: number (default: 100)
  */
 export async function GET(request: Request) {
   try {
@@ -27,35 +28,30 @@ export async function GET(request: Request) {
     };
 
     const timeRange = ranges[range] || ranges["24h"];
-    const startTimestamp = BigInt(Math.floor((now - timeRange) / 1000));
+    const startTimestamp = Math.floor((now - timeRange) / 1000);
+    const endTimestamp = Math.floor(now / 1000);
 
-    // Fetch snapshots from database
-    const snapshots = await prisma.snapshot.findMany({
-      where: {
-        timestamp: {
-          gte: startTimestamp,
-        },
-      },
-      orderBy: { timestamp: "asc" },
-      take: limit,
-    });
+    // Fetch from Supabase
+    const snapshots = await getSnapshotsByRange(startTimestamp, endTimestamp, limit);
 
-    // Transform data for frontend
-    const data = snapshots.map((snapshot: any) => ({
-      timestamp: Number(snapshot.timestamp),
-      date: new Date(Number(snapshot.timestamp) * 1000).toISOString(),
-      totalNodes: snapshot.totalNodes,
-      healthyNodes: snapshot.healthyNodes,
-      degradedNodes: snapshot.degradedNodes,
-      offlineNodes: snapshot.offlineNodes,
-      avgCpu: snapshot.avgCpu,
-      avgRam: snapshot.avgRam,
-      totalStorage: Number(snapshot.totalStorage),
-      uniqueCountries: snapshot.uniqueCountries,
-      uniqueVersions: snapshot.uniqueVersions,
-      healthScore: snapshot.healthScore,
-      latestVersion: snapshot.latestVersion,
-      outdatedCount: snapshot.outdatedCount,
+    // Transform for frontend (matching component's expected format)
+    const data = snapshots.map((snapshot: HistoricalSnapshot) => ({
+      timestamp: snapshot.timestamp,
+      date: new Date(snapshot.timestamp * 1000).toISOString(),
+      totalNodes: snapshot.total_nodes,
+      healthyNodes: snapshot.online_nodes,
+      degradedNodes: 0,
+      offlineNodes: snapshot.offline_nodes,
+      avgCpu: snapshot.avg_cpu,
+      avgRam: snapshot.avg_ram,
+      totalStorage: snapshot.total_storage,
+      uniqueCountries: snapshot.unique_countries,
+      uniqueVersions: snapshot.unique_versions,
+      healthScore: snapshot.total_nodes > 0 
+        ? Math.round((snapshot.online_nodes / snapshot.total_nodes) * 100) 
+        : 0,
+      latestVersion: null,
+      outdatedCount: 0,
     }));
 
     return NextResponse.json({

@@ -1,80 +1,69 @@
 import { NextResponse } from "next/server";
-import { supabase, isSupabaseConfigured } from "@/lib/supabase";
+import { saveSnapshot, type HistoricalSnapshot } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
-export const revalidate = 0;
 
+/**
+ * POST /api/historical/save
+ * 
+ * Saves a snapshot to Supabase. Called by GitHub Actions cron.
+ * Requires Authorization header with CRON_SECRET.
+ */
 export async function POST(request: Request) {
-    try {
-        if (!isSupabaseConfigured() || !supabase) {
-            return NextResponse.json(
-                { error: "Supabase not configured" },
-                { status: 503 }
-            );
-        }
+  try {
+    // Verify cron secret
+    const authHeader = request.headers.get("authorization");
+    const expectedSecret = process.env.CRON_SECRET;
 
-        const data = await request.json();
-
-        const {
-            timestamp,
-            totalNodes,
-            onlineNodes,
-            offlineNodes,
-            avgCpu,
-            avgRam,
-            totalStorage,
-            uniqueCountries,
-            uniqueVersions,
-        } = data;
-
-        if (
-            typeof timestamp !== "number" ||
-            typeof totalNodes !== "number" ||
-            typeof onlineNodes !== "number"
-        ) {
-            return NextResponse.json(
-                { error: "Invalid data format" },
-                { status: 400 }
-            );
-        }
-
-        const { error: insertError } = await supabase
-            .from('historical_snapshots')
-            .insert([
-                {
-                    timestamp,
-                    total_nodes: totalNodes,
-                    online_nodes: onlineNodes,
-                    offline_nodes: offlineNodes,
-                    avg_cpu: avgCpu || 0,
-                    avg_ram: avgRam || 0,
-                    total_storage: totalStorage || 0,
-                    unique_countries: uniqueCountries || 0,
-                    unique_versions: uniqueVersions || 0,
-                }
-            ]);
-
-        if (insertError) {
-            console.error('Supabase insert error:', insertError);
-            return NextResponse.json(
-                { error: 'Failed to save snapshot' },
-                { status: 500 }
-            );
-        }
-
-        // Clean up old data (older than 7 days)
-        const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
-        await supabase
-            .from('historical_snapshots')
-            .delete()
-            .lt('timestamp', sevenDaysAgo);
-
-        return NextResponse.json({ success: true });
-    } catch (error) {
-        console.error("Error saving historical snapshot:", error);
-        return NextResponse.json(
-            { error: "Failed to save snapshot" },
-            { status: 500 }
-        );
+    if (!expectedSecret) {
+      return NextResponse.json(
+        { error: "CRON_SECRET not configured" },
+        { status: 500 }
+      );
     }
+
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : authHeader;
+
+    if (token !== expectedSecret) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Parse snapshot data from request body
+    const body = await request.json();
+    
+    const snapshot: Omit<HistoricalSnapshot, 'id' | 'created_at'> = {
+      timestamp: body.timestamp || Math.floor(Date.now() / 1000),
+      total_nodes: body.total_nodes || 0,
+      online_nodes: body.online_nodes || 0,
+      offline_nodes: body.offline_nodes || 0,
+      avg_cpu: body.avg_cpu || 0,
+      avg_ram: body.avg_ram || 0,
+      total_storage: body.total_storage || 0,
+      unique_countries: body.unique_countries || 0,
+      unique_versions: body.unique_versions || 0,
+    };
+
+    const success = await saveSnapshot(snapshot);
+
+    if (!success) {
+      return NextResponse.json(
+        { error: "Failed to save snapshot" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: "Snapshot saved",
+      snapshot,
+    });
+  } catch (error: any) {
+    console.error("Error saving snapshot:", error);
+    return NextResponse.json(
+      { error: error.message || "Failed to save snapshot" },
+      { status: 500 }
+    );
+  }
 }

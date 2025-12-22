@@ -1,179 +1,128 @@
 import { NextResponse } from "next/server";
 import { pnodeClient } from "@/lib/pnode-client";
 import { analyzeNetwork } from "@/lib/network-analytics";
-import { prisma } from "@/lib/prisma";
 import { clearAllCache } from "@/lib/redis";
-import type { PNodeInfo } from "@/types/pnode";
+import { saveSnapshot } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 60; // Allow up to 60 seconds for snapshot collection
+export const maxDuration = 60;
 
 /**
- * Cron Snapshot Collection Endpoint
+ * GET /api/cron/collect-snapshot
  * 
- * This endpoint should be called by cron-job.org every 5 minutes
- * to collect and store network snapshots.
+ * Lightweight cron endpoint that:
+ * 1. Fetches pNode data
+ * 2. Calculates network analytics
+ * 3. Saves snapshot to Supabase (simple table, no Prisma)
+ * 4. Clears cache
  * 
- * Required header: Authorization: Bearer YOUR_CRON_SECRET
+ * Much faster than before - no individual pNode upserts!
  */
 export async function GET(request: Request) {
+  const startTime = Date.now();
+
   try {
     // Verify cron secret
     const authHeader = request.headers.get("authorization");
-    const expectedAuth = `Bearer ${process.env.CRON_SECRET}`;
+    const expectedSecret = process.env.CRON_SECRET;
 
-    if (!authHeader || authHeader !== expectedAuth) {
+    if (!expectedSecret) {
       return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
+        { error: "CRON_SECRET not configured" },
+        { status: 500 }
       );
     }
 
-    console.log("[Cron] Starting snapshot collection...");
-    const startTime = Date.now();
+    const token = authHeader?.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : authHeader;
 
-    // 1. Fetch fresh pNode data
+    if (token !== expectedSecret) {
+      console.log("[Cron] Unauthorized request");
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    console.log("[Cron] Starting snapshot collection...");
+
+    // 1. Fetch all pNodes (fast - just list, no stats)
     const pnodes = await pnodeClient.getAllPNodes();
     console.log(`[Cron] Fetched ${pnodes.length} pNodes`);
 
     if (pnodes.length === 0) {
       return NextResponse.json(
-        { error: "No pNodes found", success: false },
+        { error: "No pNodes found" },
         { status: 500 }
       );
     }
 
-    // 2. Fetch detailed stats (Ultra-optimized for Vercel Free Tier 10s timeout)
-    console.log(`[Cron] Fetching stats from sample nodes...`);
+    // 2. Fetch stats from sample nodes (optimized for speed)
     const statsMap = new Map<string, any>();
-    
-    // Only sample 5 nodes (extremely small sample to fit in 10s execution limit)
     const sampleSize = Math.min(5, pnodes.length);
     const sampleNodes = pnodes.slice(0, sampleSize);
     
-    // Fetch with strict 2-second timeout per node
-    const statsFetches = sampleNodes.map(async (node) => {
-      const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('timeout')), 2000)
-      );
-      
-      try {
-        const stats = await Promise.race([
-          pnodeClient.getPNodeStats(node.address),
-          timeoutPromise
-        ]);
-        if (stats) {
-          statsMap.set(node.address, stats);
+    console.log(`[Cron] Fetching stats from ${sampleSize} sample nodes...`);
+    
+    await Promise.allSettled(
+      sampleNodes.map(async (node) => {
+        const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000));
+        try {
+          const stats = await Promise.race([pnodeClient.getPNodeStats(node.address), timeout]);
+          if (stats) statsMap.set(node.address, stats);
+        } catch (err) {
+          // Skip slow nodes
         }
-      } catch (err) {
-        // Skip slow/failing nodes
-      }
-    });
-    
-    await Promise.allSettled(statsFetches);
-    console.log(`[Cron] Fetched stats from ${statsMap.size}/${sampleSize} nodes`);
+      })
+    );
+    console.log(`[Cron] Got stats from ${statsMap.size} nodes`);
 
-    // 3. Calculate network analytics with stats
+    // 3. Calculate analytics with stats
     const analytics = analyzeNetwork(pnodes, statsMap);
-    console.log(`[Cron] Calculated analytics`);
+    console.log("[Cron] Calculated analytics");
 
-    // 3. Store pNodes in database (p-limit concurrency to speed up upserts)
-    console.log(`[Cron] Storing ${pnodes.length} pNodes (parallel batches)...`);
-    const batchSize = 10;
-    const concurrency = 4; // Run 4 batches at once (40 nodes)
-    
-    const batches: PNodeInfo[][] = [];
-    for (let i = 0; i < pnodes.length; i += batchSize) {
-      batches.push(pnodes.slice(i, i + batchSize));
+    // 3. Save snapshot to Supabase (single row insert - FAST!)
+    const snapshot = {
+      timestamp: Math.floor(Date.now() / 1000),
+      total_nodes: analytics.totals.total,
+      online_nodes: analytics.totals.healthy,
+      offline_nodes: analytics.totals.offline,
+      avg_cpu: analytics.performance.averageCPU,
+      avg_ram: analytics.performance.averageRAM,
+      total_storage: analytics.storage.totalCapacity,
+      unique_countries: 0, // Would need geo lookup
+      unique_versions: Object.keys(analytics.versions.distribution).length,
+    };
+
+    const saved = await saveSnapshot(snapshot);
+    if (!saved) {
+      console.log("[Cron] Failed to save snapshot to Supabase");
+      return NextResponse.json(
+        { error: "Failed to save snapshot" },
+        { status: 500 }
+      );
     }
-    
-    let processedBatches = 0;
-    
-    // Process main batches loop
-    for (let i = 0; i < batches.length; i += concurrency) {
-      const currentBatches = batches.slice(i, i + concurrency);
-      
-      await Promise.all(currentBatches.map(async (batch) => {
-        const batchPromises = batch.map(async (pnode) => {
-          const ipAddress = pnode.address.split(":")[0];
-          const lastSeen = pnode.last_seen || new Date(pnode.last_seen_timestamp * 1000).toISOString();
-          
-          return prisma.pNode.upsert({
-            where: { address: pnode.address },
-            update: {
-              version: pnode.version,
-              lastSeenTimestamp: pnode.last_seen_timestamp,
-              lastSeen: lastSeen,
-              ipAddress,
-              updatedAt: new Date(),
-            },
-            create: {
-              address: pnode.address,
-              version: pnode.version,
-              lastSeenTimestamp: pnode.last_seen_timestamp,
-              lastSeen: lastSeen,
-              ipAddress,
-            },
-          });
-        });
-        await Promise.all(batchPromises); // Wait for this batch's DB ops
-      }));
-      
-      processedBatches += currentBatches.length;
-      console.log(`[Cron] Stored ${(processedBatches * batchSize)}/${pnodes.length} pNodes`);
-    }
+    console.log("[Cron] Saved snapshot to Supabase");
 
-    console.log(`[Cron] Stored all ${pnodes.length} pNodes`);
-
-    // 4. Create snapshot record
-    const timestamp = BigInt(Math.floor(Date.now() / 1000));
-    
-    const snapshot = await prisma.snapshot.create({
-      data: {
-        timestamp,
-        totalNodes: analytics.totals.total,
-        healthyNodes: analytics.totals.healthy,
-        degradedNodes: analytics.totals.degraded,
-        offlineNodes: analytics.totals.offline,
-        avgCpu: analytics.performance.averageCPU,
-        avgRam: analytics.performance.averageRAM,
-        totalStorage: BigInt(analytics.storage.totalCapacity),
-        uniqueCountries: 0, // Will be calculated with geo data
-        uniqueVersions: Object.keys(analytics.versions.distribution).length,
-        latestVersion: analytics.versions.latest,
-        outdatedCount: analytics.versions.outdatedCount,
-        healthScore: analytics.health.score,
-      },
-    });
-
-    console.log(`[Cron] Created snapshot ${snapshot.id}`);
-
-    // 5. Invalidate all caches
+    // 4. Clear cache
     await clearAllCache();
-    console.log(`[Cron] Cleared all caches`);
+    console.log("[Cron] Cleared cache");
 
     const duration = Date.now() - startTime;
+    console.log(`[Cron] Complete in ${duration}ms`);
 
     return NextResponse.json({
       success: true,
       snapshot: {
-        id: snapshot.id,
-        timestamp: snapshot.timestamp.toString(),
-        totalNodes: snapshot.totalNodes,
-        healthScore: snapshot.healthScore,
+        timestamp: snapshot.timestamp,
+        totalNodes: snapshot.total_nodes,
+        onlineNodes: snapshot.online_nodes,
+        offlineNodes: snapshot.offline_nodes,
       },
-      stats: {
-        pnodesStored: pnodes.length,
-        duration: `${duration}ms`,
-      },
+      duration: `${duration}ms`,
     });
   } catch (error: any) {
-    console.error("[Cron] Error collecting snapshot:", error);
+    console.error("[Cron] Error:", error);
     return NextResponse.json(
-      {
-        success: false,
-        error: error.message || "Failed to collect snapshot",
-      },
+      { error: error.message || "Snapshot collection failed" },
       { status: 500 }
     );
   }
