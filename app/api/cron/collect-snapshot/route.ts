@@ -42,18 +42,18 @@ export async function GET(request: Request) {
       );
     }
 
-    // 2. Fetch detailed stats (optimized for speed)
+    // 2. Fetch detailed stats (Ultra-optimized for Vercel Free Tier 10s timeout)
     console.log(`[Cron] Fetching stats from sample nodes...`);
     const statsMap = new Map<string, any>();
     
-    // Only sample 10 nodes for stats (reduced from 50)
-    const sampleSize = Math.min(10, pnodes.length);
+    // Only sample 5 nodes (extremely small sample to fit in 10s execution limit)
+    const sampleSize = Math.min(5, pnodes.length);
     const sampleNodes = pnodes.slice(0, sampleSize);
     
-    // Fetch with aggressive 5-second timeout per node
+    // Fetch with strict 2-second timeout per node
     const statsFetches = sampleNodes.map(async (node) => {
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('timeout')), 5000)
+        setTimeout(() => reject(new Error('timeout')), 2000)
       );
       
       try {
