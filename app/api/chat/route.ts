@@ -42,8 +42,18 @@ async function getFullDashboardContext() {
         const analytics = analyzeNetwork(pnodes);
         console.log(`[AI Chat] Loaded ${pnodes.length} nodes, health: ${analytics.health.healthyPercentage}%`);
         
-        // Calculate top nodes by pod credits
-        const topNodes = pnodes
+        // Filter out test/localhost nodes
+        const productionNodes = pnodes.filter((node: any) => {
+            const address = node.address?.toLowerCase() || '';
+            const pubkey = node.pubkey?.toLowerCase() || '';
+            // Exclude localhost, 127.0.0.1, and test pubkeys
+            return !address.includes('127.0.0.1') && 
+                   !address.includes('localhost') &&
+                   !pubkey.includes('testpubkey');
+        });
+        
+        // Calculate top nodes by pod credits (from production nodes only)
+        const topNodes = productionNodes
             .map((node: any) => {
                 const lastSeenTimestamp = node.last_seen_timestamp;
                 const now = Math.floor(Date.now() / 1000);
@@ -63,6 +73,7 @@ async function getFullDashboardContext() {
                 return {
                     identity: (node.pubkey || node.address)?.slice(0, 12) + '...',
                     fullIdentity: node.pubkey || node.address,
+                    address: node.address,
                     podCredits,
                     uptimeScore,
                     rpcScore,
@@ -79,6 +90,12 @@ async function getFullDashboardContext() {
         
         // Count nodes on latest version
         const nodesOnLatest = pnodes.filter((node: any) => node.version === analytics.versions.latest).length;
+        
+        // Debug: Log top nodes being sent to AI
+        console.log("[AI Chat] Top 3 nodes being sent to AI:");
+        topNodes.slice(0, 3).forEach((node: any, i: number) => {
+            console.log(`  ${i + 1}. ${node.fullIdentity} | ${node.address} | ${node.podCredits} pts`);  
+        });
         
         return `
 CURRENT NETWORK DATA:
@@ -100,10 +117,14 @@ ${Object.entries(analytics.versions.distribution)
     .map(([version, count]) => `- v${version}: ${count} nodes`)
     .join('\n')}
 
+
 Top 10 Nodes by Pod Credits:
 ${topNodes.map((node: any, i: number) => 
-    `${i + 1}. ${node.identity} - ${node.podCredits} pts (Uptime: ${node.uptimeScore}, RPC: ${node.rpcScore}, Version: ${node.versionScore})`
-).join('\n')}
+    `${i + 1}. Pubkey: ${node.fullIdentity} | IP: ${node.address} | Pod Credits: ${node.podCredits} pts
+   - Uptime: ${node.uptimeScore} pts
+   - RPC: ${node.rpcScore} pts  
+   - Version: ${node.versionScore} pts (running v${node.version})`
+).join('\n\n')}
 
 Performance Metrics:
 - Average CPU Usage: ${analytics.performance.averageCPU}%
