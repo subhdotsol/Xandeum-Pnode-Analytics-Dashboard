@@ -3,6 +3,7 @@ import { pnodeClient } from "@/lib/pnode-client";
 import { analyzeNetwork } from "@/lib/network-analytics";
 import { prisma } from "@/lib/prisma";
 import { clearAllCache } from "@/lib/redis";
+import type { PNodeInfo } from "@/types/pnode";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60; // Allow up to 60 seconds for snapshot collection
