@@ -1,0 +1,73 @@
+// Prisma Schema for pNode Analytics Dashboard
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Individual pNode information
+model PNode {
+  id                String   @id @default(cuid())
+  address           String   @unique // e.g., "173.212.203.145:9001"
+  version           String?
+  lastSeenTimestamp Int
+  lastSeen          String
+  ipAddress         String?  // Extracted IP for geolocation
+  country           String?
+  city              String?
+  latitude          Float?
+  longitude         Float?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([lastSeenTimestamp])
+  @@index([version])
+  @@index([country])
+}
+
+// Network-wide snapshots for historical analytics
+model Snapshot {
+  id              String   @id @default(cuid())
+  timestamp       BigInt   @unique // Unix timestamp
+  totalNodes      Int
+  healthyNodes    Int      @default(0)
+  degradedNodes   Int      @default(0)
+  offlineNodes    Int
+  avgCpu          Float    @default(0)
+  avgRam          Float    @default(0)
+  totalStorage    BigInt   @default(0)
+  uniqueCountries Int      @default(0)
+  uniqueVersions  Int
+  latestVersion   String?
+  outdatedCount   Int      @default(0)
+  healthScore     Int      @default(0)
+  createdAt       DateTime @default(now())
+
+  @@index([timestamp])
+  @@index([createdAt])
+}
+
+// Detailed node statistics (optional, for deep analytics)
+model NodeStats {
+  id               String   @id @default(cuid())
+  address          String
+  totalBytes       BigInt
+  totalPages       Int
+  cpuPercent       Float
+  ramUsed          BigInt
+  ramTotal         BigInt
+  uptime           Int
+  packetsReceived  Int
+  packetsSent      Int
+  activeStreams    Int
+  version          String
+  lastUpdated      Int
+  createdAt        DateTime @default(now())
+
+  @@index([address])
+  @@index([lastUpdated])
+}

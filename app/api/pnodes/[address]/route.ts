@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { pnodeClient } from "@/lib/pnode-client";
 import { getNodeHealth } from "@/lib/network-analytics";
+import { getCache, setCache } from "@/lib/redis";
+import type { PNodeStats } from "@/types/pnode";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 30;
@@ -12,8 +14,25 @@ export async function GET(
   try {
     const { address } = await params;
     const decodedAddress = decodeURIComponent(address);
+    const CACHE_KEY = `pnodes:stats:${decodedAddress}`;
 
-    // Get pNode stats
+    // 1. Try cache first
+    const cached = await getCache<PNodeStats>(CACHE_KEY);
+    if (cached) {
+      const health = getNodeHealth(cached.last_updated);
+      return NextResponse.json({
+        success: true,
+        data: {
+          address: decodedAddress,
+          stats: cached,
+          health,
+          lastUpdated: new Date().toISOString(),
+        },
+        cached: true,
+      });
+    }
+
+    // 2. Fetch fresh stats from pNode
     const stats = await pnodeClient.getPNodeStats(decodedAddress);
 
     if (!stats) {
@@ -26,6 +45,9 @@ export async function GET(
       );
     }
 
+    // Cache the result
+    await setCache(CACHE_KEY, stats);
+
     // Get health status
     const health = getNodeHealth(stats.last_updated);
 
@@ -37,6 +59,7 @@ export async function GET(
         health,
         lastUpdated: new Date().toISOString(),
       },
+      cached: false,
     });
   } catch (error: any) {
     console.error("Error fetching pNode stats:", error);

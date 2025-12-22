@@ -8,7 +8,8 @@ import { Loader2, TrendingUp, Activity, HardDrive, Clock } from "lucide-react";
 interface HistoricalDataPoint {
     timestamp: number;
     totalNodes: number;
-    onlineNodes: number;
+    healthyNodes: number;
+    degradedNodes: number;
     offlineNodes: number;
     avgCpu: number;
     avgRam: number;
@@ -65,10 +66,11 @@ export function HistoricalCharts() {
     useEffect(() => {
         async function fetchHistoricalData() {
             try {
-                const res = await fetch("/api/historical");
+                const res = await fetch("/api/historical?range=1h");
                 if (res.ok) {
-                    const historicalData = await res.json();
-                    setData(historicalData);
+                    const response = await res.json();
+                    // Extract data array from response
+                    setData(response.data || []);
                 } else {
                     setError("Failed to fetch historical data");
                 }
@@ -86,7 +88,7 @@ export function HistoricalCharts() {
     // Filter data based on time range
     const filteredData = useMemo(() => {
         if (timeRange === Infinity) return data;
-        const cutoff = Date.now() - timeRange;
+        const cutoff = Math.floor((Date.now() - timeRange) / 1000); // Convert to seconds
         return data.filter(point => point.timestamp >= cutoff);
     }, [data, timeRange]);
 
@@ -94,10 +96,10 @@ export function HistoricalCharts() {
     const chartData = useMemo(() => {
         return filteredData.map(point => ({
             ...point,
-            time: formatTime(point.timestamp),
-            date: formatDate(point.timestamp),
-            fullTime: `${formatDate(point.timestamp)} ${formatTime(point.timestamp)}`,
-            uptimePercent: point.totalNodes > 0 ? ((point.onlineNodes / point.totalNodes) * 100).toFixed(1) : 0,
+            time: formatTime(point.timestamp * 1000), // Convert to milliseconds for Date
+            date: formatDate(point.timestamp * 1000),
+            fullTime: `${formatDate(point.timestamp * 1000)} ${formatTime(point.timestamp * 1000)}`,
+            uptimePercent: point.totalNodes > 0 ? ((point.healthyNodes / point.totalNodes) * 100).toFixed(1) : 0,
             storageGB: point.totalStorage / (1024 * 1024 * 1024),
         }));
     }, [filteredData]);

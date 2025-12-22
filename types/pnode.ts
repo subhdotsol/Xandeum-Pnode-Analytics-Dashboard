@@ -2,6 +2,7 @@
 
 export interface PNodeInfo {
   address: string;              // e.g., "173.212.203.145:9001"
+  last_seen: string;            // ISO timestamp string
   last_seen_timestamp: number;  // Unix timestamp (seconds)
   pubkey: string | null;        // Node's public key
   version: string;              // e.g., "0.1.0"
