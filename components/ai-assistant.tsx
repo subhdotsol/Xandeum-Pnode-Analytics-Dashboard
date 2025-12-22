@@ -78,6 +78,7 @@ export function AiAssistant() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={() => setIsOpen(!isOpen)}
+                        aria-label="Ask AI"
                         className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${isOpen
                             ? "bg-muted text-foreground"
                             : "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-purple-500/25"
