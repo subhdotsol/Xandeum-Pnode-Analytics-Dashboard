@@ -113,28 +113,44 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
-    // Auto-scroll to next doc page
+    // Auto-scroll to next doc page (requires scrolling to bottom + holding for 1 second)
     useEffect(() => {
+        let scrollTimeout: NodeJS.Timeout | null = null;
+
         const handleScroll = () => {
             const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-            const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100; // 100px threshold
+            // Require scrolling to within 50px of bottom
+            const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 50;
 
             if (scrolledToBottom) {
-                const currentIndex = docOrder.indexOf(pathname);
-                if (currentIndex !== -1 && currentIndex < docOrder.length - 1) {
-                    // Navigate to next doc page
-                    const nextPage = docOrder[currentIndex + 1];
-                    router.push(nextPage);
-                    // Smooth scroll to top for seamless transition
-                    setTimeout(() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }, 100);
+                // Only navigate after holding at bottom for 1 second
+                if (!scrollTimeout) {
+                    scrollTimeout = setTimeout(() => {
+                        const currentIndex = docOrder.indexOf(pathname);
+                        if (currentIndex !== -1 && currentIndex < docOrder.length - 1) {
+                            const nextPage = docOrder[currentIndex + 1];
+                            router.push(nextPage);
+                            setTimeout(() => {
+                                window.scrollTo({ top: 0, behavior: 'smooth' });
+                            }, 100);
+                        }
+                        scrollTimeout = null;
+                    }, 1000); // 1 second hold
+                }
+            } else {
+                // Cancel if user scrolls back up
+                if (scrollTimeout) {
+                    clearTimeout(scrollTimeout);
+                    scrollTimeout = null;
                 }
             }
         };
 
         window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            if (scrollTimeout) clearTimeout(scrollTimeout);
+        };
     }, [pathname, router]);
 
     return (

@@ -55,12 +55,33 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
     const [hasLoadedStats, setHasLoadedStats] = useState(false);
     const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
+    // Try to get prefetched stats
+    let prefetchedStats: Map<string, PNodeStats> | null = null;
+    try {
+        const { usePrefetch } = require("@/contexts/prefetch-context");
+        const prefetch = usePrefetch();
+        if (prefetch.leaderboardStats && prefetch.leaderboardStats.size > 0) {
+            prefetchedStats = prefetch.leaderboardStats;
+        }
+    } catch {
+        // Context not available
+    }
+
     // Modal state
     const [selectedNode, setSelectedNode] = useState<NodeWithScore | null>(null);
     const [modalLoading, setModalLoading] = useState(false);
     const [geoData, setGeoData] = useState<{ country: string; city: string; regionName: string; isp: string } | null>(null);
 
-    // Fetch stats for top nodes
+    // Use prefetched stats or fetch
+    useEffect(() => {
+        if (prefetchedStats && prefetchedStats.size > 0) {
+            setNodeStats(prefetchedStats);
+            setHasLoadedStats(true);
+            return;
+        }
+    }, [prefetchedStats]);
+
+    // Fetch stats for top nodes (if not prefetched)
     const fetchStats = useCallback(async () => {
         if (hasLoadedStats || loadingStats) return;
         setLoadingStats(true);
@@ -90,10 +111,11 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
     }, [nodes, hasLoadedStats, loadingStats]);
 
     useEffect(() => {
-        if (nodes.length > 0 && !hasLoadedStats) {
+        // Only fetch if not prefetched
+        if (nodes.length > 0 && !hasLoadedStats && (!prefetchedStats || prefetchedStats.size === 0)) {
             fetchStats();
         }
-    }, [nodes, hasLoadedStats, fetchStats]);
+    }, [nodes, hasLoadedStats, fetchStats, prefetchedStats]);
 
     // Open node modal
     const openNodeModal = async (node: NodeWithScore) => {

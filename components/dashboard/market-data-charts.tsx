@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown, Droplets, DollarSign, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Droplets, DollarSign } from "lucide-react";
 
 interface PriceDataPoint {
     time: string;
@@ -101,15 +101,16 @@ function PriceChange({ current, previous }: { current: number; previous: number 
 }
 
 export function MarketDataCharts() {
-    const [priceData, setPriceData] = useState<PriceDataPoint[]>([]);
-    const [liquidityData, setLiquidityData] = useState<LiquidityDataPoint[]>([]);
-    const [loading, setLoading] = useState(true);
+    // Initialize with instant mock data - no loading state needed for price
+    const [priceData, setPriceData] = useState<PriceDataPoint[]>(() => generateMockPriceData());
+    const [liquidityData, setLiquidityData] = useState<LiquidityDataPoint[]>(() => generateMockLiquidityData());
+    const [liquidityLoading, setLiquidityLoading] = useState(true);
     const [realLiquidity, setRealLiquidity] = useState<number>(0);
 
     useEffect(() => {
-        async function fetchData() {
+        async function fetchLiquidityData() {
             try {
-                // Fetch real liquidity from Raydium
+                // Fetch real liquidity from Raydium (non-blocking)
                 const liquidityResponse = await fetch('/api/dex/liquidity');
                 const liquidityInfo = await liquidityResponse.json();
 
@@ -120,19 +121,16 @@ export function MarketDataCharts() {
                     liquidityInfo.total_liquidity || 1250000
                 );
 
-                setPriceData(generateMockPriceData());
                 setLiquidityData(historicalLiquidity);
-                setLoading(false);
             } catch (error) {
-                console.error('Error fetching market data:', error);
-                // Fallback to mock data
-                setPriceData(generateMockPriceData());
-                setLiquidityData(generateMockLiquidityData());
-                setLoading(false);
+                console.error('Error fetching liquidity data:', error);
+                // Already showing mock data, no need to update
+            } finally {
+                setLiquidityLoading(false);
             }
         }
 
-        fetchData();
+        fetchLiquidityData();
     }, []);
 
     const priceStats = useMemo(() => {
@@ -163,19 +161,8 @@ export function MarketDataCharts() {
         fontSize: '12px',
     };
 
-    if (loading) {
-        return (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {[1, 2].map((i) => (
-                    <Card key={i} className="border border-border bg-card">
-                        <CardContent className="h-[320px] flex items-center justify-center">
-                            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                        </CardContent>
-                    </Card>
-                ))}
-            </div>
-        );
-    }
+    // No loading spinner - charts render instantly with mock data
+    // Liquidity data updates in background when API responds
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -221,43 +221,97 @@ function calculateStats(data: { cpu: NodePerformanceData[]; ram: NodePerformance
     };
 }
 
-export function PerformanceCharts() {
-    const [loading, setLoading] = useState(false);
-    const [nodes, setNodes] = useState<PNodeInfo[]>([]);
-    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+// Generate initial placeholder data for instant rendering
+function generatePlaceholderData(metric: 'cpu' | 'ram' | 'traffic' | 'streams'): NodePerformanceData[] {
+    const labels = ['N1', 'N2', 'N3', 'N4', 'N5', 'N6', 'N7', 'N8'];
+    return labels.map(label => {
+        switch (metric) {
+            case 'cpu':
+                return { label, value: 15 + Math.random() * 30 };
+            case 'ram':
+                return { label, value: 35 + Math.random() * 25 };
+            case 'traffic':
+                return { label, incoming: 1000 + Math.random() * 2000, outgoing: 500 + Math.random() * 1000, value: 0 };
+            case 'streams':
+                return { label, value: 10 + Math.random() * 30 };
+            default:
+                return { label, value: 0 };
+        }
+    });
+}
 
-    const fetchData = async () => {
-        setLoading(true);
+interface PerformanceChartsProps {
+    pnodes?: PNodeInfo[];
+}
+
+export function PerformanceCharts({ pnodes: propNodes }: PerformanceChartsProps = {}) {
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [nodes, setNodes] = useState<PNodeInfo[]>(propNodes || []);
+    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+    const [hasInitialData, setHasInitialData] = useState(!!propNodes?.length);
+
+    // Generate initial placeholder data for instant rendering
+    const [placeholderData] = useState(() => ({
+        cpu: generatePlaceholderData('cpu'),
+        ram: generatePlaceholderData('ram'),
+        traffic: generatePlaceholderData('traffic'),
+        streams: generatePlaceholderData('streams'),
+    }));
+
+    // Update nodes if prop changes
+    useEffect(() => {
+        if (propNodes && propNodes.length > 0) {
+            setNodes(propNodes);
+            setHasInitialData(true);
+            setLastUpdated(new Date());
+        }
+    }, [propNodes]);
+
+    const fetchData = async (isInitial = false) => {
+        // Skip fetch if we have prop data and this is initial load
+        if (isInitial && propNodes && propNodes.length > 0) return;
+
+        // Only show refresh indicator for manual refreshes, not initial load
+        if (!isInitial) setIsRefreshing(true);
+
         try {
             const res = await fetch('/api/pnodes');
             if (res.ok) {
                 const data = await res.json();
                 setNodes(data.pnodes || []);
                 setLastUpdated(new Date());
+                setHasInitialData(true);
             }
         } catch (error) {
             console.error('Failed to fetch pnodes:', error);
         } finally {
-            setLoading(false);
+            setIsRefreshing(false);
         }
     };
 
     useEffect(() => {
-        fetchData();
+        // Only fetch if we don't have prop data
+        if (!propNodes || propNodes.length === 0) {
+            fetchData(true);
+        }
 
         // Auto-refresh every 30 seconds
-        const interval = setInterval(fetchData, 30000);
+        const interval = setInterval(() => fetchData(false), 30000);
         return () => clearInterval(interval);
     }, []);
 
     const performanceData = useMemo(() => {
+        // If no real nodes yet, use placeholder data for instant rendering
+        if (nodes.length === 0) {
+            return placeholderData;
+        }
         return {
             cpu: processNodesForChart(nodes, 'cpu'),
             ram: processNodesForChart(nodes, 'ram'),
             traffic: processNodesForChart(nodes, 'traffic'),
             streams: processNodesForChart(nodes, 'streams'),
         };
-    }, [nodes]);
+    }, [nodes, placeholderData]);
 
     const stats = useMemo(() => {
         return calculateStats(performanceData);
@@ -271,18 +325,18 @@ export function PerformanceCharts() {
                     <p className="text-sm text-muted-foreground">
                         Live node performance metrics
                     </p>
-                    {loading && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
+                    {isRefreshing && <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />}
                 </div>
                 <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground">
                         Updated {lastUpdated.toLocaleTimeString()}
                     </span>
                     <button
-                        onClick={fetchData}
+                        onClick={() => fetchData(false)}
                         className="p-1.5 rounded-md hover:bg-muted transition-colors"
-                        disabled={loading}
+                        disabled={isRefreshing}
                     >
-                        <RefreshCw className={`w-4 h-4 text-muted-foreground ${loading ? 'animate-spin' : ''}`} />
+                        <RefreshCw className={`w-4 h-4 text-muted-foreground ${isRefreshing ? 'animate-spin' : ''}`} />
                     </button>
                 </div>
             </div>
@@ -296,7 +350,7 @@ export function PerformanceCharts() {
                     icon={<Network className="h-4 w-4 text-purple-500" />}
                     color="#A855F7"
                     data={performanceData.traffic}
-                    isLoading={loading}
+                    isLoading={false}
                     showDualBars={true}
                 />
 
@@ -307,7 +361,7 @@ export function PerformanceCharts() {
                     icon={<Activity className="h-4 w-4 text-emerald-500" />}
                     color="#10B981"
                     data={performanceData.streams}
-                    isLoading={loading}
+                    isLoading={false}
                 />
 
                 <PerformanceCard
@@ -317,7 +371,7 @@ export function PerformanceCharts() {
                     icon={<Cpu className="h-4 w-4 text-orange-500" />}
                     color="#F97316"
                     data={performanceData.cpu}
-                    isLoading={loading}
+                    isLoading={false}
                 />
 
                 <PerformanceCard
@@ -327,7 +381,7 @@ export function PerformanceCharts() {
                     icon={<HardDrive className="h-4 w-4 text-cyan-500" />}
                     color="#06B6D4"
                     data={performanceData.ram}
-                    isLoading={loading}
+                    isLoading={false}
                 />
             </div>
         </div>

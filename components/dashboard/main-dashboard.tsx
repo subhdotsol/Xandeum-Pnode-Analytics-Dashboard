@@ -30,6 +30,7 @@ import { Watchlist } from "@/components/dashboard/watchlist";
 import { Compare } from "@/components/dashboard/compare";
 import { SpotlightSearch } from "@/components/spotlight-search";
 import { formatBytes, formatUptime } from "@/lib/utils";
+import { usePrefetch } from "@/contexts/prefetch-context";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
 
 const MapComponent = dynamic(() => import("@/components/MapComponent"), {
@@ -118,7 +119,7 @@ function MetricRow({ label, value, icon: Icon }: { label: string; value: string;
 }
 
 // Analytics Tab with toggle between Historical and Performance
-function AnalyticsTabContent() {
+function AnalyticsTabContent({ pnodes }: { pnodes: PNodeInfo[] }) {
     const [view, setView] = useState<"historical" | "performance">("historical");
 
     return (
@@ -162,7 +163,7 @@ function AnalyticsTabContent() {
                     className={`transition-transform duration-500 ease-in-out ${view === "performance" ? "translate-x-0" : "translate-x-full"
                         } ${view === "historical" ? "absolute inset-0" : ""}`}
                 >
-                    {view === "performance" && <PerformanceCharts />}
+                    {view === "performance" && <PerformanceCharts pnodes={pnodes} />}
                 </div>
             </div>
 
@@ -175,6 +176,7 @@ function AnalyticsTabContent() {
 export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregateStats }: MainDashboardProps) {
     const router = useRouter();
     const searchParams = useSearchParams();
+    const { startPrefetch, hasPrefetched } = usePrefetch();
     const [activeTab, setActiveTab] = useState<TabType>("dashboard");
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [secondsAgo, setSecondsAgo] = useState(0);
@@ -192,6 +194,17 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     });
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [spotlightOpen, setSpotlightOpen] = useState(false);
+
+    // Start prefetching data for other tabs when on Dashboard
+    useEffect(() => {
+        if (activeTab === "dashboard" && !hasPrefetched && pnodes.length > 0) {
+            // Delay prefetch slightly to not block initial render
+            const timer = setTimeout(() => {
+                startPrefetch(pnodes.map(p => p.address));
+            }, 1000);
+            return () => clearTimeout(timer);
+        }
+    }, [activeTab, hasPrefetched, pnodes, startPrefetch]);
 
     // Read tab from URL params (for spotlight search navigation from /docs)
     useEffect(() => {
@@ -514,7 +527,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     )}
 
                     {activeTab === "analytics" && (
-                        <AnalyticsTabContent />
+                        <AnalyticsTabContent pnodes={pnodes} />
                     )}
 
                     {activeTab === "leaderboard" && (

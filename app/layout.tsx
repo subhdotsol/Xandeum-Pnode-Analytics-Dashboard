@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SolanaWalletProvider } from "@/contexts/wallet-provider";
+import { DataPrefetchProvider } from "@/contexts/prefetch-context";
 import { AiAssistant } from "@/components/ai-assistant";
 
 const inter = Inter({
@@ -43,8 +44,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SolanaWalletProvider>
-            {children}
-            <AiAssistant />
+            <DataPrefetchProvider>
+              {children}
+              <AiAssistant />
+            </DataPrefetchProvider>
           </SolanaWalletProvider>
         </ThemeProvider>
       </body>

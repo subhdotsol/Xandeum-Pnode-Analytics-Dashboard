@@ -1,17 +1,11 @@
 import { PNodeInfo, PNodeStats, PNodeListResponse } from "@/types/pnode";
 import http from "http";
 
-// Best pNode IPs to use as entry points
+// Best pNode IPs to use as entry points (reduced for faster queries)
 const SEED_PNODES = [
   "173.212.203.145",
   "173.212.220.65",
   "161.97.97.41",
-  "192.190.136.36",
-  "192.190.136.37",
-  "192.190.136.38",
-  "192.190.136.28",
-  "192.190.136.29",
-  "207.244.255.1",
 ];
 
 interface JsonRpcRequest {
@@ -53,7 +47,7 @@ export class PNodeClient {
           "Content-Type": "application/json",
           "Content-Length": Buffer.byteLength(postData),
         },
-        timeout: 3000,
+        timeout: 1500,
       };
 
       const req = http.request(options, (res) => {
