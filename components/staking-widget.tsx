@@ -3,13 +3,18 @@
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, ExternalLink, Info, ArrowDown } from "lucide-react";
+import { Coins, ExternalLink, Info, ArrowDown, RefreshCw, Loader2 } from "lucide-react";
 import { CustomWalletButton } from "@/components/ui/custom-wallet-button";
 import { LiquidButton } from "@/components/ui/liquid-button";
+import { useStakingData, useWalletBalance } from "@/hooks/use-staking-data";
 
 export function StakingWidget() {
     const [amount, setAmount] = useState("");
     const { connected, publicKey, disconnect } = useWallet();
+
+    // Fetch dynamic staking data
+    const stakingData = useStakingData();
+    const walletBalance = useWalletBalance();
 
     // Helper to format wallet address
     const formatAddress = (address: string) => {
@@ -20,10 +25,15 @@ export function StakingWidget() {
         <div className="max-w-lg mx-auto">
             <Card className="border border-border bg-card">
                 <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl font-semibold">
-                        <Coins className="w-5 h-5" />
-                        Liquid Staking
-                    </CardTitle>
+                    <div className="flex items-center justify-between">
+                        <CardTitle className="flex items-center gap-2 text-xl font-semibold">
+                            <Coins className="w-5 h-5" />
+                            Liquid Staking
+                        </CardTitle>
+                        <div className="px-2 py-1 rounded-md bg-green-500/10 border border-green-500/20">
+                            <span className="text-xs font-medium text-green-600 dark:text-green-500">Live Prices</span>
+                        </div>
+                    </div>
                     <p className="text-sm text-muted-foreground">
                         Stake SOL and receive XANDsol - a liquid staking token
                     </p>
@@ -77,7 +87,7 @@ export function StakingWidget() {
                             <label className="text-sm text-muted-foreground mb-2 block">You receive</label>
                             <div className="flex items-center gap-3">
                                 <span className="flex-1 text-2xl font-semibold text-muted-foreground">
-                                    {amount ? (parseFloat(amount) * 0.98).toFixed(4) : "0.0"}
+                                    {amount ? (parseFloat(amount) * stakingData.exchangeRate).toFixed(4) : "0.0"}
                                 </span>
                                 <div className="flex items-center gap-2 px-3 py-1.5 bg-background rounded-lg border border-border">
                                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-teal-500" />
@@ -91,13 +101,58 @@ export function StakingWidget() {
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-3 rounded-lg bg-muted/30">
                             <p className="text-xs text-muted-foreground">APY</p>
-                            <p className="text-lg font-semibold text-green-500">~7.2%</p>
+                            {stakingData.isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="w-4 h-4 animate-spin text-green-500" />
+                                    <p className="text-sm text-muted-foreground">Loading...</p>
+                                </div>
+                            ) : (
+                                <p className="text-lg font-semibold text-green-500">
+                                    ~{stakingData.apy.toFixed(2)}%
+                                </p>
+                            )}
                         </div>
                         <div className="p-3 rounded-lg bg-muted/30">
                             <p className="text-xs text-muted-foreground">Exchange Rate</p>
-                            <p className="text-lg font-semibold">1 : 0.98</p>
+                            {stakingData.isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <Loader2 className="w-4 h-4 animate-spin" />
+                                    <p className="text-sm text-muted-foreground">Loading...</p>
+                                </div>
+                            ) : (
+                                <p className="text-lg font-semibold">
+                                    1 : {stakingData.exchangeRate.toFixed(4)}
+                                </p>
+                            )}
                         </div>
                     </div>
+
+                    {/* Live Price Notice */}
+                    <div className="flex items-start gap-2 p-3 rounded-lg bg-green-500/10 border border-green-500/20">
+                        <Info className="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" />
+                        <div className="text-sm text-muted-foreground">
+                            <p className="font-medium text-green-500 mb-1">Real-Time Market Prices</p>
+                            <p className="text-xs">
+                                Exchange rate calculated from live SOL and XAND prices via CoinGecko. APY estimate: 7.2%
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Wallet Balance */}
+                    {connected && (
+                        <div className="flex justify-between items-center text-sm">
+                            <span className="text-muted-foreground">Available:</span>
+                            {walletBalance.isLoading ? (
+                                <div className="flex items-center gap-1">
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                    <span className="text-muted-foreground text-xs">Loading...</span>
+                                </div>
+                            ) : (
+                                <span className="font-medium">{walletBalance.sol.toFixed(4)} SOL</span>
+                            )}
+                        </div>
+                    )}
+
 
                     {/* Connect Wallet / Stake Button */}
                     {!connected ? (

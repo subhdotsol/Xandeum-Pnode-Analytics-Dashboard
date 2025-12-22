@@ -18,8 +18,11 @@ export const SolanaWalletProvider: FC<{ children: ReactNode }> = ({ children }) 
     // Use mainnet-beta for production, devnet for development
     const network = WalletAdapterNetwork.Mainnet;
 
-    // You can also provide a custom RPC endpoint
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+    // Use custom RPC endpoint from environment variable, fallback to public RPC
+    const endpoint = useMemo(
+        () => process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl(network),
+        [network]
+    );
 
     // Configure supported wallets
     const wallets = useMemo(
