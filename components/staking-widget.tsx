@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Coins, ExternalLink, Info, ArrowDown, Wallet } from "lucide-react";
+import { Coins, ExternalLink, Info, ArrowDown } from "lucide-react";
+import { CustomWalletButton } from "@/components/ui/custom-wallet-button";
+import { LiquidButton } from "@/components/ui/liquid-button";
 
 export function StakingWidget() {
     const [amount, setAmount] = useState("");
@@ -100,16 +101,14 @@ export function StakingWidget() {
 
                     {/* Connect Wallet / Stake Button */}
                     {!connected ? (
-                        <div className="wallet-adapter-button-wrapper">
-                            <WalletMultiButton className="!w-full !py-3 !px-4 !rounded-xl !bg-gradient-to-r !from-green-500 !to-teal-500 !text-white !font-semibold hover:!opacity-90 !transition-opacity" />
-                        </div>
+                        <CustomWalletButton />
                     ) : (
-                        <button
-                            className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-green-500 to-teal-500 text-white font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+                        <LiquidButton
+                            className="w-full py-3 px-4 rounded-xl text-white font-semibold"
                             disabled={!amount || parseFloat(amount) <= 0}
                         >
                             Stake SOL
-                        </button>
+                        </LiquidButton>
                     )}
 
                     {/* Info */}
