@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { pnodeClient } from "@/lib/pnode-client";
+import { analyzeNetwork } from "@/lib/network-analytics";
 
 const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
@@ -26,31 +28,27 @@ function isSuspiciousQuery(message: string): boolean {
 
 async function getFullDashboardContext() {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        console.log("[AI Chat] Fetching dashboard data...");
         
-        // Fetch all dashboard data in parallel
-        const [analyticsRes, pnodesRes, statsRes] = await Promise.all([
-            fetch(`${baseUrl}/api/analytics`, { cache: 'no-store' }),
-            fetch(`${baseUrl}/api/pnodes`, { cache: 'no-store' }),
-            fetch(`${baseUrl}/api/stats`, { cache: 'no-store' }),
-        ]);
+        // Directly call underlying functions instead of HTTP requests
+        // This is more reliable and avoids localhost connection issues
+        const pnodes = await pnodeClient.getAllPNodes();
         
-        const analytics = analyticsRes.ok ? await analyticsRes.json() : null;
-        const pnodesData = pnodesRes.ok ? await pnodesRes.json() : null;
-        const stats = statsRes.ok ? await statsRes.json() : null;
-        
-        if (!analytics || !pnodesData) {
-            return "Network data temporarily unavailable";
+        if (!pnodes || pnodes.length === 0) {
+            console.error("[AI Chat] No pnodes data available");
+            return "Network data temporarily unavailable. Please try again in a moment.";
         }
         
-        const pnodes = pnodesData.pnodes || [];
+        const analytics = analyzeNetwork(pnodes);
+        console.log(`[AI Chat] Loaded ${pnodes.length} nodes, health: ${analytics.health.healthyPercentage}%`);
         
         // Calculate top nodes by pod credits
         const topNodes = pnodes
             .map((node: any) => {
-                const lastSeenDate = new Date(node.lastSeen);
-                const now = new Date();
-                const minutesAgo = (now.getTime() - lastSeenDate.getTime()) / 60000;
+                const lastSeenTimestamp = node.last_seen_timestamp;
+                const now = Math.floor(Date.now() / 1000);
+                const secondsAgo = now - lastSeenTimestamp;
+                const minutesAgo = secondsAgo / 60;
                 
                 let uptimeScore = 0;
                 if (minutesAgo < 5) uptimeScore = 40;
@@ -58,41 +56,45 @@ async function getFullDashboardContext() {
                 else if (minutesAgo < 60) uptimeScore = 20;
                 else if (minutesAgo < 360) uptimeScore = 10;
                 
-                const rpcScore = (node.rpc || node.gossipRPC) ? 30 : 0;
-                const versionScore = node.version === analytics.latestVersion ? 30 : 0;
+                const rpcScore = (node.rpc || node.gossip_rpc) ? 30 : 0;
+                const versionScore = node.version === analytics.versions.latest ? 30 : 0;
                 const podCredits = uptimeScore + rpcScore + versionScore;
                 
                 return {
-                    identity: node.identity?.slice(0, 8) + '...',
+                    identity: (node.pubkey || node.address)?.slice(0, 12) + '...',
+                    fullIdentity: node.pubkey || node.address,
                     podCredits,
                     uptimeScore,
                     rpcScore,
                     versionScore,
                     version: node.version,
-                    hasRPC: !!(node.rpc || node.gossipRPC),
+                    hasRPC: !!(node.rpc || node.gossip_rpc),
                 };
             })
             .sort((a: any, b: any) => b.podCredits - a.podCredits)
             .slice(0, 10);
         
-        // Version distribution
-        const versionCounts = pnodes.reduce((acc: any, node: any) => {
-            acc[node.version] = (acc[node.version] || 0) + 1;
-            return acc;
-        }, {});
+        // Count RPC-enabled nodes
+        const rpcEnabledCount = pnodes.filter((node: any) => node.rpc || node.gossip_rpc).length;
+        
+        // Count nodes on latest version
+        const nodesOnLatest = pnodes.filter((node: any) => node.version === analytics.versions.latest).length;
         
         return `
 CURRENT NETWORK DATA:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Network Overview:
-- Total Nodes: ${analytics.totalNodes}
-- Active Nodes: ${analytics.activeNodes} (${analytics.healthyPercentage}% healthy)
-- RPC-Enabled Nodes: ${analytics.rpcNodes}
-- Latest Version: ${analytics.latestVersion}
-- Nodes on Latest: ${analytics.nodesOnLatestVersion}/${analytics.totalNodes}
+- Total Nodes: ${analytics.totals.total}
+- Active Nodes (Healthy): ${analytics.totals.healthy} (${analytics.health.healthyPercentage}% of network)
+- Degraded Nodes: ${analytics.totals.degraded} (${analytics.health.degradedPercentage}%)
+- Offline Nodes: ${analytics.totals.offline} (${analytics.health.offlinePercentage}%)
+- RPC-Enabled Nodes: ${rpcEnabledCount}
+- Latest Version: ${analytics.versions.latest}
+- Nodes on Latest: ${nodesOnLatest}/${analytics.totals.total}
+- Network Health Score: ${analytics.health.score}/100
 
 Version Distribution:
-${Object.entries(versionCounts)
+${Object.entries(analytics.versions.distribution)
     .sort((a: any, b: any) => b[1] - a[1])
     .slice(0, 5)
     .map(([version, count]) => `- v${version}: ${count} nodes`)
@@ -103,15 +105,14 @@ ${topNodes.map((node: any, i: number) =>
     `${i + 1}. ${node.identity} - ${node.podCredits} pts (Uptime: ${node.uptimeScore}, RPC: ${node.rpcScore}, Version: ${node.versionScore})`
 ).join('\n')}
 
-Network Statistics:
-- Total Storage: ${stats?.totalStorage || 'N/A'} GB
-- Total RAM: ${stats?.totalRam || 'N/A'} GB
-- Avg CPU: ${stats?.avgCpu || 'N/A'}%
-- Public RPC Count: ${stats?.nodeCount || analytics.rpcNodes}
+Performance Metrics:
+- Average CPU Usage: ${analytics.performance.averageCPU}%
+- Average RAM Usage: ${analytics.performance.averageRAM}%
+- Average Uptime: ${Math.floor(analytics.performance.averageUptime / 3600)} hours
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
     } catch (error) {
-        console.error("Error fetching dashboard context:", error);
-        return "Network data temporarily unavailable";
+        console.error("[AI Chat] Error fetching dashboard context:", error);
+        return "I apologize, but I'm having trouble accessing the network data right now. Please try again in a moment.";
     }
 }
 
@@ -157,7 +158,21 @@ Answer questions about:
 ✓ Version distributions and updates
 ✓ General Xandeum knowledge
 
-Keep responses helpful, concise, and user-friendly. Direct users to specific tabs for detailed exploration.`;
+RESPONSE FORMATTING RULES:
+- Use clear, structured responses with bullet points or numbered lists when appropriate
+- DO NOT use bold markdown (**text**) - use plain text only
+- Keep responses concise and well-organized
+- Use line breaks to separate different sections
+- When listing nodes or data, use clean formatting without excessive styling
+- Direct users to specific dashboard tabs for detailed exploration
+
+Examples of good responses:
+✓ "There are currently 219 active nodes (89.8% of the network)."
+✓ "Top performing node: TestPubkey14... with 70 pod credits\n  - Uptime: 40 pts\n  - RPC: 0 pts\n  - Version: 30 pts"
+✗ "There are currently **219 active nodes** (**89.8%** of the network)." [Too much bold]
+✗ "The **best** node is **TestPubkey14...**" [Excessive formatting]
+
+Keep responses helpful, concise, and user-friendly.`;
 
 export async function POST(request: Request) {
     try {
