@@ -56,7 +56,7 @@ const searchableItems: SearchItem[] = [
     { id: "docs-infrastructure", label: "Docs: Infrastructure", icon: Database, keywords: ["infrastructure", "redis", "supabase", "caching", "database", "docs"], type: "docs", href: "/docs/infrastructure" },
     { id: "docs-analytics", label: "Docs: Analytics", icon: BarChart3, keywords: ["analytics docs", "metrics guide", "charts", "docs"], type: "docs", href: "/docs/analytics" },
     { id: "docs-leaderboard", label: "Docs: Leaderboard", icon: Trophy, keywords: ["leaderboard docs", "pod credits", "ranking system", "docs"], type: "docs", href: "/docs/leaderboard" },
-    { id: "docs-map", label: "Docs: Global Map", icon: Map, keywords: ["map docs", "geographic distribution", "docs"], type: "docs", href: "/docs/map" },
+    { id: "docs-map", label: "Docs: Global Map", icon: Map, keywords: ["map docs", "map documentation", "geographic distribution", "globe docs", "nodes location"], type: "docs", href: "/docs/map" },
     { id: "docs-shortcuts", label: "Docs: Keyboard Shortcuts", icon: Zap, keywords: ["shortcuts", "keyboard", "hotkeys", "keybindings", "docs"], type: "docs", href: "/docs/shortcuts" },
     { id: "docs-api", label: "Docs: API Reference", icon: Database, keywords: ["api", "reference", "endpoints", "rest", "docs"], type: "docs", href: "/docs/api" },
     { id: "docs-swap", label: "Docs: Swap", icon: ArrowRightLeft, keywords: ["swap docs", "exchange", "trade", "docs"], type: "docs", href: "/docs/swap" },
@@ -74,15 +74,22 @@ export function SpotlightSearch({ isOpen, onClose, onNavigate }: SpotlightSearch
     const [selectedIndex, setSelectedIndex] = useState(0);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    // Fuzzy search implementation
+    // Fuzzy search implementation - tabs first, then docs
     const filteredItems = useMemo(() => {
         if (!query.trim()) return searchableItems;
 
         const lowerQuery = query.toLowerCase();
-        return searchableItems.filter(item => {
+        const matched = searchableItems.filter(item => {
             // Check if query matches label or any keyword
             return item.label.toLowerCase().includes(lowerQuery) ||
                 item.keywords.some(keyword => keyword.includes(lowerQuery));
+        });
+
+        // Sort: tabs first, then docs, for better UX
+        return matched.sort((a, b) => {
+            if (a.type === "tab" && b.type === "docs") return -1;
+            if (a.type === "docs" && b.type === "tab") return 1;
+            return 0;
         });
     }, [query]);
 
@@ -92,8 +99,9 @@ export function SpotlightSearch({ isOpen, onClose, onNavigate }: SpotlightSearch
             // Navigate to docs page
             router.push(item.href);
         } else if (item.type === "tab") {
-            // Switch to tab
-            onNavigate(item.id as TabType);
+            // Navigate to main page with tab parameter
+            // This works from any page including /docs
+            router.push(`/?tab=${item.id}`);
         }
         onClose();
     };

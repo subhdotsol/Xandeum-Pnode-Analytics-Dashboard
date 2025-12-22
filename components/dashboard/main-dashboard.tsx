@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import Image from "next/image";
@@ -174,6 +174,7 @@ function AnalyticsTabContent() {
 
 export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregateStats }: MainDashboardProps) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState<TabType>("dashboard");
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [secondsAgo, setSecondsAgo] = useState(0);
@@ -191,6 +192,16 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     });
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [spotlightOpen, setSpotlightOpen] = useState(false);
+
+    // Read tab from URL params (for spotlight search navigation from /docs)
+    useEffect(() => {
+        const tabParam = searchParams.get('tab') as TabType | null;
+        if (tabParam && ['dashboard', 'analytics', 'leaderboard', 'map', 'nodes', 'swap', 'stake', 'watchlist', 'compare'].includes(tabParam)) {
+            setActiveTab(tabParam);
+            // Clean up URL after setting tab
+            router.replace('/', { scroll: false });
+        }
+    }, [searchParams, router]);
 
     // Sidebar persistence and keyboard shortcuts
     useEffect(() => {
