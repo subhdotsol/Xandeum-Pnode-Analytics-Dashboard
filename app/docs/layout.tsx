@@ -3,7 +3,7 @@
 import { useState, ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe } from "lucide-react";
+import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -19,6 +19,7 @@ const sidebarSections = [
             { href: "/docs", label: "Overview", icon: Home },
             { href: "/docs/pnodes", label: "pNodes", icon: Server },
             { href: "/docs/architecture", label: "Architecture", icon: Layers },
+            { href: "/docs/infrastructure", label: "Infrastructure", icon: Database },
         ]
     },
     {
@@ -50,6 +51,7 @@ const docOrder = [
     "/docs",
     "/docs/pnodes",
     "/docs/architecture",
+    "/docs/infrastructure",
     "/docs/analytics",
     "/docs/leaderboard",
     "/docs/map",
