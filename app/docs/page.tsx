@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Server, Layers, Zap, Shield, Globe, Database, Keyboard, BarChart3, Trophy, Map as MapIcon } from "lucide-react";
 
 export default function DocsPage() {
@@ -156,8 +157,9 @@ function FeatureCard({
     href: string;
 }) {
     return (
-        <a
+        <Link
             href={href}
+            prefetch={true}
             className="block p-6 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors group"
         >
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
@@ -165,6 +167,6 @@ function FeatureCard({
             </div>
             <h3 className="font-semibold mb-1">{title}</h3>
             <p className="text-sm text-muted-foreground">{description}</p>
-        </a>
+        </Link>
     );
 }

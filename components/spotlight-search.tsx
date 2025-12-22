@@ -102,6 +102,18 @@ export function SpotlightSearch({ isOpen, onClose, onNavigate }: SpotlightSearch
         }
     }, [isOpen]);
 
+    // Prefetch all doc pages for instant navigation
+    useEffect(() => {
+        if (isOpen) {
+            // Prefetch all documentation pages when spotlight opens
+            searchableItems.forEach(item => {
+                if (item.type === "docs" && item.href) {
+                    router.prefetch(item.href);
+                }
+            });
+        }
+    }, [isOpen, router]);
+
     // Keyboard navigation
     useEffect(() => {
         if (!isOpen) return;
