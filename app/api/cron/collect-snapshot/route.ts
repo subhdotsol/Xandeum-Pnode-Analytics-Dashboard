@@ -42,9 +42,38 @@ export async function GET(request: Request) {
       );
     }
 
-    // 2. Calculate network analytics (skip stats for speed - TODO: optimize later)
-    // Fetching stats from 50 nodes takes 50-100 seconds which causes timeout
-    const analytics = analyzeNetwork(pnodes);
+    // 2. Fetch detailed stats (optimized for speed)
+    console.log(`[Cron] Fetching stats from sample nodes...`);
+    const statsMap = new Map<string, any>();
+    
+    // Only sample 10 nodes for stats (reduced from 50)
+    const sampleSize = Math.min(10, pnodes.length);
+    const sampleNodes = pnodes.slice(0, sampleSize);
+    
+    // Fetch with aggressive 5-second timeout per node
+    const statsFetches = sampleNodes.map(async (node) => {
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('timeout')), 5000)
+      );
+      
+      try {
+        const stats = await Promise.race([
+          pnodeClient.getPNodeStats(node.address),
+          timeoutPromise
+        ]);
+        if (stats) {
+          statsMap.set(node.address, stats);
+        }
+      } catch (err) {
+        // Skip slow/failing nodes
+      }
+    });
+    
+    await Promise.allSettled(statsFetches);
+    console.log(`[Cron] Fetched stats from ${statsMap.size}/${sampleSize} nodes`);
+
+    // 3. Calculate network analytics with stats
+    const analytics = analyzeNetwork(pnodes, statsMap);
     console.log(`[Cron] Calculated analytics`);
 
     // 3. Store pNodes in database (upsert in batches to avoid connection pool exhaustion)
