@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MainDashboard } from "@/components/dashboard/main-dashboard";
+import { WatchlistProvider } from "@/contexts/watchlist-context";
 import Image from "next/image";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { NetworkAnalytics, PNodeInfo, PNodeStats } from "@/types/pnode";
@@ -278,11 +279,13 @@ export default function HomePage() {
 
   // Show dashboard
   return (
-    <MainDashboard
-      analytics={analytics}
-      pnodes={pnodes}
-      estimatedCountries={estimatedCountries}
-      aggregateStats={aggregateStats}
-    />
+    <WatchlistProvider>
+      <MainDashboard
+        analytics={analytics}
+        pnodes={pnodes}
+        estimatedCountries={estimatedCountries}
+        aggregateStats={aggregateStats}
+      />
+    </WatchlistProvider>
   );
 }

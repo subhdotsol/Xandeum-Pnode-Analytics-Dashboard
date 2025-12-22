@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Trophy, Medal, Crown, Cpu, Clock, HardDrive, TrendingUp, Eye, X, Copy, Check, MapPin, Loader2 } from "lucide-react";
+import { Trophy, Medal, Crown, Cpu, Clock, HardDrive, TrendingUp, Eye, X, Copy, Check, MapPin, Loader2, Star } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatBytes, formatUptime } from "@/lib/utils";
+import { useWatchlist } from "@/contexts/watchlist-context";
 import type { PNodeInfo, PNodeStats } from "@/types/pnode";
 
 interface LeaderboardProps {
@@ -52,6 +53,7 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
     const [nodeStats, setNodeStats] = useState<Map<string, PNodeStats>>(new Map());
     const [loadingStats, setLoadingStats] = useState(false);
     const [hasLoadedStats, setHasLoadedStats] = useState(false);
+    const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
     // Modal state
     const [selectedNode, setSelectedNode] = useState<NodeWithScore | null>(null);
@@ -354,9 +356,23 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                     <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-lg">Node Details</CardTitle>
-                            <button onClick={() => setSelectedNode(null)} className="p-1 rounded-md hover:bg-muted">
-                                <X className="w-5 h-5" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => toggleWatchlist(selectedNode.address)}
+                                    className="p-1.5 rounded-md hover:bg-muted transition-colors"
+                                    title={isInWatchlist(selectedNode.address) ? "Remove from watchlist" : "Add to watchlist"}
+                                >
+                                    <Star
+                                        className={`w-5 h-5 transition-colors ${isInWatchlist(selectedNode.address)
+                                            ? "fill-yellow-500 text-yellow-500"
+                                            : "text-muted-foreground hover:text-foreground"
+                                            }`}
+                                    />
+                                </button>
+                                <button onClick={() => setSelectedNode(null)} className="p-1 rounded-md hover:bg-muted">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             {/* Rank Badge */}

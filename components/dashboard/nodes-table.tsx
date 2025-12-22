@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye, Copy, Check, MapPin, Globe, Loader2 } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye, Copy, Check, MapPin, Globe, Loader2, Star } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { getNodeHealth } from "@/lib/network-analytics";
 import { formatUptime, formatBytes } from "@/lib/utils";
+import { useWatchlist } from "@/contexts/watchlist-context";
 import type { PNodeInfo, PNodeStats } from "@/types/pnode";
 
 interface NodesTableProps {
@@ -107,6 +108,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
     const [loadingNodeStats, setLoadingNodeStats] = useState(false);
     const [loadingVisibleStats, setLoadingVisibleStats] = useState(false);
     const statsCache = useRef<Map<string, PNodeStats>>(new Map());
+    const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
     useEffect(() => {
         setNodesWithStats(nodes.map(n => ({ ...n, stats: statsCache.current.get(n.address) || null, geo: null })));
@@ -497,9 +499,23 @@ export function NodesTable({ nodes }: NodesTableProps) {
                     <div className="relative bg-card border border-border rounded-xl shadow-xl max-w-lg w-full mx-4 max-h-[85vh] overflow-y-auto">
                         <div className="sticky top-0 bg-card border-b border-border p-4 flex items-center justify-between z-10">
                             <h3 className="text-lg font-semibold">Node Details</h3>
-                            <button onClick={closeModal} className="p-2 rounded-md hover:bg-muted transition-colors">
-                                <X className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => toggleWatchlist(selectedNode.address)}
+                                    className="p-2 rounded-md hover:bg-muted transition-colors"
+                                    title={isInWatchlist(selectedNode.address) ? "Remove from watchlist" : "Add to watchlist"}
+                                >
+                                    <Star
+                                        className={`w-5 h-5 transition-colors ${isInWatchlist(selectedNode.address)
+                                                ? "fill-yellow-500 text-yellow-500"
+                                                : "text-muted-foreground hover:text-foreground"
+                                            }`}
+                                    />
+                                </button>
+                                <button onClick={closeModal} className="p-2 rounded-md hover:bg-muted transition-colors">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
 
                         <div className="p-4 space-y-4">

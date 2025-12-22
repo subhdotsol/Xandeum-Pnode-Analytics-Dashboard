@@ -26,6 +26,8 @@ import { StakingWidget } from "@/components/staking-widget";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarToggle } from "@/components/sidebar/sidebar-toggle";
+import { Watchlist } from "@/components/dashboard/watchlist";
+import { Compare } from "@/components/dashboard/compare";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import type { NetworkAnalytics, PNodeInfo } from "@/types/pnode";
 
@@ -63,7 +65,7 @@ interface MainDashboardProps {
     };
 }
 
-type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes" | "swap" | "stake";
+type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes" | "swap" | "stake" | "watchlist" | "compare";
 
 // Format large numbers (e.g., 293960000 -> "293.96M")
 function formatLargeNumber(num: number): string {
@@ -79,8 +81,8 @@ const tabs: { id: TabType; label: string }[] = [
     { id: "leaderboard", label: "Leaderboard" },
     { id: "map", label: "Map" },
     { id: "nodes", label: "Directory" },
-    { id: "swap", label: "Swap" },
-    { id: "stake", label: "Stake" },
+    { id: "watchlist", label: "Watchlist" },
+    { id: "compare", label: "Compare" },
 ];
 
 function StatCard({ title, value, subtitle, icon: Icon }: { title: string; value: string | number; subtitle: string; icon: React.ElementType }) {
@@ -369,8 +371,8 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                             setHoveredTab(tab.id);
                                         }}
                                         className={`relative z-10 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${isHovered
-                                                ? "text-white dark:text-black"
-                                                : "text-foreground"
+                                            ? "text-white dark:text-black"
+                                            : "text-foreground"
                                             }`}
                                     >
                                         {tab.label}
@@ -557,6 +559,10 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                             <StakingWidget />
                         </motion.div>
                     )}
+
+                    {activeTab === "watchlist" && <Watchlist nodes={pnodes} />}
+
+                    {activeTab === "compare" && <Compare nodes={pnodes} />}
                 </main>
             </div>
         </div>
