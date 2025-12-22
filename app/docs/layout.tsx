@@ -74,8 +74,8 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
                 setIsCollapsed(prev => !prev);
             }
 
-            // Cmd/Ctrl + J for AI assistant
-            if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+            // Cmd/Ctrl + I for AI assistant (I = Intelligence)
+            if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
                 e.preventDefault();
                 const askAiButton = document.querySelector('[aria-label="Ask AI"]') as HTMLButtonElement;
                 if (askAiButton) {

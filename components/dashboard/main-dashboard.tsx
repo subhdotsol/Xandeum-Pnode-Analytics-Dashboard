@@ -210,8 +210,8 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                 setSpotlightOpen(prev => !prev);
             }
 
-            // Cmd/Ctrl + A for AI assistant
-            if ((e.metaKey || e.ctrlKey) && e.key === 'a') {
+            // Cmd/Ctrl + I for AI assistant (I = Intelligence)
+            if ((e.metaKey || e.ctrlKey) && e.key === 'i') {
                 e.preventDefault();
                 // Find and click the Ask AI button
                 const askAiButton = document.querySelector('[aria-label="Ask AI"]') as HTMLButtonElement;

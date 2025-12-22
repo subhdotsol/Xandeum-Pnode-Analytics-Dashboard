@@ -26,7 +26,7 @@ export default function DocsPage() {
                     </div>
                     <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Open AI Assistant</span>
-                        <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘A</kbd>
+                        <kbd className="px-3 py-1.5 bg-muted rounded border border-border font-mono text-xs">⌘I</kbd>
                     </div>
                     <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Toggle Dark Mode</span>
