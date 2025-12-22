@@ -13,6 +13,7 @@ const fadeIn = {
 const faqs = [
     {
         category: "General",
+        color: "text-sky-500",
         questions: [
             {
                 q: "What is the Xandeum pNode Analytics Dashboard?",
@@ -30,6 +31,7 @@ const faqs = [
     },
     {
         category: "pNodes",
+        color: "text-emerald-500",
         questions: [
             {
                 q: "What is a pNode?",
@@ -47,6 +49,7 @@ const faqs = [
     },
     {
         category: "Technical",
+        color: "text-violet-500",
         questions: [
             {
                 q: "What tech stack is this built with?",
@@ -64,7 +67,7 @@ const faqs = [
     },
 ];
 
-function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
+function FAQItem({ q, a, index, accentColor }: { q: string; a: string; index: number; accentColor: string }) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
@@ -78,12 +81,12 @@ function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full flex items-center justify-between py-4 text-left group"
             >
-                <span className="text-sm font-medium group-hover:text-primary transition-colors pr-4">{q}</span>
+                <span className={`text-sm font-medium group-hover:${accentColor} transition-colors pr-4`}>{q}</span>
                 <motion.div
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.2 }}
                 >
-                    <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                    <ChevronDown className={`w-4 h-4 ${isOpen ? accentColor : 'text-muted-foreground'} flex-shrink-0`} />
                 </motion.div>
             </button>
             <AnimatePresence>
@@ -121,10 +124,10 @@ export default function FAQPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: catIdx * 0.1, duration: 0.3 }}
                 >
-                    <h2 className="text-sm font-semibold text-muted-foreground mb-3">{category.category}</h2>
+                    <h2 className={`text-sm font-semibold mb-3 ${category.color}`}>{category.category}</h2>
                     <div className="rounded-lg border border-border px-4">
                         {category.questions.map((faq, idx) => (
-                            <FAQItem key={idx} q={faq.q} a={faq.a} index={idx} />
+                            <FAQItem key={idx} q={faq.q} a={faq.a} index={idx} accentColor={category.color} />
                         ))}
                     </div>
                 </motion.section>
@@ -136,9 +139,9 @@ export default function FAQPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
             >
-                <h3 className="font-medium text-sm mb-2">Still have questions?</h3>
+                <h3 className="font-medium text-sm mb-2 text-amber-500">Still have questions?</h3>
                 <p className="text-sm text-muted-foreground">
-                    Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs border border-border">⌘I</kbd> to ask XandAI.
+                    Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs border border-border text-sky-400">⌘I</kbd> to ask XandAI.
                 </p>
             </motion.div>
         </motion.article>

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import { CodeBlock } from "@/components/ui/code-block";
 
 const fadeIn = {
     initial: { opacity: 0, y: 10 },
@@ -9,26 +10,31 @@ const fadeIn = {
 };
 
 const steps = [
-    "Connect your Solana wallet",
-    "Select the token to swap from",
-    "Enter the amount",
-    "XAND is pre-selected as output",
-    "Review the rate and click Swap",
-    "Confirm in your wallet",
+    { text: "Connect your Solana wallet", color: "text-sky-500" },
+    { text: "Select the token to swap from", color: "text-violet-500" },
+    { text: "Enter the amount", color: "text-emerald-500" },
+    { text: "XAND is pre-selected as output", color: "text-amber-500" },
+    { text: "Review the rate and click Swap", color: "text-rose-500" },
+    { text: "Confirm in your wallet", color: "text-cyan-500" },
 ];
 
 const tokenInfo = [
-    { label: "Name", value: "Xandeum" },
-    { label: "Symbol", value: "XAND" },
-    { label: "Network", value: "Solana Mainnet" },
+    { label: "Name", value: "Xandeum", color: "text-sky-400" },
+    { label: "Symbol", value: "XAND", color: "text-amber-400" },
+    { label: "Network", value: "Solana Mainnet", color: "text-violet-400" },
 ];
 
-const dexes = ["Raydium", "Orca", "Meteora", "And more..."];
+const dexes = [
+    { name: "Raydium", color: "text-sky-400" },
+    { name: "Orca", color: "text-violet-400" },
+    { name: "Meteora", color: "text-emerald-400" },
+    { name: "And more...", color: "text-muted-foreground" },
+];
 
 const fees = [
-    { label: "Platform fee", value: "0%", note: "We don't charge" },
-    { label: "Jupiter fee", value: "0.5-1%", note: "Varies by route" },
-    { label: "Network fee", value: "~0.00001 SOL", note: "" },
+    { label: "Platform fee", value: "0%", note: "We don't charge", color: "text-emerald-400" },
+    { label: "Jupiter fee", value: "0.5-1%", note: "Varies by route", color: "text-amber-400" },
+    { label: "Network fee", value: "~0.00001 SOL", note: "", color: "text-violet-400" },
 ];
 
 export default function SwapDocsPage() {
@@ -37,7 +43,7 @@ export default function SwapDocsPage() {
             <header className="mb-8 border-b border-border pb-4">
                 <h1 className="text-2xl font-bold tracking-tight mb-2">Token Swap</h1>
                 <p className="text-muted-foreground">
-                    Trade XAND using Jupiter, the leading DEX aggregator on Solana.
+                    Trade <span className="text-amber-400 font-medium">XAND</span> using Jupiter, the leading DEX aggregator on Solana.
                 </p>
             </header>
 
@@ -47,7 +53,7 @@ export default function SwapDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">How It Works</h2>
+                <h2 className="text-lg font-semibold mb-4 text-sky-500">How It Works</h2>
                 <div className="space-y-2">
                     {steps.map((step, idx) => (
                         <motion.div
@@ -57,10 +63,10 @@ export default function SwapDocsPage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.1 + idx * 0.05 }}
                         >
-                            <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0">
+                            <span className={`w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0 ${step.color}`}>
                                 {idx + 1}
                             </span>
-                            <span className="text-sm">{step}</span>
+                            <span className={`text-sm ${step.color}`}>{step.text}</span>
                         </motion.div>
                     ))}
                 </div>
@@ -72,20 +78,20 @@ export default function SwapDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">XAND Token</h2>
+                <h2 className="text-lg font-semibold mb-4 text-amber-500">XAND Token</h2>
                 <div className="rounded-lg border border-border overflow-hidden">
                     <table className="w-full text-sm">
                         <tbody>
                             {tokenInfo.map((info) => (
-                                <tr key={info.label} className="border-b border-border last:border-0">
+                                <tr key={info.label} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                                     <td className="p-3 font-medium w-32">{info.label}</td>
-                                    <td className="p-3 text-muted-foreground">{info.value}</td>
+                                    <td className={`p-3 ${info.color}`}>{info.value}</td>
                                 </tr>
                             ))}
                             <tr className="border-b border-border">
                                 <td className="p-3 font-medium align-top">Address</td>
                                 <td className="p-3">
-                                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded break-all">
+                                    <code className="text-xs text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded break-all">
                                         XANDuUoVoUqniKkpcKhrxmvYJybpJvUxJLr21Gaj3Hx
                                     </code>
                                 </td>
@@ -101,14 +107,14 @@ export default function SwapDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Jupiter Aggregation</h2>
+                <h2 className="text-lg font-semibold mb-4 text-violet-500">Jupiter Aggregation</h2>
                 <p className="text-sm text-muted-foreground mb-4">
                     Jupiter finds the best rate across multiple DEXs:
                 </p>
                 <div className="flex flex-wrap gap-2">
                     {dexes.map((dex) => (
-                        <span key={dex} className="text-xs bg-muted px-2 py-1 rounded">
-                            {dex}
+                        <span key={dex.name} className={`text-xs bg-muted px-2 py-1 rounded ${dex.color}`}>
+                            {dex.name}
                         </span>
                     ))}
                 </div>
@@ -119,14 +125,14 @@ export default function SwapDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Fees</h2>
+                <h2 className="text-lg font-semibold mb-4 text-emerald-500">Fees</h2>
                 <div className="rounded-lg border border-border overflow-hidden">
                     <table className="w-full text-sm">
                         <tbody>
                             {fees.map((fee) => (
-                                <tr key={fee.label} className="border-b border-border last:border-0">
+                                <tr key={fee.label} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                                     <td className="p-3 font-medium">{fee.label}</td>
-                                    <td className="p-3 font-mono">{fee.value}</td>
+                                    <td className={`p-3 font-mono ${fee.color}`}>{fee.value}</td>
                                     <td className="p-3 text-muted-foreground text-xs">{fee.note}</td>
                                 </tr>
                             ))}

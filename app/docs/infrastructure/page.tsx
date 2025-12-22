@@ -9,27 +9,7 @@ const fadeIn = {
     transition: { duration: 0.3 }
 };
 
-export default function InfrastructurePage() {
-    return (
-        <motion.article {...fadeIn}>
-            <header className="mb-8 border-b border-border pb-4">
-                <h1 className="text-2xl font-bold tracking-tight mb-2">Infrastructure</h1>
-                <p className="text-muted-foreground">
-                    Caching, storage, and automated data collection.
-                </p>
-            </header>
-
-            {/* Architecture Diagram */}
-            <motion.section
-                className="mb-8"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1, duration: 0.3 }}
-            >
-                <h2 className="text-lg font-semibold mb-4">Architecture</h2>
-                <div className="rounded-lg border border-border bg-muted/30 p-4 overflow-x-auto">
-                    <pre className="text-xs font-mono text-muted-foreground whitespace-pre">{`
-User Request
+const architectureDiagram = `User Request
      │
      ▼
 ┌─────────────────┐
@@ -49,8 +29,56 @@ GitHub Actions (every 5 min)
 ┌─────────────────┐
 │  Supabase       │◄─── historical_snapshots table
 │  (PostgreSQL)   │
-└─────────────────┘`}</pre>
-                </div>
+└─────────────────┘`;
+
+const cacheKeys = [
+    { key: "pnodes:list", ttl: "60 seconds", color: "text-sky-400" },
+    { key: "network:overview", ttl: "60 seconds", color: "text-violet-400" },
+    { key: "pnodes:stats:*", ttl: "30 seconds", color: "text-emerald-400" },
+];
+
+const snapshotData = [
+    { field: "total_nodes", color: "text-sky-400" },
+    { field: "online_nodes", color: "text-violet-400" },
+    { field: "avg_cpu", color: "text-emerald-400" },
+    { field: "avg_ram", color: "text-amber-400" },
+    { field: "total_storage", color: "text-rose-400" },
+    { field: "unique_versions", color: "text-cyan-400" },
+];
+
+const cronSteps = [
+    { step: "Fetch all pNodes from seed nodes", color: "text-sky-500" },
+    { step: "Sample 5 nodes for CPU/RAM stats", color: "text-violet-500" },
+    { step: "Save snapshot to Supabase", color: "text-emerald-500" },
+    { step: "Clear Redis cache", color: "text-amber-500" },
+];
+
+const envVars = [
+    { variable: "SUPABASE_URL", purpose: "Supabase project URL", color: "text-sky-400" },
+    { variable: "SUPABASE_KEY", purpose: "Service role key", color: "text-violet-400" },
+    { variable: "UPSTASH_REDIS_REST_URL", purpose: "Redis URL", color: "text-emerald-400" },
+    { variable: "CRON_SECRET", purpose: "Protects cron endpoint", color: "text-amber-400" },
+];
+
+export default function InfrastructurePage() {
+    return (
+        <motion.article {...fadeIn}>
+            <header className="mb-8 border-b border-border pb-4">
+                <h1 className="text-2xl font-bold tracking-tight mb-2">Infrastructure</h1>
+                <p className="text-muted-foreground">
+                    Caching, storage, and automated data collection.
+                </p>
+            </header>
+
+            {/* Architecture Diagram */}
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4 text-sky-500">Architecture</h2>
+                <CodeBlock code={architectureDiagram} language="plain" filename="System Architecture" />
             </motion.section>
 
             {/* Redis Caching */}
@@ -60,11 +88,11 @@ GitHub Actions (every 5 min)
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Redis Caching</h2>
+                <h2 className="text-lg font-semibold mb-4 text-violet-500">Redis Caching</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                    Upstash Redis provides instant API responses after the first request.
+                    <span className="text-violet-400 font-medium">Upstash Redis</span> provides instant API responses after the first request.
                 </p>
-                <div className="rounded-lg border border-border overflow-hidden">
+                <div className="rounded-lg border border-border overflow-hidden mb-4">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50">
                             <tr>
@@ -73,28 +101,24 @@ GitHub Actions (every 5 min)
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="border-t border-border">
-                                <td className="p-3"><code className="text-xs bg-muted px-1.5 py-0.5 rounded">pnodes:list</code></td>
-                                <td className="p-3 text-muted-foreground">60 seconds</td>
-                            </tr>
-                            <tr className="border-t border-border">
-                                <td className="p-3"><code className="text-xs bg-muted px-1.5 py-0.5 rounded">network:overview</code></td>
-                                <td className="p-3 text-muted-foreground">60 seconds</td>
-                            </tr>
-                            <tr className="border-t border-border">
-                                <td className="p-3"><code className="text-xs bg-muted px-1.5 py-0.5 rounded">pnodes:stats:*</code></td>
-                                <td className="p-3 text-muted-foreground">30 seconds</td>
-                            </tr>
+                            {cacheKeys.map((cache) => (
+                                <tr key={cache.key} className="border-t border-border hover:bg-muted/30 transition-colors">
+                                    <td className="p-3">
+                                        <code className={`text-xs ${cache.color} bg-muted px-1.5 py-0.5 rounded`}>{cache.key}</code>
+                                    </td>
+                                    <td className="p-3 text-muted-foreground">{cache.ttl}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
-                <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-lg border border-border p-3 text-center">
-                        <p className="text-2xl font-bold">3-5s</p>
+                        <p className="text-2xl font-bold text-rose-400">3-5s</p>
                         <p className="text-xs text-muted-foreground">Without cache</p>
                     </div>
                     <div className="rounded-lg border border-border p-3 text-center">
-                        <p className="text-2xl font-bold text-primary">10ms</p>
+                        <p className="text-2xl font-bold text-emerald-400">10ms</p>
                         <p className="text-xs text-muted-foreground">With cache</p>
                     </div>
                 </div>
@@ -107,37 +131,19 @@ GitHub Actions (every 5 min)
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Historical Storage</h2>
+                <h2 className="text-lg font-semibold mb-4 text-emerald-500">Historical Storage</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                    Supabase PostgreSQL stores network snapshots every 5 minutes.
+                    <span className="text-emerald-400 font-medium">Supabase PostgreSQL</span> stores network snapshots every 5 minutes.
                 </p>
                 <div className="rounded-lg border border-border p-4">
                     <h3 className="text-sm font-medium mb-3">Snapshot Data</h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            total_nodes
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            online_nodes
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            avg_cpu
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            avg_ram
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            total_storage
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
-                            unique_versions
-                        </div>
+                    <div className="grid grid-cols-2 gap-2">
+                        {snapshotData.map((data) => (
+                            <div key={data.field} className="flex items-center gap-2 text-sm">
+                                <span className={`w-1.5 h-1.5 rounded-full ${data.color.replace('text-', 'bg-')}`} />
+                                <span className={data.color}>{data.field}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </motion.section>
@@ -149,29 +155,19 @@ GitHub Actions (every 5 min)
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Automated Collection</h2>
+                <h2 className="text-lg font-semibold mb-4 text-amber-500">Automated Collection</h2>
                 <div className="rounded-lg border border-border p-4">
                     <div className="flex items-center gap-4 mb-4">
-                        <code className="text-xs bg-muted px-2 py-1 rounded">*/5 * * * *</code>
-                        <span className="text-sm text-muted-foreground">Every 5 minutes</span>
+                        <code className="text-xs text-amber-400 bg-amber-500/10 px-2 py-1 rounded">*/5 * * * *</code>
+                        <span className="text-sm text-muted-foreground">Every 5 minutes via GitHub Actions</span>
                     </div>
-                    <ol className="text-sm text-muted-foreground space-y-2">
-                        <li className="flex items-start gap-2">
-                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">1</span>
-                            Fetch all pNodes from seed nodes
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">2</span>
-                            Sample 5 nodes for CPU/RAM stats
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">3</span>
-                            Save snapshot to Supabase
-                        </li>
-                        <li className="flex items-start gap-2">
-                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">4</span>
-                            Clear Redis cache
-                        </li>
+                    <ol className="space-y-2">
+                        {cronSteps.map((item, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                                <span className={`w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0 ${item.color}`}>{idx + 1}</span>
+                                <span className={`text-sm ${item.color}`}>{item.step}</span>
+                            </li>
+                        ))}
                     </ol>
                 </div>
             </motion.section>
@@ -182,7 +178,7 @@ GitHub Actions (every 5 min)
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Environment Variables</h2>
+                <h2 className="text-lg font-semibold mb-4 text-rose-500">Environment Variables</h2>
                 <div className="rounded-lg border border-border overflow-hidden">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50">
@@ -192,22 +188,14 @@ GitHub Actions (every 5 min)
                             </tr>
                         </thead>
                         <tbody>
-                            <tr className="border-t border-border">
-                                <td className="p-3"><code className="text-xs">SUPABASE_URL</code></td>
-                                <td className="p-3 text-muted-foreground">Supabase project URL</td>
-                            </tr>
-                            <tr className="border-t border-border">
-                                <td className="p-3"><code className="text-xs">SUPABASE_KEY</code></td>
-                                <td className="p-3 text-muted-foreground">Service role key</td>
-                            </tr>
-                            <tr className="border-t border-border">
-                                <td className="p-3"><code className="text-xs">UPSTASH_REDIS_REST_URL</code></td>
-                                <td className="p-3 text-muted-foreground">Redis URL</td>
-                            </tr>
-                            <tr className="border-t border-border">
-                                <td className="p-3"><code className="text-xs">CRON_SECRET</code></td>
-                                <td className="p-3 text-muted-foreground">Protects cron endpoint</td>
-                            </tr>
+                            {envVars.map((env) => (
+                                <tr key={env.variable} className="border-t border-border hover:bg-muted/30 transition-colors">
+                                    <td className="p-3">
+                                        <code className={`text-xs ${env.color}`}>{env.variable}</code>
+                                    </td>
+                                    <td className="p-3 text-muted-foreground">{env.purpose}</td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>

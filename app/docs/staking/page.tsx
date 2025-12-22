@@ -9,29 +9,29 @@ const fadeIn = {
 };
 
 const benefits = [
-    "Earns staking rewards automatically",
-    "Can be traded, used as collateral, or sold",
-    "Remains liquid — no unbonding period",
+    { text: "Earns staking rewards automatically", color: "text-emerald-400" },
+    { text: "Can be traded, used as collateral, or sold", color: "text-sky-400" },
+    { text: "Remains liquid — no unbonding period", color: "text-violet-400" },
 ];
 
 const steps = [
-    "Connect your Solana wallet",
-    "Enter the amount of SOL to stake",
-    "Click 'Stake SOL'",
-    "Receive XANDsol tokens",
-    "Hold or use XANDsol in DeFi",
+    { text: "Connect your Solana wallet", color: "text-sky-500" },
+    { text: "Enter the amount of SOL to stake", color: "text-violet-500" },
+    { text: "Click 'Stake SOL'", color: "text-emerald-500" },
+    { text: "Receive XANDsol tokens", color: "text-amber-500" },
+    { text: "Hold or use XANDsol in DeFi", color: "text-rose-500" },
 ];
 
 const rewardsInfo = [
-    { label: "Current APY", value: "~7.2%" },
-    { label: "Rewards frequency", value: "Every epoch (~2 days)" },
-    { label: "Compound", value: "Yes, auto-compounded" },
+    { label: "Current APY", value: "~7.2%", color: "text-emerald-400" },
+    { label: "Rewards frequency", value: "Every epoch (~2 days)", color: "text-sky-400" },
+    { label: "Compound", value: "Yes, auto-compounded", color: "text-violet-400" },
 ];
 
 const risks = [
-    { name: "Smart contract risk", description: "As with all DeFi protocols" },
-    { name: "Slashing risk", description: "Minimal on Solana" },
-    { name: "Price risk", description: "XANDsol may trade at slight discount" },
+    { name: "Smart contract risk", description: "As with all DeFi protocols", color: "text-rose-500" },
+    { name: "Slashing risk", description: "Minimal on Solana", color: "text-amber-500" },
+    { name: "Price risk", description: "XANDsol may trade at slight discount", color: "text-violet-500" },
 ];
 
 export default function StakingDocsPage() {
@@ -50,16 +50,16 @@ export default function StakingDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.1, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">What is Liquid Staking?</h2>
+                <h2 className="text-lg font-semibold mb-4 text-emerald-500">What is Liquid Staking?</h2>
                 <p className="text-sm text-muted-foreground mb-4">
-                    Stake SOL and receive XANDsol, a liquid staking token that:
+                    Stake <span className="text-amber-400 font-medium">SOL</span> and receive <span className="text-sky-400 font-medium">XANDsol</span>, a liquid staking token that:
                 </p>
                 <div className="rounded-lg border border-border p-4">
                     <ul className="space-y-2">
                         {benefits.map((benefit, idx) => (
                             <li key={idx} className="flex items-center gap-2 text-sm">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
-                                {benefit}
+                                <span className={`w-1.5 h-1.5 rounded-full ${benefit.color.replace('text-', 'bg-')} flex-shrink-0`} />
+                                <span className={benefit.color}>{benefit.text}</span>
                             </li>
                         ))}
                     </ul>
@@ -72,7 +72,7 @@ export default function StakingDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">How It Works</h2>
+                <h2 className="text-lg font-semibold mb-4 text-sky-500">How It Works</h2>
                 <div className="space-y-2">
                     {steps.map((step, idx) => (
                         <motion.div
@@ -82,10 +82,10 @@ export default function StakingDocsPage() {
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 + idx * 0.05 }}
                         >
-                            <span className="w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0">
+                            <span className={`w-6 h-6 rounded-full bg-muted flex items-center justify-center text-xs font-medium flex-shrink-0 ${step.color}`}>
                                 {idx + 1}
                             </span>
-                            <span className="text-sm">{step}</span>
+                            <span className={`text-sm ${step.color}`}>{step.text}</span>
                         </motion.div>
                     ))}
                 </div>
@@ -97,14 +97,14 @@ export default function StakingDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Rewards</h2>
+                <h2 className="text-lg font-semibold mb-4 text-amber-500">Rewards</h2>
                 <div className="rounded-lg border border-border overflow-hidden">
                     <table className="w-full text-sm">
                         <tbody>
                             {rewardsInfo.map((info) => (
-                                <tr key={info.label} className="border-b border-border last:border-0">
+                                <tr key={info.label} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                                     <td className="p-3 font-medium">{info.label}</td>
-                                    <td className="p-3 text-muted-foreground">{info.value}</td>
+                                    <td className={`p-3 ${info.color}`}>{info.value}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -117,11 +117,11 @@ export default function StakingDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Risks</h2>
+                <h2 className="text-lg font-semibold mb-4 text-rose-500">Risks</h2>
                 <div className="space-y-2">
                     {risks.map((risk, idx) => (
-                        <div key={idx} className="rounded-lg border border-border p-3">
-                            <span className="text-sm font-medium">{risk.name}</span>
+                        <div key={idx} className="rounded-lg border border-border p-3 hover:bg-muted/30 transition-colors">
+                            <span className={`text-sm font-medium ${risk.color}`}>{risk.name}</span>
                             <span className="text-sm text-muted-foreground ml-2">— {risk.description}</span>
                         </div>
                     ))}
