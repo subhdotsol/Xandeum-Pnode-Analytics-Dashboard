@@ -13,6 +13,8 @@ const releases = [
         version: "1.3.0",
         date: "December 2024",
         title: "Historical Analytics & Infrastructure",
+        color: "text-violet-500",
+        dotColor: "bg-violet-500",
         changes: [
             { type: "new", text: "Supabase integration for historical snapshots" },
             { type: "new", text: "Redis (Upstash) caching for 10ms API responses" },
@@ -25,6 +27,8 @@ const releases = [
         version: "1.2.0",
         date: "December 2024",
         title: "AI Assistant & DeFi Integration",
+        color: "text-rose-500",
+        dotColor: "bg-rose-500",
         changes: [
             { type: "new", text: "XandAI assistant powered by Google Gemini 2.5 Flash" },
             { type: "new", text: "Liquid staking with real-time SOL/XAND prices" },
@@ -37,6 +41,8 @@ const releases = [
         version: "1.1.0",
         date: "December 2024",
         title: "Enhanced UX & Navigation",
+        color: "text-sky-500",
+        dotColor: "bg-sky-500",
         changes: [
             { type: "new", text: "Spotlight Search (Cmd+J)" },
             { type: "new", text: "Collapsible sidebar with persistence" },
@@ -50,6 +56,8 @@ const releases = [
         version: "1.0.0",
         date: "December 2024",
         title: "Initial Release",
+        color: "text-emerald-500",
+        dotColor: "bg-emerald-500",
         changes: [
             { type: "new", text: "Real-time monitoring of 250+ pNodes" },
             { type: "new", text: "Pod Credits leaderboard with scoring system" },
@@ -60,10 +68,10 @@ const releases = [
     },
 ];
 
-const typeLabels: Record<string, string> = {
-    new: "New",
-    improved: "Improved",
-    fixed: "Fixed",
+const typeStyles: Record<string, { color: string; label: string }> = {
+    new: { color: "text-emerald-500", label: "New" },
+    improved: { color: "text-sky-500", label: "Improved" },
+    fixed: { color: "text-amber-500", label: "Fixed" },
 };
 
 export default function ChangelogPage() {
@@ -76,39 +84,47 @@ export default function ChangelogPage() {
                 </p>
             </header>
 
-            <div className="space-y-8">
-                {releases.map((release, idx) => (
-                    <motion.section
-                        key={release.version}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.1, duration: 0.3 }}
-                        className="relative pl-6 border-l-2 border-border"
-                    >
-                        {/* Timeline dot */}
-                        <div className="absolute -left-[5px] top-0 w-2 h-2 rounded-full bg-primary" />
+            <div className="relative">
+                {/* Vertical line */}
+                <div className="absolute left-[7px] top-2 bottom-2 w-0.5 bg-border" />
 
-                        <div className="mb-2">
-                            <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded">
-                                v{release.version}
-                            </span>
-                            <span className="text-xs text-muted-foreground ml-2">{release.date}</span>
-                        </div>
+                <div className="space-y-8">
+                    {releases.map((release, idx) => (
+                        <motion.section
+                            key={release.version}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.1, duration: 0.3 }}
+                            className="relative pl-8"
+                        >
+                            {/* Timeline dot */}
+                            <div className={`absolute left-0 top-1 w-4 h-4 rounded-full ${release.dotColor} border-2 border-background`} />
 
-                        <h3 className="font-semibold mb-3">{release.title}</h3>
+                            <div className="mb-2 flex items-center gap-2">
+                                <span className={`text-xs font-medium ${release.color} bg-muted px-2 py-0.5 rounded`}>
+                                    v{release.version}
+                                </span>
+                                <span className="text-xs text-muted-foreground">{release.date}</span>
+                            </div>
 
-                        <ul className="space-y-2">
-                            {release.changes.map((change, cIdx) => (
-                                <li key={cIdx} className="flex items-start gap-2 text-sm">
-                                    <span className="text-xs font-medium text-muted-foreground w-16 flex-shrink-0">
-                                        {typeLabels[change.type]}
-                                    </span>
-                                    <span className="text-muted-foreground">{change.text}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </motion.section>
-                ))}
+                            <h3 className={`font-semibold mb-3 ${release.color}`}>{release.title}</h3>
+
+                            <ul className="space-y-2">
+                                {release.changes.map((change, cIdx) => {
+                                    const style = typeStyles[change.type];
+                                    return (
+                                        <li key={cIdx} className="flex items-start gap-2 text-sm">
+                                            <span className={`text-xs font-medium ${style.color} w-16 flex-shrink-0`}>
+                                                {style.label}
+                                            </span>
+                                            <span className="text-muted-foreground">{change.text}</span>
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </motion.section>
+                    ))}
+                </div>
             </div>
 
             <motion.section
@@ -118,7 +134,7 @@ export default function ChangelogPage() {
                 transition={{ delay: 0.5, duration: 0.3 }}
             >
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
-                    <h3 className="font-medium mb-2">Coming Soon</h3>
+                    <h3 className="font-medium mb-2 text-amber-500">Coming Soon</h3>
                     <ul className="text-sm text-muted-foreground space-y-1">
                         <li>• Version Intelligence with upgrade recommendations</li>
                         <li>• Email/Discord alerts for node status changes</li>

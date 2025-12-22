@@ -11,6 +11,7 @@ const fadeIn = {
 const issues = [
     {
         category: "API & Data",
+        color: "text-sky-500",
         items: [
             {
                 title: "Dashboard shows 'Failed to load' error",
@@ -28,6 +29,7 @@ const issues = [
     },
     {
         category: "Cron Job",
+        color: "text-violet-500",
         items: [
             {
                 title: "Cron job returns 401 Unauthorized",
@@ -45,6 +47,7 @@ const issues = [
     },
     {
         category: "Deployment",
+        color: "text-emerald-500",
         items: [
             {
                 title: "Build fails on Vercel",
@@ -87,10 +90,10 @@ export default function TroubleshootingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: catIdx * 0.1, duration: 0.3 }}
                 >
-                    <h2 className="text-lg font-semibold mb-4">{category.category}</h2>
+                    <h2 className={`text-lg font-semibold mb-4 ${category.color}`}>{category.category}</h2>
                     <div className="space-y-4">
                         {category.items.map((item, idx) => (
-                            <div key={idx} className="rounded-lg border border-border bg-card p-4">
+                            <div key={idx} className="rounded-lg border border-border bg-card p-4 hover:border-border/80 transition-colors">
                                 <h3 className="font-medium text-sm mb-2">{item.title}</h3>
                                 <p className="text-sm text-muted-foreground">{item.solution}</p>
                             </div>
@@ -105,7 +108,7 @@ export default function TroubleshootingPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Quick Health Checks</h2>
+                <h2 className="text-lg font-semibold mb-4 text-amber-500">Quick Health Checks</h2>
                 <div className="rounded-lg border border-border overflow-hidden">
                     <table className="w-full text-sm">
                         <thead className="bg-muted/50">
@@ -116,9 +119,9 @@ export default function TroubleshootingPage() {
                         </thead>
                         <tbody>
                             {healthChecks.map((check, idx) => (
-                                <tr key={idx} className="border-t border-border">
+                                <tr key={idx} className="border-t border-border hover:bg-muted/30 transition-colors">
                                     <td className="p-3">
-                                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{check.endpoint}</code>
+                                        <code className="text-xs text-sky-400 bg-sky-500/10 px-1.5 py-0.5 rounded">{check.endpoint}</code>
                                     </td>
                                     <td className="p-3 text-muted-foreground">{check.description}</td>
                                 </tr>
@@ -141,7 +144,7 @@ export default function TroubleshootingPage() {
                     <a
                         href="https://github.com/subhdotsol/Xandeum-Pnode-Analytics-Dashboard/issues/new"
                         target="_blank"
-                        className="text-sm font-medium text-primary hover:underline"
+                        className="text-sm font-medium text-sky-500 hover:text-sky-400 transition-colors"
                     >
                         Open GitHub Issue →
                     </a>

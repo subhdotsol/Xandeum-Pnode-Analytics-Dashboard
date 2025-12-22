@@ -9,21 +9,21 @@ const fadeIn = {
 };
 
 const charts = [
-    { name: "Node Population", description: "Track total nodes over time with gradient area chart" },
-    { name: "Availability Rate", description: "Monitor online percentage (healthy: 80%+)" },
-    { name: "Resource Utilization", description: "Average CPU and RAM usage across nodes" },
-    { name: "Storage Capacity", description: "Aggregate storage provided by all pNodes" },
-    { name: "Geographic Spread", description: "Countries and version diversity metrics" },
+    { name: "Node Population", description: "Track total nodes over time with gradient area chart", color: "text-emerald-500" },
+    { name: "Availability Rate", description: "Monitor online percentage (healthy: 80%+)", color: "text-sky-500" },
+    { name: "Resource Utilization", description: "Average CPU and RAM usage across nodes", color: "text-violet-500" },
+    { name: "Storage Capacity", description: "Aggregate storage provided by all pNodes", color: "text-amber-500" },
+    { name: "Geographic Spread", description: "Countries and version diversity metrics", color: "text-rose-500" },
 ];
 
 const timeRanges = [
-    { range: "1H", description: "Last hour (12 data points)" },
-    { range: "4H", description: "Last 4 hours (48 data points)" },
-    { range: "12H", description: "Last 12 hours (144 data points)" },
-    { range: "24H", description: "Last 24 hours (288 data points)" },
-    { range: "7D", description: "Last 7 days (2,016 data points)" },
-    { range: "30D", description: "Last 30 days" },
-    { range: "All", description: "All available data" },
+    { range: "1H", description: "Last hour (12 data points)", color: "text-sky-400" },
+    { range: "4H", description: "Last 4 hours (48 data points)", color: "text-sky-400" },
+    { range: "12H", description: "Last 12 hours (144 data points)", color: "text-sky-400" },
+    { range: "24H", description: "Last 24 hours (288 data points)", color: "text-sky-400" },
+    { range: "7D", description: "Last 7 days (2,016 data points)", color: "text-violet-400" },
+    { range: "30D", description: "Last 30 days", color: "text-violet-400" },
+    { range: "All", description: "All available data", color: "text-amber-400" },
 ];
 
 export default function AnalyticsDocsPage() {
@@ -47,12 +47,12 @@ export default function AnalyticsDocsPage() {
                     {charts.map((chart, idx) => (
                         <motion.div
                             key={chart.name}
-                            className="rounded-lg border border-border p-4 hover:bg-muted/50 transition-colors"
+                            className="rounded-lg border border-border p-4 hover:border-border/80 transition-colors"
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.1 + idx * 0.05 }}
                         >
-                            <h3 className="font-medium text-sm mb-1">{chart.name}</h3>
+                            <h3 className={`font-medium text-sm mb-1 ${chart.color}`}>{chart.name}</h3>
                             <p className="text-sm text-muted-foreground">{chart.description}</p>
                         </motion.div>
                     ))}
@@ -76,9 +76,9 @@ export default function AnalyticsDocsPage() {
                         </thead>
                         <tbody>
                             {timeRanges.map((tr) => (
-                                <tr key={tr.range} className="border-t border-border">
+                                <tr key={tr.range} className="border-t border-border hover:bg-muted/30 transition-colors">
                                     <td className="p-3">
-                                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{tr.range}</code>
+                                        <code className={`text-xs ${tr.color} bg-muted px-1.5 py-0.5 rounded`}>{tr.range}</code>
                                     </td>
                                     <td className="p-3 text-muted-foreground">{tr.description}</td>
                                 </tr>
@@ -93,11 +93,11 @@ export default function AnalyticsDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Data Collection</h2>
+                <h2 className="text-lg font-semibold mb-4 text-emerald-500">Data Collection</h2>
                 <div className="rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-sm text-muted-foreground">
-                        Snapshots are collected every <strong className="text-foreground">5 minutes</strong> via GitHub Actions.
-                        Data is stored in Supabase PostgreSQL with unlimited retention.
+                        Snapshots are collected every <span className="text-emerald-500 font-medium">5 minutes</span> via GitHub Actions.
+                        Data is stored in <span className="text-sky-500 font-medium">Supabase PostgreSQL</span> with unlimited retention.
                     </p>
                 </div>
             </motion.section>

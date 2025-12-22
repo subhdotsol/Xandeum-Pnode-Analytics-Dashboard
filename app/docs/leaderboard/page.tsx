@@ -12,6 +12,8 @@ const scoringCriteria = [
     {
         name: "Uptime Score",
         max: 40,
+        color: "text-emerald-500",
+        bgColor: "bg-emerald-500/10",
         description: "Measures how recently the node was online",
         breakdown: [
             { condition: "Last seen within 5 min", points: 40 },
@@ -24,6 +26,8 @@ const scoringCriteria = [
     {
         name: "RPC Availability",
         max: 30,
+        color: "text-sky-500",
+        bgColor: "bg-sky-500/10",
         description: "Awards points for public RPC endpoints",
         breakdown: [
             { condition: "Has public RPC endpoint", points: 30 },
@@ -33,6 +37,8 @@ const scoringCriteria = [
     {
         name: "Version Compliance",
         max: 30,
+        color: "text-violet-500",
+        bgColor: "bg-violet-500/10",
         description: "Rewards nodes on latest version",
         breakdown: [
             { condition: "Running latest version", points: 30 },
@@ -76,10 +82,10 @@ export default function LeaderboardDocsPage() {
                         >
                             <div className="p-4 bg-muted/30 flex items-center justify-between">
                                 <div>
-                                    <h3 className="font-medium text-sm">{criteria.name}</h3>
+                                    <h3 className={`font-medium text-sm ${criteria.color}`}>{criteria.name}</h3>
                                     <p className="text-xs text-muted-foreground">{criteria.description}</p>
                                 </div>
-                                <span className="text-sm font-mono bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                <span className={`text-sm font-mono ${criteria.color} ${criteria.bgColor} px-2 py-0.5 rounded`}>
                                     max {criteria.max}
                                 </span>
                             </div>
@@ -88,7 +94,7 @@ export default function LeaderboardDocsPage() {
                                     {criteria.breakdown.map((item, bIdx) => (
                                         <li key={bIdx} className="flex items-center justify-between text-sm">
                                             <span className="text-muted-foreground">{item.condition}</span>
-                                            <span className="font-mono">{item.points} pts</span>
+                                            <span className={`font-mono ${criteria.color}`}>{item.points} pts</span>
                                         </li>
                                     ))}
                                 </ul>
@@ -104,14 +110,14 @@ export default function LeaderboardDocsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
             >
-                <h2 className="text-lg font-semibold mb-4">Total Score</h2>
+                <h2 className="text-lg font-semibold mb-4 text-amber-500">Total Score</h2>
                 <div className="rounded-lg border border-border p-4 bg-muted/30">
                     <div className="flex items-center justify-between mb-4">
                         <span className="text-sm font-medium">Maximum Score</span>
-                        <span className="text-2xl font-bold">100</span>
+                        <span className="text-2xl font-bold text-amber-500">100</span>
                     </div>
                     <div className="text-sm font-mono text-muted-foreground">
-                        Total = Uptime (40) + RPC (30) + Version (30)
+                        Total = <span className="text-emerald-500">Uptime (40)</span> + <span className="text-sky-500">RPC (30)</span> + <span className="text-violet-500">Version (30)</span>
                     </div>
                 </div>
             </motion.section>
@@ -126,7 +132,7 @@ export default function LeaderboardDocsPage() {
                     <ul className="space-y-2">
                         {features.map((feature, idx) => (
                             <li key={idx} className="flex items-center gap-2 text-sm">
-                                <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 flex-shrink-0" />
                                 {feature}
                             </li>
                         ))}
