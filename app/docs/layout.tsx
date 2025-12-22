@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database, HelpCircle, Heart, History, MessageCircle, Keyboard } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion, AnimatePresence } from "framer-motion";
+import { SpotlightSearch } from "@/components/spotlight-search";
 
 interface DocsLayoutProps {
     children: ReactNode;
@@ -81,6 +82,7 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
     const router = useRouter();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [spotlightOpen, setSpotlightOpen] = useState(false);
 
     // Keyboard shortcuts
     useEffect(() => {
@@ -89,6 +91,12 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
                 setIsCollapsed(prev => !prev);
+            }
+
+            // Cmd/Ctrl + J for spotlight search
+            if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
+                e.preventDefault();
+                setSpotlightOpen(true);
             }
 
             // Cmd/Ctrl + I for AI assistant (I = Intelligence)
@@ -320,6 +328,16 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
                     </div>
                 </div>
             </main>
+
+            {/* Spotlight Search */}
+            <SpotlightSearch
+                isOpen={spotlightOpen}
+                onClose={() => setSpotlightOpen(false)}
+                onNavigate={(path) => {
+                    router.push(path);
+                    setSpotlightOpen(false);
+                }}
+            />
         </div>
     );
 }

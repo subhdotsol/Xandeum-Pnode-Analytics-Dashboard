@@ -1,106 +1,138 @@
+"use client";
+
+import { motion } from "framer-motion";
+
+const fadeIn = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 }
+};
+
+const scoringCriteria = [
+    {
+        name: "Uptime Score",
+        max: 40,
+        description: "Measures how recently the node was online",
+        breakdown: [
+            { condition: "Last seen within 5 min", points: 40 },
+            { condition: "Last seen within 15 min", points: 30 },
+            { condition: "Last seen within 1 hour", points: 20 },
+            { condition: "Last seen within 6 hours", points: 10 },
+            { condition: "Last seen 6+ hours ago", points: 0 },
+        ]
+    },
+    {
+        name: "RPC Availability",
+        max: 30,
+        description: "Awards points for public RPC endpoints",
+        breakdown: [
+            { condition: "Has public RPC endpoint", points: 30 },
+            { condition: "No public RPC", points: 0 },
+        ]
+    },
+    {
+        name: "Version Compliance",
+        max: 30,
+        description: "Rewards nodes on latest version",
+        breakdown: [
+            { condition: "Running latest version", points: 30 },
+            { condition: "Running outdated version", points: 0 },
+        ]
+    },
+];
+
+const features = [
+    "Real-time rankings with automatic updates",
+    "Search and filter by identity or criteria",
+    "Sortable columns for all metrics",
+    "Visual badges for status indicators",
+];
+
 export default function LeaderboardDocsPage() {
     return (
-        <article className="prose dark:prose-invert max-w-none">
-            <h1>Pod Credits & Leaderboard</h1>
-            <p className="lead">
-                Understanding the pod credits system and how nodes are ranked based on performance, uptime, and network contribution.
-            </p>
-
-            <h2>What are Pod Credits?</h2>
-            <p>
-                Pod Credits are a scoring system that evaluates pNodes based on multiple performance criteria. This system helps identify the most reliable and well-maintained nodes in the network.
-            </p>
-
-            <h2>Scoring Criteria</h2>
-            <p>The pod credits score is calculated based on three main factors:</p>
-
-            <h3>1. Uptime Score (40 points max)</h3>
-            <p>
-                Measures how recently the node has been seen online. The score decreases as time passes since the last update:
-            </p>
-            <ul>
-                <li><strong>40 points</strong>: Last seen within 5 minutes (highly active)</li>
-                <li><strong>30 points</strong>: Last seen within 15 minutes</li>
-                <li><strong>20 points</strong>: Last seen within 1 hour</li>
-                <li><strong>10 points</strong>: Last seen within 6 hours</li>
-                <li><strong>0 points</strong>: Last seen more than 6 hours ago</li>
-            </ul>
-
-            <h3>2. RPC Availability (30 points max)</h3>
-            <p>
-                Awards points for nodes that provide public RPC endpoints, making the network more accessible:
-            </p>
-            <ul>
-                <li><strong>30 points</strong>: Has a public RPC endpoint available</li>
-                <li><strong>0 points</strong>: No public RPC endpoint</li>
-            </ul>
-            <p className="text-sm text-muted-foreground">
-                Public RPC nodes are identified by having non-null <code>rpc</code> or <code>gossipRPC</code> values.
-            </p>
-
-            <h3>3. Version Compliance (30 points max)</h3>
-            <p>
-                Rewards nodes running the latest software version, ensuring network security and feature compatibility:
-            </p>
-            <ul>
-                <li><strong>30 points</strong>: Running the latest version</li>
-                <li><strong>0 points</strong>: Running an outdated version</li>
-            </ul>
-
-            <h2>Total Score Calculation</h2>
-            <div className="not-prose p-6 rounded-lg bg-card border border-border my-6">
-                <p className="text-sm font-mono mb-2">
-                    <strong>Maximum Score:</strong> 100 points
+        <motion.article {...fadeIn}>
+            <header className="mb-8 border-b border-border pb-4">
+                <h1 className="text-2xl font-bold tracking-tight mb-2">Pod Credits & Leaderboard</h1>
+                <p className="text-muted-foreground">
+                    Scoring system that evaluates pNodes based on performance criteria.
                 </p>
-                <p className="text-sm font-mono">
-                    Total Score = Uptime Score (40) + RPC Availability (30) + Version Compliance (30)
-                </p>
-            </div>
+            </header>
 
-            <h2>Best Nodes</h2>
-            <p>
-                The "Best Nodes" are those with the highest pod credits scores. These nodes typically:
-            </p>
-            <ul>
-                <li>Maintain 99%+ uptime</li>
-                <li>Provide public RPC endpoints for the community</li>
-                <li>Keep their software updated to the latest version</li>
-                <li>Contribute to network stability and accessibility</li>
-            </ul>
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Scoring Criteria</h2>
+                <div className="space-y-4">
+                    {scoringCriteria.map((criteria, idx) => (
+                        <motion.div
+                            key={criteria.name}
+                            className="rounded-lg border border-border overflow-hidden"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 + idx * 0.1 }}
+                        >
+                            <div className="p-4 bg-muted/30 flex items-center justify-between">
+                                <div>
+                                    <h3 className="font-medium text-sm">{criteria.name}</h3>
+                                    <p className="text-xs text-muted-foreground">{criteria.description}</p>
+                                </div>
+                                <span className="text-sm font-mono bg-primary/10 text-primary px-2 py-0.5 rounded">
+                                    max {criteria.max}
+                                </span>
+                            </div>
+                            <div className="p-4">
+                                <ul className="space-y-2">
+                                    {criteria.breakdown.map((item, bIdx) => (
+                                        <li key={bIdx} className="flex items-center justify-between text-sm">
+                                            <span className="text-muted-foreground">{item.condition}</span>
+                                            <span className="font-mono">{item.points} pts</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.section>
 
-            <h2>Leaderboard Features</h2>
-            <ul>
-                <li><strong>Real-Time Rankings</strong>: Scores update automatically as node status changes</li>
-                <li><strong>Search & Filter</strong>: Find specific nodes by identity or filter by criteria</li>
-                <li><strong>Sortable Columns</strong>: Sort by pod credits, uptime, version, or RPC status</li>
-                <li><strong>Performance Indicators</strong>: Visual badges show online status, RPC availability, and version compliance</li>
-            </ul>
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Total Score</h2>
+                <div className="rounded-lg border border-border p-4 bg-muted/30">
+                    <div className="flex items-center justify-between mb-4">
+                        <span className="text-sm font-medium">Maximum Score</span>
+                        <span className="text-2xl font-bold">100</span>
+                    </div>
+                    <div className="text-sm font-mono text-muted-foreground">
+                        Total = Uptime (40) + RPC (30) + Version (30)
+                    </div>
+                </div>
+            </motion.section>
 
-            <h2>Why Pod Credits Matter</h2>
-            <p>
-                Pod credits provide a transparent, objective measure of node quality. This helps:
-            </p>
-            <ul>
-                <li><strong>Users</strong>: Identify reliable nodes for data storage and retrieval</li>
-                <li><strong>Node Operators</strong>: Understand performance expectations and areas for improvement</li>
-                <li><strong>Network Health</strong>: Encourage best practices and maintain high service standards</li>
-                <li><strong>Future Rewards</strong>: May influence future token distribution or incentive programs</li>
-            </ul>
-
-            <h2>Improving Your Score</h2>
-            <p>To maximize your pod credits:</p>
-            <ol>
-                <li><strong>Maintain High Uptime</strong>: Keep your node online and regularly reporting status</li>
-                <li><strong>Enable Public RPC</strong>: Configure and advertise your RPC endpoint</li>
-                <li><strong>Stay Updated</strong>: Regularly update to the latest pNode software version</li>
-                <li><strong>Monitor Performance</strong>: Use the dashboard to track your node's status and score</li>
-            </ol>
-
-            <div className="not-prose mt-8 p-6 rounded-xl border border-primary/20 bg-primary/5">
-                <p className="text-sm">
-                    <strong>💡 Tip:</strong> Check the leaderboard daily to see how your node ranks and identify areas for improvement. Nodes in the top 10% receive special recognition on the dashboard.
-                </p>
-            </div>
-        </article>
+            <motion.section
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Leaderboard Features</h2>
+                <div className="rounded-lg border border-border p-4">
+                    <ul className="space-y-2">
+                        {features.map((feature, idx) => (
+                            <li key={idx} className="flex items-center gap-2 text-sm">
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                                {feature}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </motion.section>
+        </motion.article>
     );
 }

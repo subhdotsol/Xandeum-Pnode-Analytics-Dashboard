@@ -1,13 +1,18 @@
 "use client";
 
-import { HelpCircle, MessageCircle, ChevronDown, ChevronUp, Server, BarChart3, Coins, Bot, Map, Shield, Zap } from "lucide-react";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ChevronDown } from "lucide-react";
+
+const fadeIn = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 }
+};
 
 const faqs = [
     {
         category: "General",
-        color: "from-blue-500 to-cyan-500",
-        icon: HelpCircle,
         questions: [
             {
                 q: "What is the Xandeum pNode Analytics Dashboard?",
@@ -25,8 +30,6 @@ const faqs = [
     },
     {
         category: "pNodes",
-        color: "from-green-500 to-emerald-500",
-        icon: Server,
         questions: [
             {
                 q: "What is a pNode?",
@@ -43,66 +46,7 @@ const faqs = [
         ],
     },
     {
-        category: "Analytics",
-        color: "from-purple-500 to-pink-500",
-        icon: BarChart3,
-        questions: [
-            {
-                q: "What data is shown in Historical Analytics?",
-                a: "Node population trends, online/offline counts, average CPU & RAM usage, total storage capacity, and version distribution over time.",
-            },
-            {
-                q: "How far back does historical data go?",
-                a: "Data is stored indefinitely in Supabase. The free tier provides 500MB which can hold years of snapshot data (each snapshot is ~500 bytes).",
-            },
-            {
-                q: "Why is CPU/RAM data sometimes zero?",
-                a: "Performance stats are sampled from 5 random nodes every 5 minutes. If those nodes don't respond, values may be zero for that snapshot.",
-            },
-        ],
-    },
-    {
-        category: "DeFi & Staking",
-        color: "from-orange-500 to-amber-500",
-        icon: Coins,
-        questions: [
-            {
-                q: "How does liquid staking work?",
-                a: "You stake SOL and receive XANDsol tokens. The exchange rate is calculated from live market prices (SOL/XAND ratio from CoinGecko).",
-            },
-            {
-                q: "What wallet do I need?",
-                a: "Any Solana wallet: Phantom, Solflare, Coinbase Wallet, or other Solana Wallet Adapter compatible wallets.",
-            },
-            {
-                q: "Where do token prices come from?",
-                a: "SOL and XAND prices are fetched from CoinGecko API. DEX liquidity data comes from Raydium. All cached for 60 seconds.",
-            },
-        ],
-    },
-    {
-        category: "AI Assistant",
-        color: "from-violet-500 to-purple-500",
-        icon: Bot,
-        questions: [
-            {
-                q: "What can XandAI answer?",
-                a: "Questions about network stats, node rankings, Xandeum technology, XAND token, and general blockchain topics.",
-            },
-            {
-                q: "Does XandAI have access to live data?",
-                a: "Yes! XandAI receives current network analytics and can answer questions about specific nodes, version distribution, etc.",
-            },
-            {
-                q: "How do I open XandAI?",
-                a: "Click the 'Ask AI' button in the bottom-right corner, or press Cmd+I (Mac) or Ctrl+I (Windows/Linux).",
-            },
-        ],
-    },
-    {
         category: "Technical",
-        color: "from-red-500 to-rose-500",
-        icon: Zap,
         questions: [
             {
                 q: "What tech stack is this built with?",
@@ -120,76 +64,83 @@ const faqs = [
     },
 ];
 
-function FAQItem({ q, a }: { q: string; a: string }) {
+function FAQItem({ q, a, index }: { q: string; a: string; index: number }) {
     const [isOpen, setIsOpen] = useState(false);
 
     return (
-        <div className="border-b border-border last:border-0">
+        <motion.div
+            className="border-b border-border last:border-0"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: index * 0.05 }}
+        >
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-full flex items-center justify-between py-4 text-left hover:text-primary transition-colors"
+                className="w-full flex items-center justify-between py-4 text-left group"
             >
-                <span className="font-medium pr-4">{q}</span>
-                {isOpen ? (
-                    <ChevronUp className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                ) : (
-                    <ChevronDown className="w-5 h-5 text-muted-foreground flex-shrink-0" />
-                )}
+                <span className="text-sm font-medium group-hover:text-primary transition-colors pr-4">{q}</span>
+                <motion.div
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.2 }}
+                >
+                    <ChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                </motion.div>
             </button>
-            {isOpen && (
-                <div className="pb-4 text-sm text-muted-foreground">
-                    {a}
-                </div>
-            )}
-        </div>
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                    >
+                        <p className="pb-4 text-sm text-muted-foreground">{a}</p>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 }
 
 export default function FAQPage() {
     return (
-        <article>
-            <header className="mb-8">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500">
-                        <MessageCircle className="w-6 h-6 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-bold tracking-tight">FAQ</h1>
-                </div>
-                <p className="text-lg text-muted-foreground">
-                    Frequently asked questions about the pNode Analytics Dashboard.
+        <motion.article {...fadeIn}>
+            <header className="mb-8 border-b border-border pb-4">
+                <h1 className="text-2xl font-bold tracking-tight mb-2">FAQ</h1>
+                <p className="text-muted-foreground">
+                    Frequently asked questions about the dashboard.
                 </p>
             </header>
 
-            {faqs.map((category) => {
-                const Icon = category.icon;
-                return (
-                    <section key={category.category} className="mb-8">
-                        <div className="flex items-center gap-2 mb-4">
-                            <div className={`p-1.5 rounded-lg bg-gradient-to-br ${category.color}`}>
-                                <Icon className="w-4 h-4 text-white" />
-                            </div>
-                            <h2 className="text-lg font-semibold">{category.category}</h2>
-                        </div>
-                        <div className="bg-card border border-border rounded-lg overflow-hidden">
-                            <div className={`h-1 bg-gradient-to-r ${category.color}`} />
-                            <div className="px-4">
-                                {category.questions.map((faq, idx) => (
-                                    <FAQItem key={idx} q={faq.q} a={faq.a} />
-                                ))}
-                            </div>
-                        </div>
-                    </section>
-                );
-            })}
+            {faqs.map((category, catIdx) => (
+                <motion.section
+                    key={category.category}
+                    className="mb-6"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: catIdx * 0.1, duration: 0.3 }}
+                >
+                    <h2 className="text-sm font-semibold text-muted-foreground mb-3">{category.category}</h2>
+                    <div className="rounded-lg border border-border px-4">
+                        {category.questions.map((faq, idx) => (
+                            <FAQItem key={idx} q={faq.q} a={faq.a} index={idx} />
+                        ))}
+                    </div>
+                </motion.section>
+            ))}
 
-            {/* Still have questions */}
-            <section className="bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-lg p-6 text-center">
-                <Bot className="w-8 h-8 text-violet-500 mx-auto mb-3" />
-                <h2 className="text-xl font-semibold mb-2 text-violet-600 dark:text-violet-400">Still Have Questions?</h2>
-                <p className="text-muted-foreground mb-4">
-                    Ask XandAI! Press <kbd className="px-2 py-0.5 bg-muted rounded text-xs">⌘I</kbd> to open the AI assistant.
+            <motion.div
+                className="mt-8 rounded-lg border border-border bg-muted/30 p-4"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+            >
+                <h3 className="font-medium text-sm mb-2">Still have questions?</h3>
+                <p className="text-sm text-muted-foreground">
+                    Press <kbd className="px-1.5 py-0.5 bg-muted rounded text-xs border border-border">⌘I</kbd> to ask XandAI.
                 </p>
-            </section>
-        </article>
+            </motion.div>
+        </motion.article>
     );
 }

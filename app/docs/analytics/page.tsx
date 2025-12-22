@@ -1,58 +1,106 @@
+"use client";
+
+import { motion } from "framer-motion";
+
+const fadeIn = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 }
+};
+
+const charts = [
+    { name: "Node Population", description: "Track total nodes over time with gradient area chart" },
+    { name: "Availability Rate", description: "Monitor online percentage (healthy: 80%+)" },
+    { name: "Resource Utilization", description: "Average CPU and RAM usage across nodes" },
+    { name: "Storage Capacity", description: "Aggregate storage provided by all pNodes" },
+    { name: "Geographic Spread", description: "Countries and version diversity metrics" },
+];
+
+const timeRanges = [
+    { range: "1H", description: "Last hour (12 data points)" },
+    { range: "4H", description: "Last 4 hours (48 data points)" },
+    { range: "12H", description: "Last 12 hours (144 data points)" },
+    { range: "24H", description: "Last 24 hours (288 data points)" },
+    { range: "7D", description: "Last 7 days (2,016 data points)" },
+    { range: "30D", description: "Last 30 days" },
+    { range: "All", description: "All available data" },
+];
+
 export default function AnalyticsDocsPage() {
     return (
-        <article>
-            <h1>Analytics Dashboard</h1>
-            <p>
-                The Analytics tab provides historical insights into the Xandeum network's
-                performance over time with interactive charts and visualizations.
-            </p>
+        <motion.article {...fadeIn}>
+            <header className="mb-8 border-b border-border pb-4">
+                <h1 className="text-2xl font-bold tracking-tight mb-2">Analytics</h1>
+                <p className="text-muted-foreground">
+                    Historical insights into network performance with interactive charts.
+                </p>
+            </header>
 
-            <h2>Available Charts</h2>
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Available Charts</h2>
+                <div className="space-y-3">
+                    {charts.map((chart, idx) => (
+                        <motion.div
+                            key={chart.name}
+                            className="rounded-lg border border-border p-4 hover:bg-muted/50 transition-colors"
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.1 + idx * 0.05 }}
+                        >
+                            <h3 className="font-medium text-sm mb-1">{chart.name}</h3>
+                            <p className="text-sm text-muted-foreground">{chart.description}</p>
+                        </motion.div>
+                    ))}
+                </div>
+            </motion.section>
 
-            <h3>Node Population</h3>
-            <p>
-                Track the total number of nodes in the network over time. This gradient area
-                chart shows network growth and helps identify trends.
-            </p>
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Time Range Filters</h2>
+                <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                            <tr>
+                                <th className="text-left p-3 font-medium w-20">Range</th>
+                                <th className="text-left p-3 font-medium">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {timeRanges.map((tr) => (
+                                <tr key={tr.range} className="border-t border-border">
+                                    <td className="p-3">
+                                        <code className="text-xs bg-muted px-1.5 py-0.5 rounded">{tr.range}</code>
+                                    </td>
+                                    <td className="p-3 text-muted-foreground">{tr.description}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </motion.section>
 
-            <h3>Availability Rate</h3>
-            <p>
-                Monitor the percentage of nodes that are online at any given time. A healthy
-                network maintains high availability (80%+).
-            </p>
-
-            <h3>Resource Utilization</h3>
-            <p>
-                Two dotted lines showing average CPU and RAM usage across all nodes. Helps
-                identify if the network is under-utilized or stressed.
-            </p>
-
-            <h3>Storage Capacity</h3>
-            <p>
-                Aggregate storage provided by all pNodes. Shows network capacity growth over time.
-            </p>
-
-            <h3>Geographic Spread</h3>
-            <p>
-                Track the number of countries and version diversity across the network.
-            </p>
-
-            <h2>Time Range Filters</h2>
-            <ul>
-                <li><strong>1H</strong> - Last hour (12 data points)</li>
-                <li><strong>4H</strong> - Last 4 hours (48 data points)</li>
-                <li><strong>12H</strong> - Last 12 hours (144 data points)</li>
-                <li><strong>24H</strong> - Last 24 hours (288 data points)</li>
-                <li><strong>7D</strong> - Last 7 days (2,016 data points)</li>
-                <li><strong>30D</strong> - Last 30 days</li>
-                <li><strong>All</strong> - All available data</li>
-            </ul>
-
-            <h2>Data Collection</h2>
-            <p>
-                Snapshots are collected every <strong>5 minutes</strong> via an automated cron job.
-                Data is stored in Supabase with a 7-day retention policy for granular data.
-            </p>
-        </article>
+            <motion.section
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Data Collection</h2>
+                <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <p className="text-sm text-muted-foreground">
+                        Snapshots are collected every <strong className="text-foreground">5 minutes</strong> via GitHub Actions.
+                        Data is stored in Supabase PostgreSQL with unlimited retention.
+                    </p>
+                </div>
+            </motion.section>
+        </motion.article>
     );
 }

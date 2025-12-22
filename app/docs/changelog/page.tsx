@@ -1,172 +1,131 @@
 "use client";
 
-import { History, Sparkles, Bug, Zap, Database, Bot, Globe, BarChart3, Star, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+
+const fadeIn = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 }
+};
 
 const releases = [
     {
         version: "1.3.0",
         date: "December 2024",
         title: "Historical Analytics & Infrastructure",
-        color: "from-violet-500 to-purple-500",
-        icon: Database,
         changes: [
-            { type: "feature", text: "Added Supabase integration for historical snapshots" },
-            { type: "feature", text: "Added Redis (Upstash) caching for 10ms API responses" },
-            { type: "feature", text: "Added Infrastructure documentation page" },
-            { type: "feature", text: "Added GitHub Actions cron for automated data collection" },
-            { type: "improvement", text: "Optimized cron job to complete in ~8 seconds" },
-            { type: "improvement", text: "Added batch processing for database operations" },
+            { type: "new", text: "Supabase integration for historical snapshots" },
+            { type: "new", text: "Redis (Upstash) caching for 10ms API responses" },
+            { type: "new", text: "GitHub Actions cron for automated data collection" },
+            { type: "new", text: "Infrastructure documentation page" },
+            { type: "improved", text: "Optimized cron job to complete in ~8 seconds" },
         ],
     },
     {
         version: "1.2.0",
         date: "December 2024",
         title: "AI Assistant & DeFi Integration",
-        color: "from-pink-500 to-rose-500",
-        icon: Bot,
         changes: [
-            { type: "feature", text: "Added XandAI assistant powered by Google Gemini 2.5 Flash" },
-            { type: "feature", text: "Added liquid staking with real-time SOL/XAND prices" },
-            { type: "feature", text: "Added Jupiter DEX swap integration" },
-            { type: "feature", text: "Added animated liquid morphing button" },
-            { type: "improvement", text: "AI assistant now has live pNode data access" },
+            { type: "new", text: "XandAI assistant powered by Google Gemini 2.5 Flash" },
+            { type: "new", text: "Liquid staking with real-time SOL/XAND prices" },
+            { type: "new", text: "Jupiter DEX swap integration" },
+            { type: "new", text: "Animated liquid morphing button" },
+            { type: "improved", text: "AI assistant now has live pNode data access" },
         ],
     },
     {
         version: "1.1.0",
         date: "December 2024",
         title: "Enhanced UX & Navigation",
-        color: "from-blue-500 to-cyan-500",
-        icon: Sparkles,
         changes: [
-            { type: "feature", text: "Added Spotlight Search (Cmd+J)" },
-            { type: "feature", text: "Added collapsible sidebar with persistence" },
-            { type: "feature", text: "Added keyboard shortcuts (Cmd+K, Cmd+I, Cmd+D)" },
-            { type: "feature", text: "Added Watchlist and Compare features" },
-            { type: "improvement", text: "Added smooth tab animations with cursor following" },
-            { type: "fix", text: "Fixed theme toggle animation" },
+            { type: "new", text: "Spotlight Search (Cmd+J)" },
+            { type: "new", text: "Collapsible sidebar with persistence" },
+            { type: "new", text: "Keyboard shortcuts (Cmd+K, Cmd+I, Cmd+D)" },
+            { type: "new", text: "Watchlist and Compare features" },
+            { type: "improved", text: "Smooth tab animations with cursor following" },
+            { type: "fixed", text: "Theme toggle animation" },
         ],
     },
     {
         version: "1.0.0",
         date: "December 2024",
         title: "Initial Release",
-        color: "from-green-500 to-emerald-500",
-        icon: Zap,
         changes: [
-            { type: "feature", text: "Real-time monitoring of 250+ pNodes" },
-            { type: "feature", text: "Pod Credits leaderboard with scoring system" },
-            { type: "feature", text: "Interactive world map with node locations" },
-            { type: "feature", text: "Version distribution charts" },
-            { type: "feature", text: "Network health dashboard" },
-            { type: "feature", text: "Comprehensive documentation" },
+            { type: "new", text: "Real-time monitoring of 250+ pNodes" },
+            { type: "new", text: "Pod Credits leaderboard with scoring system" },
+            { type: "new", text: "Interactive world map with node locations" },
+            { type: "new", text: "Version distribution charts" },
+            { type: "new", text: "Network health dashboard" },
         ],
     },
 ];
 
-const typeColors: Record<string, { bg: string; text: string; label: string }> = {
-    feature: { bg: "bg-green-500/10", text: "text-green-600 dark:text-green-400", label: "New" },
-    improvement: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", label: "Improved" },
-    fix: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", label: "Fixed" },
+const typeLabels: Record<string, string> = {
+    new: "New",
+    improved: "Improved",
+    fixed: "Fixed",
 };
 
 export default function ChangelogPage() {
     return (
-        <article>
-            <header className="mb-8">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-500">
-                        <History className="w-6 h-6 text-white" />
-                    </div>
-                    <h1 className="text-3xl font-bold tracking-tight">Changelog</h1>
-                </div>
-                <p className="text-lg text-muted-foreground">
-                    What's new in each release of the Xandeum pNode Analytics Dashboard.
+        <motion.article {...fadeIn}>
+            <header className="mb-8 border-b border-border pb-4">
+                <h1 className="text-2xl font-bold tracking-tight mb-2">Changelog</h1>
+                <p className="text-muted-foreground">
+                    What's new in each release.
                 </p>
             </header>
 
-            {/* Timeline */}
-            <div className="relative">
-                {/* Vertical line */}
-                <div className="absolute left-[19px] top-0 bottom-0 w-0.5 bg-border" />
+            <div className="space-y-8">
+                {releases.map((release, idx) => (
+                    <motion.section
+                        key={release.version}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.1, duration: 0.3 }}
+                        className="relative pl-6 border-l-2 border-border"
+                    >
+                        {/* Timeline dot */}
+                        <div className="absolute -left-[5px] top-0 w-2 h-2 rounded-full bg-primary" />
 
-                <div className="space-y-8">
-                    {releases.map((release, idx) => {
-                        const Icon = release.icon;
-                        return (
-                            <div key={release.version} className="relative pl-12">
-                                {/* Timeline dot */}
-                                <div className={`absolute left-0 w-10 h-10 rounded-full bg-gradient-to-br ${release.color} flex items-center justify-center shadow-lg`}>
-                                    <Icon className="w-5 h-5 text-white" />
-                                </div>
+                        <div className="mb-2">
+                            <span className="text-xs font-medium bg-muted px-2 py-0.5 rounded">
+                                v{release.version}
+                            </span>
+                            <span className="text-xs text-muted-foreground ml-2">{release.date}</span>
+                        </div>
 
-                                {/* Card */}
-                                <div className="bg-card border border-border rounded-lg overflow-hidden">
-                                    <div className={`h-1 bg-gradient-to-r ${release.color}`} />
-                                    <div className="p-5">
-                                        {/* Header */}
-                                        <div className="flex items-center justify-between mb-3">
-                                            <div>
-                                                <span className={`px-2 py-0.5 rounded-full text-xs font-bold bg-gradient-to-r ${release.color} text-white`}>
-                                                    v{release.version}
-                                                </span>
-                                                <span className="text-xs text-muted-foreground ml-2">{release.date}</span>
-                                            </div>
-                                            {idx === 0 && (
-                                                <span className="flex items-center gap-1 text-xs text-yellow-600 dark:text-yellow-400">
-                                                    <Star className="w-3 h-3 fill-current" /> Latest
-                                                </span>
-                                            )}
-                                        </div>
-                                        <h3 className="text-lg font-semibold mb-4">{release.title}</h3>
+                        <h3 className="font-semibold mb-3">{release.title}</h3>
 
-                                        {/* Changes */}
-                                        <div className="space-y-2">
-                                            {release.changes.map((change, cIdx) => {
-                                                const { bg, text, label } = typeColors[change.type];
-                                                return (
-                                                    <div key={cIdx} className="flex items-start gap-2">
-                                                        <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${bg} ${text}`}>
-                                                            {label}
-                                                        </span>
-                                                        <span className="text-sm text-muted-foreground">{change.text}</span>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        );
-                    })}
-                </div>
+                        <ul className="space-y-2">
+                            {release.changes.map((change, cIdx) => (
+                                <li key={cIdx} className="flex items-start gap-2 text-sm">
+                                    <span className="text-xs font-medium text-muted-foreground w-16 flex-shrink-0">
+                                        {typeLabels[change.type]}
+                                    </span>
+                                    <span className="text-muted-foreground">{change.text}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    </motion.section>
+                ))}
             </div>
 
-            {/* Coming Soon */}
-            <section className="mt-10 bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-3 flex items-center gap-2 text-yellow-600 dark:text-yellow-400">
-                    <Sparkles className="w-5 h-5" />
-                    Coming Soon
-                </h2>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-center gap-2">
-                        <ArrowRight className="w-4 h-4 text-yellow-500" />
-                        Version Intelligence page with upgrade recommendations
-                    </li>
-                    <li className="flex items-center gap-2">
-                        <ArrowRight className="w-4 h-4 text-yellow-500" />
-                        Email/Discord alerts for node status changes
-                    </li>
-                    <li className="flex items-center gap-2">
-                        <ArrowRight className="w-4 h-4 text-yellow-500" />
-                        Multi-language support
-                    </li>
-                    <li className="flex items-center gap-2">
-                        <ArrowRight className="w-4 h-4 text-yellow-500" />
-                        Mobile app (React Native)
-                    </li>
-                </ul>
-            </section>
-        </article>
+            <motion.section
+                className="mt-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.3 }}
+            >
+                <div className="rounded-lg border border-border bg-muted/30 p-4">
+                    <h3 className="font-medium mb-2">Coming Soon</h3>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                        <li>• Version Intelligence with upgrade recommendations</li>
+                        <li>• Email/Discord alerts for node status changes</li>
+                        <li>• Multi-language support</li>
+                    </ul>
+                </div>
+            </motion.section>
+        </motion.article>
     );
 }

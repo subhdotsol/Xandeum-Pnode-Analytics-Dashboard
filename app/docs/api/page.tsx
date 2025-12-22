@@ -1,21 +1,20 @@
-export default function ApiPage() {
-    return (
-        <article className="prose dark:prose-invert max-w-none">
-            <h1>API Reference</h1>
-            <p className="text-xl text-muted-foreground">
-                REST API endpoints for integrating with Xandeum Analytics
-            </p>
+"use client";
 
-            <h2>Base URL</h2>
-            <pre className="bg-muted rounded-lg p-4"><code>https://explorerxandeum.vercel.app/api</code></pre>
+import { motion } from "framer-motion";
+import { CodeBlock } from "@/components/ui/code-block";
 
-            <h2>Endpoints</h2>
+const fadeIn = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.3 }
+};
 
-            <h3>GET /pnodes</h3>
-            <p>Get all pNodes in the network.</p>
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm">
-                {`// Response
-{
+const endpoints = [
+  {
+    method: "GET",
+    path: "/pnodes",
+    description: "Get all pNodes in the network.",
+    response: `{
   "pnodes": [
     {
       "address": "173.212.207.32:9001",
@@ -24,14 +23,13 @@ export default function ApiPage() {
       "last_seen_timestamp": 1766328515
     }
   ]
-}`}
-            </pre>
-
-            <h3>GET /pnodes/[address]</h3>
-            <p>Get detailed stats for a specific pNode.</p>
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm">
-                {`// Response
-{
+}`,
+  },
+  {
+    method: "GET",
+    path: "/pnodes/[address]",
+    description: "Get detailed stats for a specific pNode.",
+    response: `{
   "success": true,
   "data": {
     "address": "173.212.207.32:9001",
@@ -39,23 +37,20 @@ export default function ApiPage() {
       "cpu_percent": 0.49,
       "ram_used": 735506432,
       "ram_total": 12541607936,
-      "uptime": 558702,
-      "file_size": 340000000000,
-      "active_streams": 2
+      "uptime": 558702
     },
     "health": {
       "status": "healthy",
       "color": "#22C55E"
     }
   }
-}`}
-            </pre>
-
-            <h3>GET /analytics</h3>
-            <p>Get network-wide analytics and health metrics.</p>
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm">
-                {`// Response
-{
+}`,
+  },
+  {
+    method: "GET",
+    path: "/analytics",
+    description: "Get network-wide analytics and health metrics.",
+    response: `{
   "totals": { "total": 245, "online": 180 },
   "health": {
     "healthy": 150,
@@ -67,73 +62,142 @@ export default function ApiPage() {
     "latest": "0.8.0",
     "distribution": { "0.8.0": 200, "0.7.3": 45 }
   }
-}`}
-            </pre>
-
-            <h3>GET /stats</h3>
-            <p>Get aggregate statistics from seed nodes.</p>
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm">
-                {`// Response
-{
-  "totalStorage": 2800000000000,
-  "totalRam": 100000000000,
-  "avgCpu": 2.5,
-  "avgUptime": 500000,
-  "totalPackets": 293960000,
-  "totalStreams": 45
-}`}
-            </pre>
-
-            <h3>GET /geo</h3>
-            <p>Get geo-location for an IP address.</p>
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm">
-                {`// GET /geo?ip=173.212.207.32
-// Response
-{
-  "country": "Germany",
-  "city": "Nuremberg",
-  "lat": 49.4478,
-  "lon": 11.0683,
-  "timezone": "Europe/Berlin"
-}`}
-            </pre>
-
-            <h3>GET /historical</h3>
-            <p>Get historical snapshots for analytics charts.</p>
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm">
-                {`// GET /historical?range=24h
-// Response
-{
+}`,
+  },
+  {
+    method: "GET",
+    path: "/historical?range=24h",
+    description: "Get historical snapshots for analytics charts.",
+    response: `{
   "success": true,
   "data": [
     {
-      "timestamp": "2024-12-21T10:00:00Z",
+      "timestamp": 1766328515,
       "total_nodes": 245,
       "online_nodes": 180,
       "avg_cpu": 2.5,
       "total_storage": 2800000000000
     }
   ]
-}`}
-            </pre>
+}`,
+  },
+  {
+    method: "GET",
+    path: "/geo?ip=173.212.207.32",
+    description: "Get geo-location for an IP address.",
+    response: `{
+  "country": "Germany",
+  "city": "Nuremberg",
+  "lat": 49.4478,
+  "lon": 11.0683,
+  "timezone": "Europe/Berlin"
+}`,
+  },
+];
 
-            <h2>Rate Limits</h2>
-            <p>
-                API endpoints are rate-limited to ensure fair usage. Current limits:
-            </p>
-            <ul>
-                <li><strong>Public endpoints</strong>: 100 requests/minute</li>
-                <li><strong>Geo endpoint</strong>: 45 requests/minute (ip-api.com limit)</li>
-            </ul>
+const rateLimits = [
+  { endpoint: "Public endpoints", limit: "100 requests/minute" },
+  { endpoint: "Geo endpoint", limit: "45 requests/minute" },
+];
 
-            <h2>Error Responses</h2>
-            <pre className="bg-muted rounded-lg p-4 overflow-x-auto text-sm">
-                {`// 404 Not Found
+export default function ApiPage() {
+  return (
+    <motion.article {...fadeIn}>
+      <header className="mb-8 border-b border-border pb-4">
+        <h1 className="text-2xl font-bold tracking-tight mb-2">API Reference</h1>
+        <p className="text-muted-foreground">
+          REST API endpoints for integrating with Xandeum Analytics.
+        </p>
+      </header>
+
+      <motion.section
+        className="mb-8"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1, duration: 0.3 }}
+      >
+        <h2 className="text-lg font-semibold mb-4">Base URL</h2>
+        <CodeBlock
+          code="https://explorerxandeum.vercel.app/api"
+          filename="Base URL"
+        />
+      </motion.section>
+
+      <motion.section
+        className="mb-8"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2, duration: 0.3 }}
+      >
+        <h2 className="text-lg font-semibold mb-4">Endpoints</h2>
+        <div className="space-y-6">
+          {endpoints.map((endpoint, idx) => (
+            <motion.div
+              key={endpoint.path}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 + idx * 0.05 }}
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs font-mono rounded">
+                  {endpoint.method}
+                </span>
+                <code className="text-sm">{endpoint.path}</code>
+              </div>
+              <p className="text-sm text-muted-foreground mb-2">{endpoint.description}</p>
+              <CodeBlock
+                code={endpoint.response}
+                language="json"
+                filename="Response"
+              />
+            </motion.div>
+          ))}
+        </div>
+      </motion.section>
+
+      <motion.section
+        className="mb-8"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.3 }}
+      >
+        <h2 className="text-lg font-semibold mb-4">Rate Limits</h2>
+        <div className="rounded-lg border border-border overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="text-left p-3 font-medium">Endpoint</th>
+                <th className="text-left p-3 font-medium">Limit</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rateLimits.map((limit) => (
+                <tr key={limit.endpoint} className="border-t border-border">
+                  <td className="p-3">{limit.endpoint}</td>
+                  <td className="p-3 text-muted-foreground">{limit.limit}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </motion.section>
+
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.3 }}
+      >
+        <h2 className="text-lg font-semibold mb-4">Error Responses</h2>
+        <CodeBlock
+          code={`// 404 Not Found
 { "success": false, "error": "Node not found or unavailable" }
 
 // 500 Server Error
 { "error": "Internal server error" }`}
-            </pre>
-        </article>
-    );
+          language="json"
+          filename="Errors"
+        />
+      </motion.section>
+    </motion.article>
+  );
 }

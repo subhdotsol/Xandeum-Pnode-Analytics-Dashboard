@@ -1,251 +1,217 @@
 "use client";
 
-import { Database, Zap, Clock, Server, GitBranch, BarChart3, Shield } from "lucide-react";
+import { motion } from "framer-motion";
+import { CodeBlock } from "@/components/ui/code-block";
+
+const fadeIn = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 }
+};
 
 export default function InfrastructurePage() {
     return (
-        <article>
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight mb-3">Infrastructure</h1>
-                <p className="text-lg text-muted-foreground">
-                    How we handle caching, data storage, and automated analytics collection.
+        <motion.article {...fadeIn}>
+            <header className="mb-8 border-b border-border pb-4">
+                <h1 className="text-2xl font-bold tracking-tight mb-2">Infrastructure</h1>
+                <p className="text-muted-foreground">
+                    Caching, storage, and automated data collection.
                 </p>
             </header>
 
-            {/* Overview */}
-            <section className="mb-10">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <Server className="w-5 h-5 text-primary" />
-                    Architecture Overview
-                </h2>
-                <div className="bg-muted/30 rounded-lg p-6 font-mono text-sm leading-relaxed">
-                    <pre>{`┌────────────────────────────────────────────────────────────────┐
-│                    USER REQUEST                                │
-└──────────────────────────┬─────────────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────────────┐
-│                  UPSTASH REDIS (Cache Layer)                   │
-│   • pnodes:list → 60s TTL                                      │
-│   • network:overview → 60s TTL                                 │
-│   • pnodes:stats:{address} → 30s TTL                           │
-├────────────────────────────────────────────────────────────────┤
-│   Cache Hit? → Return instantly (~10ms)                        │
-│   Cache Miss? → Fetch from pNode RPC → Cache → Return          │
-└────────────────────────────────────────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────────────┐
-│                  XANDEUM SEED NODES (JSON-RPC)                 │
-│   8 seed nodes for redundancy                                  │
-│   Methods: pnode_getList + pnode_getStats                      │
-└────────────────────────────────────────────────────────────────┘
+            {/* Architecture Diagram */}
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Architecture</h2>
+                <div className="rounded-lg border border-border bg-muted/30 p-4 overflow-x-auto">
+                    <pre className="text-xs font-mono text-muted-foreground whitespace-pre">{`
+User Request
+     │
+     ▼
+┌─────────────────┐
+│  Upstash Redis  │◄─── Cache Hit? Return in 10ms
+│   (60s TTL)     │
+└────────┬────────┘
+         │ Cache Miss
+         ▼
+┌─────────────────┐
+│ Xandeum pNodes  │◄─── 8 seed nodes (failover)
+│   (JSON-RPC)    │
+└─────────────────┘
 
-┌────────────────────────────────────────────────────────────────┐
-│                  GITHUB ACTIONS (Every 5 min)                  │
-└──────────────────────────┬─────────────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────────────┐
-│              /api/cron/collect-snapshot                        │
-│   • Fetch all pNodes                                           │
-│   • Calculate analytics                                        │
-│   • Save snapshot to Supabase                                  │
-│   • Clear Redis cache                                          │
-└──────────────────────────┬─────────────────────────────────────┘
-                           │
-                           ▼
-┌────────────────────────────────────────────────────────────────┐
-│                  SUPABASE (PostgreSQL)                         │
-│   historical_snapshots table                                   │
-│   • timestamp, total_nodes, online_nodes                       │
-│   • avg_cpu, avg_ram, total_storage                            │
-│   • unique_countries, unique_versions                          │
-└────────────────────────────────────────────────────────────────┘`}</pre>
+GitHub Actions (every 5 min)
+     │
+     ▼
+┌─────────────────┐
+│  Supabase       │◄─── historical_snapshots table
+│  (PostgreSQL)   │
+└─────────────────┘`}</pre>
                 </div>
-            </section>
+            </motion.section>
 
             {/* Redis Caching */}
-            <section className="mb-10">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-primary" />
-                    Redis Caching (Upstash)
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                    We use Upstash Redis to cache API responses, making the dashboard feel instant after the first load.
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Redis Caching</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                    Upstash Redis provides instant API responses after the first request.
                 </p>
-                <div className="space-y-4">
-                    <div className="bg-card border border-border rounded-lg p-4">
-                        <h3 className="font-medium mb-2">Cache Keys & TTL</h3>
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                                <code className="text-primary">pnodes:list</code>
-                                <span className="text-muted-foreground">60 seconds</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <code className="text-primary">network:overview</code>
-                                <span className="text-muted-foreground">60 seconds</span>
-                            </div>
-                            <div className="flex justify-between">
-                                <code className="text-primary">pnodes:stats:{'{address}'}</code>
-                                <span className="text-muted-foreground">30 seconds</span>
-                            </div>
-                        </div>
+                <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                            <tr>
+                                <th className="text-left p-3 font-medium">Cache Key</th>
+                                <th className="text-left p-3 font-medium">TTL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="border-t border-border">
+                                <td className="p-3"><code className="text-xs bg-muted px-1.5 py-0.5 rounded">pnodes:list</code></td>
+                                <td className="p-3 text-muted-foreground">60 seconds</td>
+                            </tr>
+                            <tr className="border-t border-border">
+                                <td className="p-3"><code className="text-xs bg-muted px-1.5 py-0.5 rounded">network:overview</code></td>
+                                <td className="p-3 text-muted-foreground">60 seconds</td>
+                            </tr>
+                            <tr className="border-t border-border">
+                                <td className="p-3"><code className="text-xs bg-muted px-1.5 py-0.5 rounded">pnodes:stats:*</code></td>
+                                <td className="p-3 text-muted-foreground">30 seconds</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border border-border p-3 text-center">
+                        <p className="text-2xl font-bold">3-5s</p>
+                        <p className="text-xs text-muted-foreground">Without cache</p>
                     </div>
-                    <div className="bg-card border border-border rounded-lg p-4">
-                        <h3 className="font-medium mb-2">Performance Improvement</h3>
-                        <div className="grid grid-cols-3 gap-4 text-center">
-                            <div>
-                                <p className="text-2xl font-bold text-red-500">3-5s</p>
-                                <p className="text-xs text-muted-foreground">Without Cache</p>
-                            </div>
-                            <div className="flex items-center justify-center">
-                                <span className="text-muted-foreground">→</span>
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-green-500">10ms</p>
-                                <p className="text-xs text-muted-foreground">With Cache</p>
-                            </div>
-                        </div>
+                    <div className="rounded-lg border border-border p-3 text-center">
+                        <p className="text-2xl font-bold text-primary">10ms</p>
+                        <p className="text-xs text-muted-foreground">With cache</p>
                     </div>
                 </div>
-            </section>
+            </motion.section>
 
-            {/* Historical Analytics */}
-            <section className="mb-10">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-primary" />
-                    Historical Analytics (Supabase)
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                    Network snapshots are collected every 5 minutes via GitHub Actions and stored in Supabase PostgreSQL.
+            {/* Supabase */}
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Historical Storage</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                    Supabase PostgreSQL stores network snapshots every 5 minutes.
                 </p>
-                <div className="bg-card border border-border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">Snapshot Data</h3>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="rounded-lg border border-border p-4">
+                    <h3 className="text-sm font-medium mb-3">Snapshot Data</h3>
+                    <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-primary" />
-                            <span>Total Nodes</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            total_nodes
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-green-500" />
-                            <span>Online Nodes</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            online_nodes
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500" />
-                            <span>Avg CPU Usage</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            avg_cpu
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-purple-500" />
-                            <span>Avg RAM Usage</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            avg_ram
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-orange-500" />
-                            <span>Total Storage</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            total_storage
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-cyan-500" />
-                            <span>Unique Versions</span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                            unique_versions
                         </div>
                     </div>
                 </div>
-            </section>
+            </motion.section>
 
             {/* Cron Job */}
-            <section className="mb-10">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-primary" />
-                    Automated Snapshots
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                    GitHub Actions runs every 5 minutes to collect and store network analytics.
-                </p>
-                <div className="space-y-4">
-                    <div className="bg-card border border-border rounded-lg p-4">
-                        <h3 className="font-medium mb-2">Cron Schedule</h3>
-                        <code className="text-sm text-primary">*/5 * * * *</code>
-                        <span className="text-sm text-muted-foreground ml-2">— Every 5 minutes</span>
+            <motion.section
+                className="mb-8"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Automated Collection</h2>
+                <div className="rounded-lg border border-border p-4">
+                    <div className="flex items-center gap-4 mb-4">
+                        <code className="text-xs bg-muted px-2 py-1 rounded">*/5 * * * *</code>
+                        <span className="text-sm text-muted-foreground">Every 5 minutes</span>
                     </div>
-                    <div className="bg-card border border-border rounded-lg p-4">
-                        <h3 className="font-medium mb-2">Collection Process</h3>
-                        <ol className="text-sm text-muted-foreground space-y-1 list-decimal list-inside">
-                            <li>Fetch all pNodes from seed nodes (~5 seconds)</li>
-                            <li>Sample 5 nodes for CPU/RAM stats (~10 seconds)</li>
-                            <li>Calculate network analytics</li>
-                            <li>Save snapshot to Supabase (~2 seconds)</li>
-                            <li>Clear Redis cache</li>
-                        </ol>
-                        <p className="text-xs text-muted-foreground mt-2">Total execution time: ~20 seconds</p>
-                    </div>
+                    <ol className="text-sm text-muted-foreground space-y-2">
+                        <li className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">1</span>
+                            Fetch all pNodes from seed nodes
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">2</span>
+                            Sample 5 nodes for CPU/RAM stats
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">3</span>
+                            Save snapshot to Supabase
+                        </li>
+                        <li className="flex items-start gap-2">
+                            <span className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-xs flex-shrink-0">4</span>
+                            Clear Redis cache
+                        </li>
+                    </ol>
                 </div>
-            </section>
+            </motion.section>
 
-            {/* Security */}
-            <section className="mb-10">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-primary" />
-                    Security
-                </h2>
-                <div className="space-y-4">
-                    <div className="bg-card border border-border rounded-lg p-4">
-                        <h3 className="font-medium mb-2">Cron Endpoint Protection</h3>
-                        <p className="text-sm text-muted-foreground">
-                            The <code>/api/cron/collect-snapshot</code> endpoint requires a <code>CRON_SECRET</code> header for authentication.
-                        </p>
-                        <div className="mt-2 bg-muted/50 p-3 rounded font-mono text-xs">
-                            <span className="text-muted-foreground">Authorization:</span> Bearer YOUR_CRON_SECRET
-                        </div>
-                    </div>
-                    <div className="bg-card border border-border rounded-lg p-4">
-                        <h3 className="font-medium mb-2">Environment Variables</h3>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                            <li><code>SUPABASE_URL</code> — Supabase project URL</li>
-                            <li><code>SUPABASE_KEY</code> — Supabase service role key</li>
-                            <li><code>UPSTASH_REDIS_REST_URL</code> — Redis URL</li>
-                            <li><code>UPSTASH_REDIS_REST_TOKEN</code> — Redis auth token</li>
-                            <li><code>CRON_SECRET</code> — Protects cron endpoint</li>
-                        </ul>
-                    </div>
+            {/* Environment Variables */}
+            <motion.section
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5, duration: 0.3 }}
+            >
+                <h2 className="text-lg font-semibold mb-4">Environment Variables</h2>
+                <div className="rounded-lg border border-border overflow-hidden">
+                    <table className="w-full text-sm">
+                        <thead className="bg-muted/50">
+                            <tr>
+                                <th className="text-left p-3 font-medium">Variable</th>
+                                <th className="text-left p-3 font-medium">Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr className="border-t border-border">
+                                <td className="p-3"><code className="text-xs">SUPABASE_URL</code></td>
+                                <td className="p-3 text-muted-foreground">Supabase project URL</td>
+                            </tr>
+                            <tr className="border-t border-border">
+                                <td className="p-3"><code className="text-xs">SUPABASE_KEY</code></td>
+                                <td className="p-3 text-muted-foreground">Service role key</td>
+                            </tr>
+                            <tr className="border-t border-border">
+                                <td className="p-3"><code className="text-xs">UPSTASH_REDIS_REST_URL</code></td>
+                                <td className="p-3 text-muted-foreground">Redis URL</td>
+                            </tr>
+                            <tr className="border-t border-border">
+                                <td className="p-3"><code className="text-xs">CRON_SECRET</code></td>
+                                <td className="p-3 text-muted-foreground">Protects cron endpoint</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </section>
-
-            {/* GitHub Actions Setup */}
-            <section className="mb-10">
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <GitBranch className="w-5 h-5 text-primary" />
-                    GitHub Actions Setup
-                </h2>
-                <p className="text-muted-foreground mb-4">
-                    To enable automated snapshot collection, add these secrets to your GitHub repository:
-                </p>
-                <div className="bg-card border border-border rounded-lg p-4">
-                    <h3 className="font-medium mb-2">Repository Secrets</h3>
-                    <ul className="text-sm text-muted-foreground space-y-1">
-                        <li><code>API_URL</code> — Your production URL (e.g., https://explorerxandeum.vercel.app)</li>
-                        <li><code>CRON_SECRET</code> — Same as your Vercel environment variable</li>
-                    </ul>
-                </div>
-            </section>
-
-            {/* Data Retention */}
-            <section>
-                <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-                    <Database className="w-5 h-5 text-primary" />
-                    Data Retention
-                </h2>
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-card border border-border rounded-lg p-4 text-center">
-                        <p className="text-3xl font-bold text-primary">∞</p>
-                        <p className="text-sm text-muted-foreground">Historical Snapshots</p>
-                        <p className="text-xs text-muted-foreground mt-1">No auto-deletion</p>
-                    </div>
-                    <div className="bg-card border border-border rounded-lg p-4 text-center">
-                        <p className="text-3xl font-bold text-primary">288</p>
-                        <p className="text-sm text-muted-foreground">Snapshots/Day</p>
-                        <p className="text-xs text-muted-foreground mt-1">Every 5 minutes</p>
-                    </div>
-                </div>
-            </section>
-        </article>
+            </motion.section>
+        </motion.article>
     );
 }
