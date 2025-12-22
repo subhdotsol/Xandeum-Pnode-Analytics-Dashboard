@@ -191,10 +191,6 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     });
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [spotlightOpen, setSpotlightOpen] = useState(false);
-    const contentRef = useRef<HTMLDivElement>(null);
-
-    // Tab order for auto-scroll
-    const tabOrder: TabType[] = ["dashboard", "analytics", "leaderboard", "map", "nodes", "watchlist", "compare", "swap", "stake"];
 
     // Sidebar persistence and keyboard shortcuts
     useEffect(() => {
@@ -232,32 +228,6 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     useEffect(() => {
         localStorage.setItem('sidebar-open', sidebarOpen.toString());
     }, [sidebarOpen]);
-
-    // Auto-scroll tab switching
-    useEffect(() => {
-        const handleScroll = () => {
-            if (!contentRef.current) return;
-
-            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-            const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100; // 100px threshold
-
-            if (scrolledToBottom) {
-                const currentIndex = tabOrder.indexOf(activeTab);
-                if (currentIndex !== -1 && currentIndex < tabOrder.length - 1) {
-                    // Switch to next tab
-                    const nextTab = tabOrder[currentIndex + 1];
-                    setActiveTab(nextTab);
-                    // Smooth scroll to top for seamless transition
-                    setTimeout(() => {
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }, 100);
-                }
-            }
-        };
-
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, [activeTab]);
 
 
     useEffect(() => {
@@ -333,7 +303,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     const uniqueVersions = Object.keys(analytics.versions.distribution).length;
 
     return (
-        <div className="min-h-screen bg-background" ref={contentRef}>
+        <div className="min-h-screen bg-background">
             {/* Sidebar */}
             <AppSidebar
                 isOpen={sidebarOpen}

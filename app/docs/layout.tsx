@@ -2,7 +2,7 @@
 
 import { useState, ReactNode, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,8 +45,23 @@ const sidebarSections = [
     },
 ];
 
+// Flattened doc order for auto-scroll navigation
+const docOrder = [
+    "/docs",
+    "/docs/pnodes",
+    "/docs/architecture",
+    "/docs/analytics",
+    "/docs/leaderboard",
+    "/docs/map",
+    "/docs/swap",
+    "/docs/staking",
+    "/docs/xandai",
+    "/docs/api",
+];
+
 export default function DocsLayout({ children }: DocsLayoutProps) {
     const pathname = usePathname();
+    const router = useRouter();
     const [isCollapsed, setIsCollapsed] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -72,6 +87,30 @@ export default function DocsLayout({ children }: DocsLayoutProps) {
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
+
+    // Auto-scroll to next doc page
+    useEffect(() => {
+        const handleScroll = () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            const scrolledToBottom = scrollTop + clientHeight >= scrollHeight - 100; // 100px threshold
+
+            if (scrolledToBottom) {
+                const currentIndex = docOrder.indexOf(pathname);
+                if (currentIndex !== -1 && currentIndex < docOrder.length - 1) {
+                    // Navigate to next doc page
+                    const nextPage = docOrder[currentIndex + 1];
+                    router.push(nextPage);
+                    // Smooth scroll to top for seamless transition
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
+                }
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [pathname, router]);
 
     return (
         <div className="min-h-screen bg-background flex">
