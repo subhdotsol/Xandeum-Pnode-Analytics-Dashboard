@@ -4,11 +4,6 @@
 
 ### Real-time monitoring dashboard for the Xandeum distributed storage network
 
-[![Live Demo](https://img.shields.io/badge/🚀_Live_Demo-explorerxandeum.vercel.app-blue?style=for-the-badge)](https://explorerxandeum.vercel.app)
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=flat-square&logo=next.js)](https://nextjs.org)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6?style=flat-square&logo=typescript)](https://typescriptlang.org)
-[![TailwindCSS](https://img.shields.io/badge/Tailwind-4.0-38bdf8?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
-
 </div>
 
 ---
