@@ -157,8 +157,8 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                 ? Math.max(0, 100 - stats.cpu_percent)
                 : 0;
 
-            const storageScore = stats?.total_bytes
-                ? Math.min(100, (stats.total_bytes / (1024 * 1024 * 1024 * 100)) * 100)
+            const storageScore = stats?.file_size
+                ? Math.min(100, (stats.file_size / (1024 * 1024 * 1024 * 100)) * 100)
                 : 0;
 
             const score = (uptimeScore * 0.4) + (cpuScore * 0.3) + (storageScore * 0.3);
@@ -277,7 +277,7 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                                     </div>
                                     <div className="text-center">
                                         <HardDrive className="w-3 h-3 mx-auto mb-1" />
-                                        {node.stats?.total_bytes ? formatBytes(node.stats.total_bytes) : "–"}
+                                        {node.stats?.file_size ? formatBytes(node.stats.file_size) : "–"}
                                     </div>
                                 </div>
                             </CardContent>
@@ -331,7 +331,7 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                                                 {node.stats?.cpu_percent?.toFixed(1) || "–"}%
                                             </td>
                                             <td className="py-2 px-2 text-center text-xs text-muted-foreground">
-                                                {node.stats?.total_bytes ? formatBytes(node.stats.total_bytes) : "–"}
+                                                {node.stats?.file_size ? formatBytes(node.stats.file_size) : "–"}
                                             </td>
                                             <td className="py-2 px-2 text-xs text-muted-foreground">
                                                 {node.version || "–"}
@@ -442,7 +442,7 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-xs text-muted-foreground">Storage</p>
-                                    <p className="text-lg font-semibold">{selectedNode.stats?.total_bytes ? formatBytes(selectedNode.stats.total_bytes) : "–"}</p>
+                                    <p className="text-lg font-semibold">{selectedNode.stats?.file_size ? formatBytes(selectedNode.stats.file_size) : "–"}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-xs text-muted-foreground">Uptime</p>
