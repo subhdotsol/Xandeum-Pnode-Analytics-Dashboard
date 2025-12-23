@@ -133,7 +133,7 @@ function PerformanceCard({
     );
 }
 
-// Process pNodes for performance charts
+// Process pNodes for performance charts - uses REAL stats from pNodes
 function processNodesForChart(nodes: PNodeInfo[], metric: 'cpu' | 'ram' | 'traffic' | 'streams') {
     const onlineNodes = nodes.filter(n => {
         const now = Math.floor(Date.now() / 1000);
@@ -141,22 +141,28 @@ function processNodesForChart(nodes: PNodeInfo[], metric: 'cpu' | 'ram' | 'traff
         return delta < 300; // Online if seen in last 5 minutes
     });
 
-    // Filter nodes that have actual data for this metric
-    const filteredNodes = onlineNodes.filter(node => {
+    console.log(`[processNodesForChart] ${metric}: ${onlineNodes.length} online nodes, ${nodes.filter(n => (n as any).stats).length} have stats`);
+
+    // Filter nodes that have actual stats data for this metric
+    const nodesWithStats = onlineNodes.filter(node => {
+        const stats = (node as any).stats;
+        if (!stats) return false;
+
         switch (metric) {
             case 'cpu':
+                return stats.cpu_percent !== undefined && stats.cpu_percent !== null;
             case 'ram':
-                // For CPU/RAM, we need nodes with stats available
-                return true; // We'll generate realistic values
+                return stats.ram_used !== undefined && stats.ram_total !== undefined;
             case 'traffic':
+                return stats.packets_received !== undefined || stats.packets_sent !== undefined;
             case 'streams':
-                return true;
+                return stats.active_streams !== undefined;
             default:
                 return true;
         }
     });
 
-    return filteredNodes
+    return nodesWithStats
         .slice(0, 15) // Top 15 nodes
         .map((node, index) => {
             // Use short node identifier: last 2 octets of IP
@@ -165,37 +171,34 @@ function processNodesForChart(nodes: PNodeInfo[], metric: 'cpu' | 'ram' | 'traff
                 ? `${ipParts[ipParts.length - 2]}.${ipParts[ipParts.length - 1]}`
                 : `N${index + 1}`;
 
-            // Generate deterministic performance data based on node IP (no random)
-            const baseValue = parseInt(node.address.split(':')[0].split('.').pop() || '0');
-            const secondOctet = parseInt(ipParts[1] || '0');
-            const thirdOctet = parseInt(ipParts[2] || '0');
-
-            // Use different octets to create variation without randomness
-            const variation1 = (baseValue * 7 + secondOctet) % 20;
-            const variation2 = (thirdOctet * 3 + baseValue) % 15;
+            const stats = (node as any).stats;
 
             switch (metric) {
                 case 'cpu':
                     return {
                         label: shortId,
-                        value: Math.min(100, 15 + (baseValue % 55) + variation1)
+                        value: Math.min(100, stats.cpu_percent || 0)
                     };
                 case 'ram':
+                    // Calculate RAM percentage from ram_used / ram_total
+                    const ramPercent = stats.ram_total > 0
+                        ? (stats.ram_used / stats.ram_total) * 100
+                        : 0;
                     return {
                         label: shortId,
-                        value: Math.min(100, 35 + (baseValue % 45) + variation2)
+                        value: Math.min(100, ramPercent)
                     };
                 case 'traffic':
                     return {
                         label: shortId,
-                        incoming: (baseValue * 50) + (secondOctet * 10) + 1500,
-                        outgoing: (baseValue * 30) + (thirdOctet * 8) + 800,
+                        incoming: stats.packets_received || 0,
+                        outgoing: stats.packets_sent || 0,
                         value: 0,
                     };
                 case 'streams':
                     return {
                         label: shortId,
-                        value: 8 + (baseValue % 40) + variation1
+                        value: stats.active_streams || 0
                     };
                 default:
                     return { label: shortId, value: 0 };
@@ -252,9 +255,9 @@ interface PerformanceChartsProps {
 
 export function PerformanceCharts({ pnodes: propNodes }: PerformanceChartsProps = {}) {
     const [isRefreshing, setIsRefreshing] = useState(false);
-    const [nodes, setNodes] = useState<PNodeInfo[]>(propNodes || []);
+    const [nodes, setNodes] = useState<PNodeInfo[]>([]);
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
-    const [hasInitialData, setHasInitialData] = useState(!!propNodes?.length);
+    const [hasInitialData, setHasInitialData] = useState(false);
 
     // Generate initial placeholder data for instant rendering
     const [placeholderData] = useState(() => ({
@@ -264,51 +267,83 @@ export function PerformanceCharts({ pnodes: propNodes }: PerformanceChartsProps 
         streams: generatePlaceholderData('streams'),
     }));
 
-    // Update nodes if prop changes
-    useEffect(() => {
-        if (propNodes && propNodes.length > 0) {
-            setNodes(propNodes);
-            setHasInitialData(true);
-            setLastUpdated(new Date());
-        }
-    }, [propNodes]);
-
-    const fetchData = async (isInitial = false) => {
-        // Skip fetch if we have prop data and this is initial load
-        if (isInitial && propNodes && propNodes.length > 0) return;
-
-        // Only show refresh indicator for manual refreshes, not initial load
-        if (!isInitial) setIsRefreshing(true);
+    // Fetch nodes and their stats from Supabase-backed API
+    const fetchData = async (showRefreshIndicator = false) => {
+        if (showRefreshIndicator) setIsRefreshing(true);
 
         try {
-            const res = await fetch('/api/pnodes');
-            if (res.ok) {
-                const data = await res.json();
-                setNodes(data.pnodes || []);
+            // Fetch from /api/stats which serves data from Supabase
+            const res = await fetch('/api/stats?online=true&limit=100');
+            if (!res.ok) return;
+
+            const data = await res.json();
+
+            if (data.success && data.data?.nodes) {
+                // Transform Supabase data to match expected format
+                const nodesWithStats = data.data.nodes.map((node: any) => {
+                    // Only create stats object if we have actual stats data
+                    const hasStats = node.cpu_percent !== null;
+
+                    return {
+                        address: node.address,
+                        pubkey: node.pubkey,
+                        version: node.version,
+                        last_seen_timestamp: node.last_seen_timestamp,
+                        stats: hasStats ? {
+                            cpu_percent: node.cpu_percent,
+                            ram_used: node.ram_used,
+                            ram_total: node.ram_total,
+                            uptime: node.uptime_seconds,
+                            total_bytes: node.total_bytes,
+                            file_size: node.file_size,
+                            total_pages: node.total_pages,
+                            packets_received: node.packets_received,
+                            packets_sent: node.packets_sent,
+                            active_streams: node.active_streams,
+                        } : null,
+                    };
+                });
+
+                console.log(`[PerformanceCharts] Loaded ${nodesWithStats.length} nodes from Supabase`);
+                console.log(`[PerformanceCharts] Summary: ${data.data.summary.withStats} with stats, avg CPU: ${data.data.summary.avgCpu}%`);
+
+                setNodes(nodesWithStats);
                 setLastUpdated(new Date());
                 setHasInitialData(true);
+            } else {
+                console.log('[PerformanceCharts] No data from /api/stats, trying direct fetch...');
+                // Fallback to direct RPC if Supabase is empty (first time setup)
+                const fallbackRes = await fetch('/api/pnodes');
+                if (fallbackRes.ok) {
+                    const fallbackData = await fallbackRes.json();
+                    const pnodesList = fallbackData.pnodes || [];
+                    setNodes(pnodesList);
+                    setHasInitialData(true);
+                }
             }
         } catch (error) {
-            console.error('Failed to fetch pnodes:', error);
+            console.error('Failed to fetch stats:', error);
         } finally {
             setIsRefreshing(false);
+            setLastUpdated(new Date());
         }
     };
 
+    // Initial fetch on mount
     useEffect(() => {
-        // Only fetch if we don't have prop data
-        if (!propNodes || propNodes.length === 0) {
-            fetchData(true);
-        }
-
+        fetchData(false);
         // Auto-refresh every 30 seconds
-        const interval = setInterval(() => fetchData(false), 30000);
+        const interval = setInterval(() => fetchData(true), 30000);
         return () => clearInterval(interval);
     }, []);
 
     const performanceData = useMemo(() => {
-        // If no real nodes yet, use placeholder data for instant rendering
-        if (nodes.length === 0) {
+        // Check how many nodes have stats
+        const nodesWithStats = nodes.filter((n: any) => n.stats !== null);
+        console.log(`[PerformanceCharts useMemo] Total nodes: ${nodes.length}, with stats: ${nodesWithStats.length}`);
+
+        // If no nodes with stats yet, use placeholder data
+        if (nodesWithStats.length === 0) {
             return placeholderData;
         }
         return {

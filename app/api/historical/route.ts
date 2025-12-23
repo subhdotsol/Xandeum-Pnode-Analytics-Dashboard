@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const range = searchParams.get("range") || "24h";
-    const limit = parseInt(searchParams.get("limit") || "100");
+    const limit = parseInt(searchParams.get("limit") || "1000");
 
     // Calculate time ranges
     const now = Date.now();
@@ -34,8 +34,8 @@ export async function GET(request: Request) {
     const startTimestamp = Math.floor((now - timeRange) / 1000);
     const endTimestamp = Math.floor(now / 1000);
 
-    // Fetch from Supabase
-    const snapshots = await getSnapshotsByRange(startTimestamp, endTimestamp, limit);
+    // Fetch ALL data from Supabase (no limit)
+    const snapshots = await getSnapshotsByRange(startTimestamp, endTimestamp);
 
     // Transform for frontend (matching component's expected format)
     const data = snapshots.map((snapshot: HistoricalSnapshot) => ({
