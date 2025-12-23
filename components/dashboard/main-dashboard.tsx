@@ -22,6 +22,7 @@ import { GeographicInsights } from "@/components/dashboard/geographic-insights";
 import { StatusDistribution } from "@/components/dashboard/status-distribution";
 import { MarketDataCharts } from "@/components/dashboard/market-data-charts";
 import { SwapWidget } from "@/components/swap-widget";
+import { TradingTerminal } from "@/components/trading-terminal";
 import { StakingWidget } from "@/components/staking-widget";
 import { MapSkeleton } from "@/components/dashboard/skeletons";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
@@ -67,7 +68,7 @@ interface MainDashboardProps {
     };
 }
 
-type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes" | "swap" | "stake" | "watchlist" | "compare";
+type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes" | "trading" | "swap" | "stake" | "watchlist" | "compare";
 
 // Format large numbers (e.g., 293960000 -> "293.96M")
 function formatLargeNumber(num: number): string {
@@ -209,7 +210,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     // Read tab from URL params (for spotlight search navigation from /docs)
     useEffect(() => {
         const tabParam = searchParams.get('tab') as TabType | null;
-        if (tabParam && ['dashboard', 'analytics', 'leaderboard', 'map', 'nodes', 'swap', 'stake', 'watchlist', 'compare'].includes(tabParam)) {
+        if (tabParam && ['dashboard', 'analytics', 'leaderboard', 'map', 'nodes', 'trading', 'swap', 'stake', 'watchlist', 'compare'].includes(tabParam)) {
             setActiveTab(tabParam);
             // Clean up URL after setting tab
             router.replace('/', { scroll: false });
@@ -574,6 +575,18 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     )}
 
                     {activeTab === "nodes" && <NodesTable nodes={pnodes} />}
+
+                    {activeTab === "trading" && (
+                        <motion.div
+                            key="trading"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -10 }}
+                            transition={{ duration: 0.3, ease: "easeInOut" }}
+                        >
+                            <TradingTerminal />
+                        </motion.div>
+                    )}
 
                     {activeTab === "swap" && (
                         <motion.div

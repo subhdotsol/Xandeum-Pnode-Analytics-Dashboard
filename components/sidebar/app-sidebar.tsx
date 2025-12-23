@@ -17,14 +17,15 @@ import {
     GitCompare,
     Server,
     ArrowRightLeft,
-    Coins
+    Coins,
+    TrendingUp
 } from "lucide-react";
 
 interface AppSidebarProps {
     isOpen: boolean;
     onClose: () => void;
     activeTab: string;
-    onTabChange: (tab: 'dashboard' | 'analytics' | 'leaderboard' | 'map' | 'nodes' | 'swap' | 'stake' | 'watchlist' | 'compare') => void;
+    onTabChange: (tab: 'dashboard' | 'analytics' | 'leaderboard' | 'map' | 'nodes' | 'trading' | 'swap' | 'stake' | 'watchlist' | 'compare') => void;
 }
 
 const navigationItems: Array<{
@@ -41,6 +42,7 @@ const navigationItems: Array<{
         { id: "nodes", icon: Server, label: "Directory", isExternal: false },
         { id: "watchlist", icon: Star, label: "Watchlist", isExternal: false },
         { id: "compare", icon: GitCompare, label: "Compare", isExternal: false },
+        { id: "trading", icon: TrendingUp, label: "Trading", isExternal: false },
         { id: "swap", icon: ArrowRightLeft, label: "Swap", isExternal: false },
         { id: "stake", icon: Coins, label: "Stake", isExternal: false },
         { id: "docs", icon: BookOpen, label: "Documentation", isExternal: true, href: "/docs" },
@@ -66,7 +68,7 @@ export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSideb
         }
 
         // Switch tabs
-        onTabChange(item.id as 'dashboard' | 'analytics' | 'leaderboard' | 'map' | 'nodes' | 'swap' | 'stake' | 'watchlist' | 'compare');
+        onTabChange(item.id as 'dashboard' | 'analytics' | 'leaderboard' | 'map' | 'nodes' | 'trading' | 'swap' | 'stake' | 'watchlist' | 'compare');
 
         // Auto-close on mobile
         if (window.innerWidth < 768) {

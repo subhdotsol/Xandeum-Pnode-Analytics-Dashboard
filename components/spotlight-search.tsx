@@ -17,10 +17,11 @@ import {
     BookOpen,
     Layers,
     Database,
-    Zap
+    Zap,
+    TrendingUp
 } from "lucide-react";
 
-type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes" | "swap" | "stake" | "watchlist" | "compare";
+type TabType = "dashboard" | "analytics" | "leaderboard" | "map" | "nodes" | "trading" | "swap" | "stake" | "watchlist" | "compare";
 
 interface SearchItem {
     id: TabType | string;
@@ -46,7 +47,8 @@ const searchableItems: SearchItem[] = [
     { id: "nodes", label: "Directory", icon: Server, keywords: ["nodes", "directory", "list", "table"], type: "tab" },
     { id: "watchlist", label: "Watchlist", icon: Star, keywords: ["watchlist", "favorites", "starred", "saved"], type: "tab" },
     { id: "compare", label: "Compare", icon: GitCompare, keywords: ["compare", "comparison", "diff"], type: "tab" },
-    { id: "swap", label: "Swap", icon: ArrowRightLeft, keywords: ["swap", "exchange", "trade"], type: "tab" },
+    { id: "trading", label: "Trading", icon: TrendingUp, keywords: ["trading", "trade", "chart", "price", "xand", "terminal"], type: "tab" },
+    { id: "swap", label: "Swap", icon: ArrowRightLeft, keywords: ["swap", "exchange", "jupiter"], type: "tab" },
     { id: "stake", label: "Stake", icon: Coins, keywords: ["stake", "staking", "earn", "rewards", "sol"], type: "tab" },
 
     // Documentation pages
