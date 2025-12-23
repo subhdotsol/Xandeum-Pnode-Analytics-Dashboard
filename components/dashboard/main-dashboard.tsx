@@ -29,6 +29,7 @@ import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SidebarToggle } from "@/components/sidebar/sidebar-toggle";
 import { Watchlist } from "@/components/dashboard/watchlist";
 import { Compare } from "@/components/dashboard/compare";
+import { AINetworkSummary } from "@/components/dashboard/ai-network-summary";
 import { SpotlightSearch } from "@/components/spotlight-search";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import { usePrefetch } from "@/contexts/prefetch-context";
@@ -524,6 +525,9 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                     />
                                 </div>
                             </div>
+
+                            {/* AI Network Insights - Full Width */}
+                            <AINetworkSummary />
                         </div>
                     )}
 

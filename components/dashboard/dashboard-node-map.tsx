@@ -274,6 +274,7 @@ export function DashboardNodeMap({ nodes, isLoading, loadedCount = 0, totalCount
                         <HoverPopup group={hoveredGroup} markerColor={hoveredColor} />
 
                         <MapContainer
+                            key="dashboard-node-map"
                             center={center}
                             zoom={zoom}
                             className="h-full w-full"
