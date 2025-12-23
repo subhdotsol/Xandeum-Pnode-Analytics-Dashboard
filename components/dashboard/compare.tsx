@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { GitCompare, Search, ArrowUp, ArrowDown, Minus, ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { GitCompare, Search, ArrowUp, ArrowDown, Minus, ChevronLeft, ChevronRight, Loader2, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { getNodeHealth } from "@/lib/network-analytics";
@@ -25,6 +25,11 @@ export function Compare({ nodes }: CompareProps) {
     const [currentPage, setCurrentPage] = useState(1);
     const [nodeStats, setNodeStats] = useState<Map<string, PNodeStats>>(new Map());
     const [loadingStats, setLoadingStats] = useState(false);
+
+    // AI Comparison state
+    const [aiAnalysis, setAiAnalysis] = useState<string | null>(null);
+    const [loadingAi, setLoadingAi] = useState(false);
+    const [aiError, setAiError] = useState<string | null>(null);
 
     // Filter nodes by search
     const filteredNodes = useMemo(() => {
@@ -64,6 +69,8 @@ export function Compare({ nodes }: CompareProps) {
         if (selectedNodes.size >= 2) {
             setLoadingStats(true);
             setShowComparison(true);
+            setAiAnalysis(null);
+            setAiError(null);
 
             // Fetch stats for selected nodes
             const statsMap = new Map<string, PNodeStats>();
@@ -85,6 +92,37 @@ export function Compare({ nodes }: CompareProps) {
 
             setNodeStats(statsMap);
             setLoadingStats(false);
+        }
+    };
+
+    const handleAiCompare = async () => {
+        const selectedNodesData = getSelectedNodesData();
+        if (selectedNodesData.length < 2) return;
+
+        setLoadingAi(true);
+        setAiError(null);
+
+        try {
+            const res = await fetch("/api/compare-nodes", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    nodes: selectedNodesData.map(n => ({ address: n.address, pubkey: n.pubkey }))
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                setAiError(data.error || "Failed to generate analysis");
+            } else {
+                setAiAnalysis(data.analysis);
+            }
+        } catch (error) {
+            console.error("AI comparison error:", error);
+            setAiError("Failed to connect to AI service");
+        } finally {
+            setLoadingAi(false);
         }
     };
 
@@ -142,7 +180,7 @@ export function Compare({ nodes }: CompareProps) {
         return (
             <div className="space-y-6">
                 {/* Header */}
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
                         <h2 className="text-2xl font-semibold flex items-center gap-2">
                             <GitCompare className="w-6 h-6" />
@@ -152,13 +190,59 @@ export function Compare({ nodes }: CompareProps) {
                             Comparing {selectedNodesData.length} nodes
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowComparison(false)}
-                        className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm font-medium transition-colors"
-                    >
-                        ← Back to Selection
-                    </button>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleAiCompare}
+                            disabled={loadingAi || selectedNodesData.length < 2}
+                            className="px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white hover:from-violet-600 hover:to-purple-700 rounded-md font-medium transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {loadingAi ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Sparkles className="w-4 h-4" />
+                            )}
+                            {loadingAi ? "Analyzing..." : "AI Compare"}
+                        </button>
+                        <button
+                            onClick={() => {
+                                setShowComparison(false);
+                                setAiAnalysis(null);
+                                setAiError(null);
+                            }}
+                            className="px-4 py-2 bg-muted hover:bg-muted/80 rounded-md text-sm font-medium transition-colors"
+                        >
+                            ← Back
+                        </button>
+                    </div>
                 </div>
+
+                {/* AI Analysis Card */}
+                {(aiAnalysis || loadingAi || aiError) && (
+                    <Card className="border border-violet-500/30 bg-gradient-to-r from-violet-500/5 to-purple-500/5">
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-sm font-medium flex items-center gap-2 text-violet-600 dark:text-violet-400">
+                                <Sparkles className="w-4 h-4" />
+                                AI Analysis
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            {loadingAi && (
+                                <div className="flex items-center gap-3 py-4">
+                                    <Loader2 className="w-5 h-5 animate-spin text-violet-500" />
+                                    <span className="text-sm text-muted-foreground">Analyzing node performance...</span>
+                                </div>
+                            )}
+                            {aiError && (
+                                <p className="text-sm text-red-500">{aiError}</p>
+                            )}
+                            {aiAnalysis && !loadingAi && (
+                                <div className="prose prose-sm dark:prose-invert max-w-none">
+                                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{aiAnalysis}</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                )}
 
                 {/* Comparison Table */}
                 <Card className="border border-border">
