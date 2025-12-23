@@ -41,8 +41,46 @@ export async function handleAsk(ctx: TextContext) {
     const xandPrice = priceData.xandeum?.usd || 0;
     const exchangeRate = xandPrice > 0 ? (solPrice / xandPrice).toFixed(0) : "N/A";
     
+    // Calculate top 10 leaderboard with full details
+    const topNodes = pnodes
+      .filter((n: any) => !n.address?.includes('127.0.0.1') && !n.pubkey?.includes('testpubkey'))
+      .map((node: any) => {
+        const now = Math.floor(Date.now() / 1000);
+        const minutesAgo = (now - node.last_seen_timestamp) / 60;
+        const uptimeScore = minutesAgo < 5 ? 40 : minutesAgo < 15 ? 30 : minutesAgo < 60 ? 20 : minutesAgo < 360 ? 10 : 0;
+        const rpcScore = (node.rpc || node.gossip_rpc) ? 30 : 0;
+        const versionScore = node.version === analytics.versions.latest ? 30 : 0;
+        return {
+          pubkey: node.pubkey,
+          address: node.address,
+          credits: uptimeScore + rpcScore + versionScore,
+          version: node.version,
+          status: minutesAgo < 5 ? "healthy" : minutesAgo < 60 ? "degraded" : "offline",
+        };
+      })
+      .sort((a: any, b: any) => b.credits - a.credits)
+      .slice(0, 10);
+
+    // Build top 10 leaderboard string
+    const leaderboardStr = topNodes
+      .map((n: any, i: number) => `#${i + 1}: ${n.pubkey} @ ${n.address} - ${n.credits}/100 pts (${n.status})`)
+      .join("\n");
+
+    // Version distribution string
+    const versionDistStr = Object.entries(analytics.versions.distribution)
+      .sort((a, b) => (b[1] as number) - (a[1] as number))
+      .slice(0, 5)
+      .map(([version, count]) => `v${version}: ${count} nodes`)
+      .join(", ");
+
+    // Sample nodes by status for lookups
+    const sampleHealthy = pnodes.filter((n: any) => {
+      const delta = Math.floor(Date.now() / 1000) - n.last_seen_timestamp;
+      return delta < 300;
+    }).slice(0, 3).map((n: any) => n.pubkey?.slice(0, 16)).join(", ");
+
     // Build comprehensive system context (same as web XandAI)
-    const systemPrompt = `You are XandAI, an expert assistant for Xandeum - the decentralized storage layer for Solana. You have comprehensive knowledge from official documentation.
+    const systemPrompt = `You are XandAI, an expert assistant for Xandeum - the decentralized storage layer for Solana. You have comprehensive knowledge from official documentation AND live network data.
 
 WHAT IS XANDEUM?
 Xandeum is building a revolutionary scalable storage layer for Solana, addressing the "blockchain storage trilemma":
@@ -118,7 +156,9 @@ sedApps (STORAGE-ENABLED dApps):
 - Use cases: databases, NFT metadata, games, analytics
 - Coming soon: Decentralized Wikipedia
 
-LIVE NETWORK DATA:
+=== LIVE NETWORK DATA ===
+
+NETWORK OVERVIEW:
 - Total Nodes: ${analytics.totals.total}
 - Healthy: ${analytics.totals.healthy} (${analytics.health.healthyPercentage}%)
 - Degraded: ${analytics.totals.degraded}
@@ -131,6 +171,22 @@ TOKEN PRICES:
 - XAND: $${xandPrice.toFixed(6)}
 - Rate: 1 SOL = ${exchangeRate} XAND
 
+VERSION DISTRIBUTION: ${versionDistStr}
+
+=== TOP 10 NODES LEADERBOARD ===
+${leaderboardStr}
+
+=== SAMPLE HEALTHY NODES ===
+${sampleHealthy}
+
+=== HOW TO ANSWER NODE QUERIES ===
+When users ask about specific nodes, top performers, or addresses:
+- If they ask for "top node" or "best node", give the #1 from the leaderboard with FULL pubkey and address
+- If they ask for "top 5" or "top 10", list them from the leaderboard
+- If they ask about a specific node (partial pubkey match), try to find it in the data
+- Always include the full pubkey and IP address when discussing specific nodes
+- Pod Credits scoring: Uptime (40pts) + RPC enabled (30pts) + Latest version (30pts)
+
 LINKS:
 - Dashboard: explorerxandeum.vercel.app
 - Docs: docs.xandeum.network
@@ -138,7 +194,7 @@ LINKS:
 - Jupiter: jup.ag/swap/SOL-XAND
 - pNode Store: pnodestore.xandeum.network
 
-Keep responses concise (max 250 words) for Telegram. Be helpful, accurate, and friendly.`;
+Keep responses concise (max 300 words) for Telegram. Be helpful, accurate, and friendly. When providing node addresses, format them clearly so users can copy them.`;
 
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {

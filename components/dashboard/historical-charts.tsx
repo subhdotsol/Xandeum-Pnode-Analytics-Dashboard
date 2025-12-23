@@ -19,13 +19,13 @@ interface HistoricalDataPoint {
 }
 
 const TIME_RANGES = [
-    { label: "1H", value: 1 * 60 * 60 * 1000 },
-    { label: "4H", value: 4 * 60 * 60 * 1000 },
-    { label: "12H", value: 12 * 60 * 60 * 1000 },
-    { label: "24H", value: 24 * 60 * 60 * 1000 },
-    { label: "7D", value: 7 * 24 * 60 * 60 * 1000 },
-    { label: "30D", value: 30 * 24 * 60 * 60 * 1000 },
-    { label: "All", value: Infinity },
+    { label: "1H", value: "1h", ms: 1 * 60 * 60 * 1000 },
+    { label: "4H", value: "4h", ms: 4 * 60 * 60 * 1000 },
+    { label: "12H", value: "12h", ms: 12 * 60 * 60 * 1000 },
+    { label: "24H", value: "24h", ms: 24 * 60 * 60 * 1000 },
+    { label: "7D", value: "7d", ms: 7 * 24 * 60 * 60 * 1000 },
+    { label: "30D", value: "30d", ms: 30 * 24 * 60 * 60 * 1000 },
+    { label: "All", value: "all", ms: Infinity },
 ];
 
 const formatTime = (timestamp: number) => {
@@ -85,51 +85,44 @@ export function HistoricalCharts() {
     const [error, setError] = useState<string | null>(null);
     const [timeRange, setTimeRange] = useState(TIME_RANGES[4].value); // Default 7D
 
-    // Use prefetched data if available, otherwise fetch
-    useEffect(() => {
-        if (prefetchedData && prefetchedData.length > 0) {
-            setRealData(prefetchedData);
-            setHasRealData(true);
-            return;
-        }
-
-        async function fetchHistoricalData() {
-            try {
-                const res = await fetch("/api/historical?range=1h");
-                if (res.ok) {
-                    const response = await res.json();
-                    if (response.data && response.data.length > 0) {
-                        setRealData(response.data);
-                        setHasRealData(true);
-                    }
+    // Fetch data from API based on selected time range
+    const fetchHistoricalData = async (range: string) => {
+        try {
+            setReloading(true);
+            // Use higher limit for longer ranges to get more data points
+            const limit = range === "all" ? 1000 : range === "30d" ? 500 : 200;
+            const res = await fetch(`/api/historical?range=${range}&limit=${limit}`);
+            if (res.ok) {
+                const response = await res.json();
+                if (response.data && response.data.length > 0) {
+                    setRealData(response.data);
+                    setHasRealData(true);
                 }
-            } catch (err) {
-                console.error("Error loading historical data:", err);
             }
-        }
-
-        fetchHistoricalData();
-    }, [prefetchedData]);
-
-    // Handle time range change with reload effect
-    const handleTimeRangeChange = (newRange: number) => {
-        if (newRange === timeRange) return;
-        setReloading(true);
-        setTimeout(() => {
-            setTimeRange(newRange);
+        } catch (err) {
+            console.error("Error loading historical data:", err);
+        } finally {
             setReloading(false);
-        }, 300);
+        }
+    };
+
+    // Initial fetch and when time range changes
+    useEffect(() => {
+        // Always fetch fresh data when time range changes
+        fetchHistoricalData(timeRange);
+    }, [timeRange]);
+
+    // Handle time range change - now re-fetches from API
+    const handleTimeRangeChange = (newRange: string) => {
+        if (newRange === timeRange) return;
+        setTimeRange(newRange);
     };
 
     // Use real data if available, otherwise use mock
     const data = hasRealData ? realData : mockData;
 
-    // Filter data based on time range
-    const filteredData = useMemo(() => {
-        if (timeRange === Infinity) return data;
-        const cutoff = Math.floor((Date.now() - timeRange) / 1000); // Convert to seconds
-        return data.filter(point => point.timestamp >= cutoff);
-    }, [data, timeRange]);
+    // No client-side filtering needed - API returns correct range
+    const filteredData = data;
 
     // Format data for charts
     const chartData = useMemo(() => {

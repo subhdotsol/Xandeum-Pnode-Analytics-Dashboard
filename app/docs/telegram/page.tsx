@@ -77,20 +77,80 @@ export default function TelegramDocsPage() {
             {/* Commands */}
             <section className="space-y-4">
                 <h2 className="text-xl font-semibold border-b border-border pb-2">Available Commands</h2>
+
+                {/* AI Assistant */}
                 <div className="space-y-2">
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <h3 className="text-sm font-medium text-violet-400 uppercase tracking-wide">🤖 AI Assistant</h3>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono whitespace-nowrap">/ask &lt;question&gt;</code>
+                        <span className="text-sm text-muted-foreground">Ask XandAI anything about Xandeum, nodes, or request specific node addresses</span>
+                    </div>
+                </div>
+
+                {/* Overview Commands */}
+                <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-blue-400 uppercase tracking-wide">📊 Overview</h3>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/stats</code>
+                        <span className="text-sm text-muted-foreground">Full dashboard overview with network, RPC, and token data</span>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/health</code>
+                        <span className="text-sm text-muted-foreground">Network health score and status breakdown</span>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/nodes</code>
+                        <span className="text-sm text-muted-foreground">Node count statistics (healthy, degraded, offline)</span>
+                    </div>
+                </div>
+
+                {/* Token Commands */}
+                <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-green-400 uppercase tracking-wide">💰 Tokens</h3>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/price</code>
+                        <span className="text-sm text-muted-foreground">XAND & SOL live prices</span>
+                    </div>
+                </div>
+
+                {/* Leaderboard Commands */}
+                <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-yellow-400 uppercase tracking-wide">🏆 Leaderboard</h3>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/top</code>
+                        <span className="text-sm text-muted-foreground">Top 10 nodes with full pubkeys and addresses (copyable)</span>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/version</code>
+                        <span className="text-sm text-muted-foreground">Version distribution across all nodes</span>
+                    </div>
+                </div>
+
+                {/* Node Lookup Commands */}
+                <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-cyan-400 uppercase tracking-wide">🔍 Node Lookup</h3>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono whitespace-nowrap">/node &lt;pubkey&gt;</code>
+                        <span className="text-sm text-muted-foreground">Get detailed info about a specific node (status, version, pod credits)</span>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono whitespace-nowrap">/search &lt;query&gt;</code>
+                        <span className="text-sm text-muted-foreground">Search nodes by pubkey, IP, or version</span>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono whitespace-nowrap">/compare &lt;n1&gt; &lt;n2&gt;</code>
+                        <span className="text-sm text-muted-foreground">Compare two nodes side by side</span>
+                    </div>
+                </div>
+
+                {/* General Commands */}
+                <div className="space-y-2">
+                    <h3 className="text-sm font-medium text-zinc-400 uppercase tracking-wide">ℹ️ General</h3>
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                         <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/start</code>
                         <span className="text-sm text-muted-foreground">Start the bot and see welcome message</span>
                     </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/status</code>
-                        <span className="text-sm text-muted-foreground">Get current network status and health score</span>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                        <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/version</code>
-                        <span className="text-sm text-muted-foreground">View version distribution across all nodes</span>
-                    </div>
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
                         <code className="px-2 py-1 rounded bg-card border border-border text-sm font-mono">/help</code>
                         <span className="text-sm text-muted-foreground">Show all available commands</span>
                     </div>
@@ -99,15 +159,40 @@ export default function TelegramDocsPage() {
 
             {/* Example Output */}
             <section className="space-y-4">
-                <h2 className="text-xl font-semibold border-b border-border pb-2">Example Response</h2>
-                <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-sm">
-                    <div className="text-green-400 mb-2">📊 Network Status</div>
-                    <div className="text-zinc-300 space-y-1">
-                        <p>Total Nodes: <span className="text-white">247</span></p>
-                        <p>Healthy: <span className="text-green-400">231</span> (93.5%)</p>
-                        <p>Degraded: <span className="text-yellow-400">12</span> (4.9%)</p>
-                        <p>Offline: <span className="text-red-400">4</span> (1.6%)</p>
-                        <p className="mt-2">Health Score: <span className="text-green-400">87/100</span></p>
+                <h2 className="text-xl font-semibold border-b border-border pb-2">Example Responses</h2>
+
+                {/* /top example */}
+                <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Response to <code className="px-1.5 py-0.5 rounded bg-card border border-border">/top</code></div>
+                    <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-sm">
+                        <div className="text-yellow-400 mb-3">🏆 Top 10 pNodes by Pod Credits</div>
+                        <div className="text-zinc-300 space-y-3">
+                            <div>
+                                <span className="text-yellow-400">🥇</span> 100/100 pts<br />
+                                <span className="text-zinc-500">🔑</span> <span className="text-cyan-400">EcTqXgB6VJZkH2u...</span><br />
+                                <span className="text-zinc-500">📍</span> 173.212.203.145:9001
+                            </div>
+                            <div>
+                                <span className="text-zinc-400">🥈</span> 100/100 pts<br />
+                                <span className="text-zinc-500">🔑</span> <span className="text-cyan-400">7mPK9w2rF3Yz...</span><br />
+                                <span className="text-zinc-500">📍</span> 161.97.97.41:9001
+                            </div>
+                            <div className="text-zinc-500">...</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* /ask example */}
+                <div className="space-y-2">
+                    <div className="text-sm text-muted-foreground">Response to <code className="px-1.5 py-0.5 rounded bg-card border border-border">/ask give me the top node address</code></div>
+                    <div className="p-4 rounded-lg bg-zinc-900 border border-zinc-800 font-mono text-sm">
+                        <div className="text-violet-400 mb-2">🤖 XandAI:</div>
+                        <div className="text-zinc-300">
+                            The #1 node by Pod Credits is:<br /><br />
+                            <span className="text-cyan-400">EcTqXgB6VJZkH2uPxQk9...</span><br />
+                            📍 Address: <span className="text-white">173.212.203.145:9001</span><br />
+                            ⭐ Score: 100/100 pts (healthy)
+                        </div>
                     </div>
                 </div>
             </section>

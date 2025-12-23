@@ -20,6 +20,8 @@ export async function handleTop(ctx: Context) {
         const versionScore = node.version === analytics.versions.latest ? 30 : 0;
         return {
           pubkey: node.pubkey?.slice(0, 12) + "...",
+          fullPubkey: node.pubkey || "unknown",
+          address: node.address || "unknown",
           credits: uptimeScore + rpcScore + versionScore,
           version: node.version,
         };
@@ -30,14 +32,15 @@ export async function handleTop(ctx: Context) {
     const leaderboard = topNodes
       .map((n: any, i: number) => {
         const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i + 1}.`;
-        return `${medal} ${n.pubkey} | ${n.credits} pts`;
+        return `${medal} ${n.credits}/100 pts\n🔑 ${n.fullPubkey}\n📍 ${n.address}`;
       })
-      .join("\n");
+      .join("\n\n");
     
     await ctx.reply(
       `🏆 Top 10 pNodes by Pod Credits\n\n` +
       `${leaderboard}\n\n` +
-      `📊 View full leaderboard: explorerxandeum.vercel.app`
+      `💡 Copy any pubkey to look up with /node\n` +
+      `📊 Full dashboard: explorerxandeum.vercel.app`
     );
   } catch (error) {
     console.error("Top command error:", error);
