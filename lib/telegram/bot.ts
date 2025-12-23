@@ -15,6 +15,25 @@ import { handleAsk } from "./commands/ask";
 // Create bot instance
 const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN!);
 
+// Set bot description (shown before /start)
+const botDescription = `🌐 What can this bot do?
+
+📊 Real-time pNode Analytics — live network monitoring at your fingertips!
+
+⚡ Instant access to network health, node stats, and XAND prices.
+
+🤖 AI-Powered — ask XandAI anything about Xandeum!
+
+🏆 Track top performers and version distribution across 250+ nodes.
+
+🚀 Start exploring the Xandeum network now!`;
+
+const shortDescription = "Real-time Xandeum pNode analytics, prices, and AI assistant";
+
+// Set descriptions on bot startup
+bot.telegram.setMyDescription(botDescription).catch(() => {});
+bot.telegram.setMyShortDescription(shortDescription).catch(() => {});
+
 // Register commands
 bot.start((ctx) => ctx.reply(
   "🌐 Welcome to Xandeum pNode Analytics Bot!\n\n" +

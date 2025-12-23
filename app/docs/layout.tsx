@@ -3,7 +3,7 @@
 import { useState, ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database, HelpCircle, Heart, History, MessageCircle, Keyboard, TrendingUp } from "lucide-react";
+import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database, HelpCircle, Heart, History, MessageCircle, Keyboard, TrendingUp, Send } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion, AnimatePresence } from "framer-motion";
 import { SpotlightSearch } from "@/components/spotlight-search";
@@ -44,6 +44,7 @@ const sidebarSections = [
         title: "AI & API",
         items: [
             { href: "/docs/xandai", label: "XandAI Bot", icon: Bot },
+            { href: "/docs/telegram", label: "Telegram Bot", icon: Send },
             { href: "/docs/api", label: "API Reference", icon: Code },
         ]
     },
@@ -72,6 +73,7 @@ const docOrder = [
     "/docs/swap",
     "/docs/staking",
     "/docs/xandai",
+    "/docs/telegram",
     "/docs/api",
     "/docs/faq",
     "/docs/troubleshooting",

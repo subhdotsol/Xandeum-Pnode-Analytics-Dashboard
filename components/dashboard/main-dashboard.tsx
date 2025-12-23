@@ -373,7 +373,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     </div>
 
                     <div className="text-center mb-4">
-                        <h1 className="text-3xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
+                        <h1 className="text-4xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
                         <p className="text-muted-foreground">Real-time monitoring of the Xandeum distributed storage network</p>
                     </div>
 

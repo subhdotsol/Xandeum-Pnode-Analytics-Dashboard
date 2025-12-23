@@ -65,6 +65,7 @@ const searchableItems: SearchItem[] = [
     { id: "docs-staking", label: "Docs: Staking", icon: Coins, keywords: ["staking docs", "stake guide", "rewards", "docs"], type: "docs", href: "/docs/staking" },
     { id: "docs-trading", label: "Docs: Trading", icon: TrendingUp, keywords: ["trading docs", "charts", "jupiter", "birdeye", "docs"], type: "docs", href: "/docs/trading" },
     { id: "docs-xandai", label: "Docs: XandAI", icon: Zap, keywords: ["xandai", "ai assistant", "chatbot", "docs"], type: "docs", href: "/docs/xandai" },
+    { id: "docs-telegram", label: "Docs: Telegram Bot", icon: Zap, keywords: ["telegram", "bot", "xandbot", "alerts", "notifications", "docs"], type: "docs", href: "/docs/telegram" },
     { id: "docs-faq", label: "Docs: FAQ", icon: BookOpen, keywords: ["faq", "questions", "answers", "help", "docs"], type: "docs", href: "/docs/faq" },
     { id: "docs-troubleshooting", label: "Docs: Troubleshooting", icon: Zap, keywords: ["troubleshooting", "problems", "issues", "bugs", "fix", "docs"], type: "docs", href: "/docs/troubleshooting" },
     { id: "docs-contributing", label: "Docs: Contributing", icon: BookOpen, keywords: ["contributing", "contribute", "github", "fork", "pr", "docs"], type: "docs", href: "/docs/contributing" },

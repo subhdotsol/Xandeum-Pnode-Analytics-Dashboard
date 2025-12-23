@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, CircleMarker, useMap } from "react-leaflet";
 import L from "leaflet";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo, useEffect, useState, useId } from "react";
 import { Card } from "@/components/ui/card";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 
@@ -181,6 +181,7 @@ interface DashboardNodeMapProps {
 }
 
 export function DashboardNodeMap({ nodes, isLoading, loadedCount = 0, totalCount = 0 }: DashboardNodeMapProps) {
+    const mapId = useId();
     const [zoom, setZoom] = useState(2);
     const [center, setCenter] = useState<[number, number]>([30, 10]);
     const [mapInstance, setMapInstance] = useState<L.Map | null>(null);
@@ -274,7 +275,7 @@ export function DashboardNodeMap({ nodes, isLoading, loadedCount = 0, totalCount
                         <HoverPopup group={hoveredGroup} markerColor={hoveredColor} />
 
                         <MapContainer
-                            key="dashboard-node-map"
+                            key={mapId}
                             center={center}
                             zoom={zoom}
                             className="h-full w-full"

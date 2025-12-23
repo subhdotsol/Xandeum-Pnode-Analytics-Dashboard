@@ -82,45 +82,71 @@ export function AiAssistant() {
             {/* Ask AI Button - Only visible after dashboard loads */}
             <AnimatePresence>
                 {isMounted && (
-                    <motion.button
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        whileHover={{ scale: 1.02 }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setIsOpen(!isOpen)}
-                        aria-label="Ask AI"
-                        className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${isOpen
-                            ? "bg-muted text-foreground"
-                            : "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-purple-500/25"
-                            }`}
-                    >
-                        <AnimatePresence mode="wait">
-                            {isOpen ? (
-                                <motion.div
-                                    key="close"
-                                    initial={{ rotate: -90, opacity: 0 }}
-                                    animate={{ rotate: 0, opacity: 1 }}
-                                    exit={{ rotate: 90, opacity: 0 }}
-                                    className="flex items-center gap-2"
-                                >
-                                    <X className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Close</span>
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key="open"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="flex items-center gap-2"
-                                >
-                                    <Bot className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Ask AI</span>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </motion.button>
+                    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+                        {/* Telegram Button */}
+                        <motion.a
+                            href="https://t.me/xandeum_bot"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="p-2.5 rounded-full bg-[#0088cc] text-white shadow-lg hover:bg-[#0077b5] transition-colors group relative"
+                            title="Visit our XandBot"
+                        >
+                            {/* Telegram SVG Icon */}
+                            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z" />
+                            </svg>
+                            {/* Tooltip */}
+                            <span className="absolute right-12 top-1/2 -translate-y-1/2 px-2 py-1 bg-card border border-border rounded-md text-xs text-foreground whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                Visit our XandBot
+                            </span>
+                        </motion.a>
+
+                        {/* Ask AI Button */}
+                        <motion.button
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            whileHover={{ scale: 1.02 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => setIsOpen(!isOpen)}
+                            aria-label="Ask AI"
+                            className={`flex items-center gap-2 px-4 py-2.5 rounded-full shadow-lg transition-all ${isOpen
+                                ? "bg-muted text-foreground"
+                                : "bg-gradient-to-r from-violet-600 to-purple-600 text-white shadow-purple-500/25"
+                                }`}
+                        >
+                            <AnimatePresence mode="wait">
+                                {isOpen ? (
+                                    <motion.div
+                                        key="close"
+                                        initial={{ rotate: -90, opacity: 0 }}
+                                        animate={{ rotate: 0, opacity: 1 }}
+                                        exit={{ rotate: 90, opacity: 0 }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <X className="w-4 h-4" />
+                                        <span className="text-sm font-medium">Close</span>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div
+                                        key="open"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="flex items-center gap-2"
+                                    >
+                                        <Bot className="w-4 h-4" />
+                                        <span className="text-sm font-medium">Ask AI</span>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </motion.button>
+                    </div>
                 )}
             </AnimatePresence>
 
