@@ -64,6 +64,7 @@
     "sonner": "^1.7.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss-animate": "^1.0.7",
+    "telegraf": "^4.16.3",
     "three": "^0.172.0",
     "topojson-client": "^3.1.0",
     "vaul": "^1.1.2"
