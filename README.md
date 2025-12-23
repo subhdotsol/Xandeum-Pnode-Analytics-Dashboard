@@ -59,19 +59,22 @@ https://github.com/user-attachments/assets/d32fabd4-1faf-4fb1-8ee0-cfcc3d2b820e
 - **Network Health**: Real-time aggregate statistics from 8 seed nodes
 - **Responsive Design**: Optimized for mobile, tablet, and desktop with smooth animations
 
-### 💰 DeFi & Staking
+### 💰 DeFi & Trading
+- **Trading Terminal**: Full-featured trading view with Birdeye charts and real-time prices
+- **Jupiter Integration**: Buy/Sell XAND via Jupiter aggregator with one click
 - **Liquid Staking**: Stake SOL and receive XANDsol tokens
 - **Real-Time Pricing**: Live SOL and XAND prices from CoinGecko API
 - **Dynamic Exchange Rate**: Calculated from live market prices (SOL_PRICE / XAND_PRICE)
 - **DEX Liquidity**: Real-time pool data from Raydium
 - **Wallet Integration**: Solana wallet adapter with Phantom, Solflare, and Coinbase support
-- **Animated UI**: Premium liquid morphing button with Framer Motion
 
-### 🤖 AI Assistant (XandAI)
-- **Natural Language Processing**: Ask questions about network stats, rankings, and more
+### 🤖 AI Features
+- **XandAI Chat**: Natural language queries powered by Google Gemini 2.0 Flash
+- **AI Network Summary**: Real-time AI-generated insights about network health
+- **Telegram Bot**: Network alerts and analytics via @XandeumPNodeBot
 - **Live Data Access**: Real-time information about all pNodes and network health
 - **Security Hardened**: Protected against malicious queries and API key requests
-- **Keyboard Shortcut**: Quick access via `Cmd+I` / `Ctrl+I`
+- **Keyboard Shortcut**: Quick AI access via `Cmd+I` / `Ctrl+I`
 
 ### 📈 Analytics & Insights
 - **Historical Charts**: Time range filters from 1H to 90D
@@ -414,12 +417,15 @@ xandeum-pnode-analytics/
 │   │   │   └── pool-stats/    # Real-time prices & rates
 │   │   ├── dex/               # DEX liquidity data
 │   │   │   └── liquidity/     # Raydium pool info
+│   │   ├── network-summary/   # AI network insights
+│   │   ├── compare-nodes/     # AI node comparison
 │   │   ├── chat/              # AI assistant
 │   │   ├── geo/               # Geo-location
 │   │   ├── analytics/         # Network analytics
 │   │   └── cron/              # Snapshot collection
 │   ├── docs/                  # Documentation pages
 │   │   ├── page.tsx           # Docs home
+│   │   ├── trading/           # Trading terminal docs
 │   │   ├── xandai/            # AI assistant docs
 │   │   ├── leaderboard/       # Pod credits docs
 │   │   └── layout.tsx         # Docs navigation
@@ -435,6 +441,7 @@ xandeum-pnode-analytics/
 │   │   └── app-sidebar.tsx    # Collapsible sidebar
 │   ├── staking-widget.tsx     # Liquid staking UI
 │   ├── swap-widget.tsx        # Jupiter swap integration
+│   ├── trading-terminal.tsx   # Full trading terminal
 │   ├── ai-assistant.tsx       # AI chat modal
 │   ├── spotlight-search.tsx   # Quick navigation
 │   └── ui/                    # shadcn/ui + custom

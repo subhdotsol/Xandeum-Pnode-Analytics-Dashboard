@@ -3,7 +3,7 @@
 import { useState, ReactNode, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database, HelpCircle, Heart, History, MessageCircle, Keyboard } from "lucide-react";
+import { ChevronLeft, Home, Server, Code, Layers, ArrowLeft, PanelLeftClose, PanelLeft, Bot, ArrowLeftRight, Coins, BarChart3, Trophy, Globe, Database, HelpCircle, Heart, History, MessageCircle, Keyboard, TrendingUp } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { motion, AnimatePresence } from "framer-motion";
 import { SpotlightSearch } from "@/components/spotlight-search";
@@ -35,6 +35,7 @@ const sidebarSections = [
     {
         title: "DeFi",
         items: [
+            { href: "/docs/trading", label: "Trading", icon: TrendingUp },
             { href: "/docs/swap", label: "Token Swap", icon: ArrowLeftRight },
             { href: "/docs/staking", label: "Stake SOL", icon: Coins },
         ]
@@ -67,6 +68,7 @@ const docOrder = [
     "/docs/leaderboard",
     "/docs/map",
     "/docs/shortcuts",
+    "/docs/trading",
     "/docs/swap",
     "/docs/staking",
     "/docs/xandai",

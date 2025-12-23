@@ -63,6 +63,7 @@ const searchableItems: SearchItem[] = [
     { id: "docs-api", label: "Docs: API Reference", icon: Database, keywords: ["api", "reference", "endpoints", "rest", "docs"], type: "docs", href: "/docs/api" },
     { id: "docs-swap", label: "Docs: Swap", icon: ArrowRightLeft, keywords: ["swap docs", "exchange", "trade", "docs"], type: "docs", href: "/docs/swap" },
     { id: "docs-staking", label: "Docs: Staking", icon: Coins, keywords: ["staking docs", "stake guide", "rewards", "docs"], type: "docs", href: "/docs/staking" },
+    { id: "docs-trading", label: "Docs: Trading", icon: TrendingUp, keywords: ["trading docs", "charts", "jupiter", "birdeye", "docs"], type: "docs", href: "/docs/trading" },
     { id: "docs-xandai", label: "Docs: XandAI", icon: Zap, keywords: ["xandai", "ai assistant", "chatbot", "docs"], type: "docs", href: "/docs/xandai" },
     { id: "docs-faq", label: "Docs: FAQ", icon: BookOpen, keywords: ["faq", "questions", "answers", "help", "docs"], type: "docs", href: "/docs/faq" },
     { id: "docs-troubleshooting", label: "Docs: Troubleshooting", icon: Zap, keywords: ["troubleshooting", "problems", "issues", "bugs", "fix", "docs"], type: "docs", href: "/docs/troubleshooting" },
