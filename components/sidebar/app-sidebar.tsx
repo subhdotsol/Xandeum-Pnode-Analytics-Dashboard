@@ -48,7 +48,21 @@ const navigationItems: Array<{
         { id: "docs", icon: BookOpen, label: "Documentation", isExternal: true, href: "/docs" },
     ];
 
+
 export function AppSidebar({ isOpen, onClose, activeTab, onTabChange }: AppSidebarProps) {
+    // Lock body scroll when sidebar is open on mobile/tablet (not desktop)
+    useEffect(() => {
+        const isNotDesktop = window.innerWidth < 1024;
+        if (isOpen && isNotDesktop) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [isOpen]);
+
     // Close on mobile after navigation
     useEffect(() => {
         const handleResize = () => {

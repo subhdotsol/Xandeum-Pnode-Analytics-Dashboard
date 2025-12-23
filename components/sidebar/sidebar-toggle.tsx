@@ -13,10 +13,10 @@ export function SidebarToggle({ onClick }: SidebarToggleProps) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={onClick}
-            className="fixed top-6 left-6 z-30 p-2.5 rounded-lg bg-card border border-border shadow-lg hover:bg-muted transition-colors"
+            className="fixed top-4 left-4 sm:top-6 sm:left-6 z-30 p-2 sm:p-2.5 rounded-lg bg-card/80 backdrop-blur-sm border border-border shadow-lg hover:bg-muted transition-colors"
             aria-label="Toggle sidebar"
         >
-            <Menu className="w-5 h-5 text-foreground" />
+            <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-foreground" />
         </motion.button>
     );
 }

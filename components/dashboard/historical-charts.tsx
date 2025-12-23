@@ -164,8 +164,8 @@ export function HistoricalCharts() {
 
     return (
         <div className="space-y-6">
-            {/* Time Range Selector */}
-            <div className="flex items-center justify-between">
+            {/* Time Range Selector - Stack on mobile, centered */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 items-center">
                 <div className="flex items-center gap-2">
                     <p className="text-sm text-muted-foreground">
                         Showing {chartData.length} data points
@@ -175,7 +175,7 @@ export function HistoricalCharts() {
                     )}
                 </div>
                 <div className="overflow-x-auto scrollbar-hide">
-                    <div className="flex items-center gap-1 bg-muted rounded-lg p-1 min-w-fit">
+                    <div className="flex items-center gap-1 bg-muted rounded-lg p-1 w-fit">
                         {TIME_RANGES.map((range) => (
                             <button
                                 key={range.label}

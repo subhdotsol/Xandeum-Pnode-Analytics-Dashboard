@@ -165,31 +165,37 @@ function processNodesForChart(nodes: PNodeInfo[], metric: 'cpu' | 'ram' | 'traff
                 ? `${ipParts[ipParts.length - 2]}.${ipParts[ipParts.length - 1]}`
                 : `N${index + 1}`;
 
-            // Generate realistic performance data based on node
+            // Generate deterministic performance data based on node IP (no random)
             const baseValue = parseInt(node.address.split(':')[0].split('.').pop() || '0');
+            const secondOctet = parseInt(ipParts[1] || '0');
+            const thirdOctet = parseInt(ipParts[2] || '0');
+
+            // Use different octets to create variation without randomness
+            const variation1 = (baseValue * 7 + secondOctet) % 20;
+            const variation2 = (thirdOctet * 3 + baseValue) % 15;
 
             switch (metric) {
                 case 'cpu':
                     return {
                         label: shortId,
-                        value: Math.min(100, 10 + (baseValue % 60) + Math.random() * 10)
+                        value: Math.min(100, 15 + (baseValue % 55) + variation1)
                     };
                 case 'ram':
                     return {
                         label: shortId,
-                        value: Math.min(100, 30 + (baseValue % 50) + Math.random() * 10)
+                        value: Math.min(100, 35 + (baseValue % 45) + variation2)
                     };
                 case 'traffic':
                     return {
                         label: shortId,
-                        incoming: (baseValue * 50) + Math.floor(Math.random() * 2000) + 1000,
-                        outgoing: (baseValue * 30) + Math.floor(Math.random() * 1500) + 500,
+                        incoming: (baseValue * 50) + (secondOctet * 10) + 1500,
+                        outgoing: (baseValue * 30) + (thirdOctet * 8) + 800,
                         value: 0,
                     };
                 case 'streams':
                     return {
                         label: shortId,
-                        value: 5 + (baseValue % 45) + Math.floor(Math.random() * 10)
+                        value: 8 + (baseValue % 40) + variation1
                     };
                 default:
                     return { label: shortId, value: 0 };
@@ -319,8 +325,8 @@ export function PerformanceCharts({ pnodes: propNodes }: PerformanceChartsProps 
 
     return (
         <div className="space-y-6">
-            {/* Header with refresh */}
-            <div className="flex items-center justify-between">
+            {/* Header with refresh - Stack on mobile, centered */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 items-center text-center sm:text-left">
                 <div className="flex items-center gap-2">
                     <p className="text-sm text-muted-foreground">
                         Live node performance metrics

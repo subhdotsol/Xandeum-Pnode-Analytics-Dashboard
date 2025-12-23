@@ -6,7 +6,7 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw, Wifi, BookOpen } from "lucide-react";
+import { Server, Globe, Package, MapPin, HardDrive, Cpu, Clock, Activity, FileText, Database, RefreshCw, Wifi, BookOpen, ChevronDown } from "lucide-react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { NetworkHealthCard } from "@/components/dashboard/network-health-card";
@@ -127,14 +127,14 @@ function AnalyticsTabContent({ pnodes }: { pnodes: PNodeInfo[] }) {
     return (
         <div className="space-y-6 max-w-[1400px]">
             {/* Header with Toggle */}
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-xl sm:text-2xl font-semibold">
                     {view === "historical" ? "Historical Analytics" : "Performance Metrics"}
                 </h2>
-                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
+                <div className="flex items-center gap-1 bg-muted rounded-lg p-1 w-fit">
                     <button
                         onClick={() => setView("historical")}
-                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === "historical"
+                        className={`px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === "historical"
                             ? "bg-background text-foreground shadow-sm"
                             : "text-muted-foreground hover:text-foreground"
                             }`}
@@ -143,7 +143,7 @@ function AnalyticsTabContent({ pnodes }: { pnodes: PNodeInfo[] }) {
                     </button>
                     <button
                         onClick={() => setView("performance")}
-                        className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === "performance"
+                        className={`px-3 sm:px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${view === "performance"
                             ? "bg-background text-foreground shadow-sm"
                             : "text-muted-foreground hover:text-foreground"
                             }`}
@@ -196,6 +196,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
     });
     const [hoveredTab, setHoveredTab] = useState<string | null>(null);
     const [spotlightOpen, setSpotlightOpen] = useState(false);
+    const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
 
     // Start prefetching data for other tabs when on Dashboard
     useEffect(() => {
@@ -351,38 +352,41 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
             {/* Main Content - Shifts when sidebar is open on desktop */}
             <div className={`transition-all duration-300 ease-in-out ${sidebarOpen ? 'lg:ml-[280px]' : 'ml-0'}`}>
                 <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <Image src="/icon.png" alt="Xandeum" width={32} height={32} className="rounded" />
-                            <span className="font-semibold text-lg">Xandeum</span>
+                    {/* Header - Compact on mobile */}
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <div className="flex items-center gap-2 sm:gap-3 pl-8 sm:pl-0">
+                            <Image src="/icon.png" alt="Xandeum" width={24} height={24} className="rounded sm:w-8 sm:h-8" />
+                            <span className="font-semibold text-sm sm:text-lg">Xandeum</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <span className="text-xs text-muted-foreground">Last sync {formatTime(secondsAgo)}</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2 pr-1 sm:pr-0">
+                            <span className="text-xs text-muted-foreground hidden sm:inline">Last sync {formatTime(secondsAgo)}</span>
                             <button onClick={handleRefresh} disabled={isRefreshing} className="p-1.5 rounded-md hover:bg-muted transition-colors disabled:opacity-50">
                                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
                             </button>
                             <Link
                                 href="/docs"
-                                className="p-1.5 rounded-md hover:bg-muted transition-colors flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+                                className="p-1.5 rounded-md hover:bg-muted transition-colors hidden sm:flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
                             >
                                 <BookOpen className="w-4 h-4" />
-                                <span className="hidden sm:inline">Docs</span>
+                                <span>Docs</span>
                             </Link>
                             <ThemeToggle />
                         </div>
                     </div>
 
-                    <div className="text-center mb-4">
-                        <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
-                        <p className="text-sm sm:text-base text-muted-foreground">Real-time monitoring of the Xandeum distributed storage network</p>
+                    {/* Title section with more spacing */}
+                    <div className="text-center mb-6 sm:mb-8">
+                        <h1 className="text-xl sm:text-4xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
+                        <p className="text-xs sm:text-base text-muted-foreground">Real-time monitoring of the Xandeum distributed storage network</p>
                     </div>
 
-                    {/* Tabs - Hidden when sidebar is open, smooth fade transition */}
+                    {/* Tabs - Sticky when scrolling, hidden when sidebar is open */}
                     <div
-                        className={`flex justify-center mb-6 sm:mb-8 transition-all duration-200 ${sidebarOpen ? 'opacity-0 max-h-0 overflow-hidden' : 'opacity-100 max-h-20'
+                        className={`sticky top-0 z-20 bg-background/95 backdrop-blur-sm py-3 -mx-4 px-4 sm:-mx-6 sm:px-6 flex justify-center mb-3 sm:mb-5 transition-all duration-200 ${sidebarOpen ? 'opacity-0 max-h-0 overflow-hidden py-0' : 'opacity-100 max-h-40'
                             }`}
                     >
-                        <div className="overflow-x-auto max-w-full scrollbar-hide">
+                        {/* Desktop: Show all tabs */}
+                        <div className="hidden sm:block overflow-x-auto max-w-full scrollbar-hide px-2">
                             <nav
                                 onMouseLeave={() => {
                                     setCursorPosition((pv) => ({
@@ -391,7 +395,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                     }));
                                     setHoveredTab(null);
                                 }}
-                                className="relative flex w-fit rounded-full border-2 border-border bg-card p-1 sm:p-1.5 shadow-lg"
+                                className="relative flex w-fit rounded-full border-2 border-border bg-card p-1.5 shadow-lg"
                             >
                                 {tabs.map((tab) => {
                                     const tabRef = useRef<HTMLButtonElement>(null);
@@ -412,7 +416,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                                 });
                                                 setHoveredTab(tab.id);
                                             }}
-                                            className={`relative z-10 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${isHovered
+                                            className={`relative z-10 px-4 py-1.5 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${isHovered
                                                 ? "text-white dark:text-black"
                                                 : "text-foreground"
                                                 }`}
@@ -433,6 +437,65 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                                     className="absolute z-0 h-[34px] top-1.5 rounded-md bg-foreground shadow-sm"
                                 />
                             </nav>
+                        </div>
+
+                        {/* Mobile: Show 3 main tabs + More dropdown */}
+                        <div className="sm:hidden flex flex-col items-center gap-2 w-full px-4">
+                            <div className="flex items-center gap-1 bg-card border-2 border-border rounded-full p-1 shadow-lg">
+                                {tabs.slice(0, 3).map((tab) => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => {
+                                            setActiveTab(tab.id);
+                                            setMoreDropdownOpen(false);
+                                        }}
+                                        className={`px-3 py-1.5 text-xs font-medium rounded-full transition-all whitespace-nowrap ${activeTab === tab.id
+                                            ? "bg-foreground text-background"
+                                            : "text-foreground hover:bg-muted"
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </button>
+                                ))}
+                                <button
+                                    onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
+                                    className={`px-2 py-1.5 text-xs font-medium rounded-full transition-all flex items-center gap-1 ${tabs.slice(3).some(t => t.id === activeTab)
+                                        ? "bg-foreground text-background"
+                                        : "text-foreground hover:bg-muted"
+                                        }`}
+                                >
+                                    More
+                                    <ChevronDown className={`w-3 h-3 transition-transform ${moreDropdownOpen ? 'rotate-180' : ''}`} />
+                                </button>
+                            </div>
+
+                            {/* Dropdown for more options */}
+                            <AnimatePresence>
+                                {moreDropdownOpen && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -10 }}
+                                        className="flex flex-wrap justify-center gap-1 bg-card border border-border rounded-xl p-2 shadow-lg"
+                                    >
+                                        {tabs.slice(3).map((tab) => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => {
+                                                    setActiveTab(tab.id);
+                                                    setMoreDropdownOpen(false);
+                                                }}
+                                                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all whitespace-nowrap ${activeTab === tab.id
+                                                    ? "bg-foreground text-background"
+                                                    : "text-foreground hover:bg-muted"
+                                                    }`}
+                                            >
+                                                {tab.label}
+                                            </button>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     </div>
 

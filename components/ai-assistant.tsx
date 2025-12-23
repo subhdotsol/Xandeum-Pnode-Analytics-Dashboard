@@ -82,7 +82,7 @@ export function AiAssistant() {
             {/* Ask AI Button - Only visible after dashboard loads */}
             <AnimatePresence>
                 {isMounted && (
-                    <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-2">
+                    <div className="fixed bottom-4 right-3 sm:bottom-6 sm:right-6 z-50 flex flex-col items-end gap-2">
                         {/* Telegram Button */}
                         <motion.a
                             href="https://t.me/xandeum_bot"
@@ -157,7 +157,7 @@ export function AiAssistant() {
                         initial={{ opacity: 0, y: 20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                        className="fixed bottom-20 right-6 z-50 w-[420px] max-h-[600px] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+                        className="fixed bottom-16 right-3 sm:bottom-20 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-[380px] max-h-[70vh] sm:max-h-[500px] bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden"
                     >
                         {/* Header */}
                         <div className="px-4 py-3 border-b border-border bg-gradient-to-r from-violet-500/10 to-purple-500/10">
@@ -173,7 +173,7 @@ export function AiAssistant() {
                         </div>
 
                         {/* Messages */}
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 min-h-[400px] max-h-[450px]">
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3 sm:space-y-4 min-h-[250px] sm:min-h-[300px] max-h-[350px] sm:max-h-[400px]">
                             {messages.length === 0 && (
                                 <div className="text-center text-muted-foreground text-sm py-8">
                                     <Bot className="w-10 h-10 mx-auto mb-3 text-purple-500/50" />
