@@ -292,8 +292,8 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                     <CardTitle className="text-sm font-medium">Full Rankings</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
+                    <div className="overflow-x-auto scrollbar-hide">
+                        <table className="w-full min-w-[600px]">
                             <thead>
                                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
                                     <th className="py-2 px-2 w-12">#</th>

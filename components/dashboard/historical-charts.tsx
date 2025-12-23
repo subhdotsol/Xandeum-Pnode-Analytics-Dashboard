@@ -174,19 +174,21 @@ export function HistoricalCharts() {
                         <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                     )}
                 </div>
-                <div className="flex items-center gap-1 bg-muted rounded-lg p-1">
-                    {TIME_RANGES.map((range) => (
-                        <button
-                            key={range.label}
-                            onClick={() => handleTimeRangeChange(range.value)}
-                            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${timeRange === range.value
-                                ? 'bg-background text-foreground shadow-sm'
-                                : 'text-muted-foreground hover:text-foreground'
-                                }`}
-                        >
-                            {range.label}
-                        </button>
-                    ))}
+                <div className="overflow-x-auto scrollbar-hide">
+                    <div className="flex items-center gap-1 bg-muted rounded-lg p-1 min-w-fit">
+                        {TIME_RANGES.map((range) => (
+                            <button
+                                key={range.label}
+                                onClick={() => handleTimeRangeChange(range.value)}
+                                className={`px-2 sm:px-3 py-1.5 text-xs font-medium rounded-md transition-all whitespace-nowrap ${timeRange === range.value
+                                    ? 'bg-background text-foreground shadow-sm'
+                                    : 'text-muted-foreground hover:text-foreground'
+                                    }`}
+                            >
+                                {range.label}
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
 

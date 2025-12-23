@@ -247,8 +247,8 @@ export function Compare({ nodes }: CompareProps) {
                 {/* Comparison Table */}
                 <Card className="border border-border">
                     <CardContent className="p-0">
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
+                        <div className="overflow-x-auto scrollbar-hide">
+                            <table className="w-full min-w-[800px]">
                                 <thead>
                                     <tr className="border-b border-border">
                                         <th className="py-3 px-4 text-center text-xs font-medium text-muted-foreground w-12">
@@ -402,8 +402,8 @@ export function Compare({ nodes }: CompareProps) {
                     <CardTitle className="text-sm font-medium">Select Nodes to Compare</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
+                    <div className="overflow-x-auto scrollbar-hide">
+                        <table className="w-full min-w-[600px]">
                             <thead>
                                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
                                     <th className="py-2 px-2 w-12">

@@ -350,7 +350,7 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
 
             {/* Main Content - Shifts when sidebar is open on desktop */}
             <div className={`transition-all duration-300 ease-in-out ${sidebarOpen ? 'lg:ml-[280px]' : 'ml-0'}`}>
-                <main className="max-w-6xl mx-auto px-6 py-8">
+                <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-3">
                             <Image src="/icon.png" alt="Xandeum" width={32} height={32} className="rounded" />
@@ -373,65 +373,67 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                     </div>
 
                     <div className="text-center mb-4">
-                        <h1 className="text-4xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
-                        <p className="text-muted-foreground">Real-time monitoring of the Xandeum distributed storage network</p>
+                        <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-1">Xandeum pNode Analytics</h1>
+                        <p className="text-sm sm:text-base text-muted-foreground">Real-time monitoring of the Xandeum distributed storage network</p>
                     </div>
 
                     {/* Tabs - Hidden when sidebar is open, smooth fade transition */}
                     <div
-                        className={`flex justify-center mb-8 transition-all duration-200 ${sidebarOpen ? 'opacity-0 max-h-0 overflow-hidden' : 'opacity-100 max-h-20'
+                        className={`flex justify-center mb-6 sm:mb-8 transition-all duration-200 ${sidebarOpen ? 'opacity-0 max-h-0 overflow-hidden' : 'opacity-100 max-h-20'
                             }`}
                     >
-                        <nav
-                            onMouseLeave={() => {
-                                setCursorPosition((pv) => ({
-                                    ...pv,
-                                    opacity: 0,
-                                }));
-                                setHoveredTab(null);
-                            }}
-                            className="relative flex w-fit rounded-full border-2 border-border bg-card p-1.5 shadow-lg"
-                        >
-                            {tabs.map((tab) => {
-                                const tabRef = useRef<HTMLButtonElement>(null);
-                                const isHovered = hoveredTab === tab.id;
-
-                                return (
-                                    <button
-                                        key={tab.id}
-                                        ref={tabRef}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        onMouseEnter={() => {
-                                            if (!tabRef?.current) return;
-                                            const { width } = tabRef.current.getBoundingClientRect();
-                                            setCursorPosition({
-                                                left: tabRef.current.offsetLeft,
-                                                width,
-                                                opacity: 1,
-                                            });
-                                            setHoveredTab(tab.id);
-                                        }}
-                                        className={`relative z-10 px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${isHovered
-                                            ? "text-white dark:text-black"
-                                            : "text-foreground"
-                                            }`}
-                                    >
-                                        {tab.label}
-                                    </button>
-                                );
-                            })}
-
-                            {/* Animated Cursor */}
-                            <motion.div
-                                animate={{
-                                    left: cursorPosition.left,
-                                    width: cursorPosition.width,
-                                    opacity: cursorPosition.opacity,
+                        <div className="overflow-x-auto max-w-full scrollbar-hide">
+                            <nav
+                                onMouseLeave={() => {
+                                    setCursorPosition((pv) => ({
+                                        ...pv,
+                                        opacity: 0,
+                                    }));
+                                    setHoveredTab(null);
                                 }}
-                                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                                className="absolute z-0 h-[34px] top-1.5 rounded-md bg-foreground shadow-sm"
-                            />
-                        </nav>
+                                className="relative flex w-fit rounded-full border-2 border-border bg-card p-1 sm:p-1.5 shadow-lg"
+                            >
+                                {tabs.map((tab) => {
+                                    const tabRef = useRef<HTMLButtonElement>(null);
+                                    const isHovered = hoveredTab === tab.id;
+
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            ref={tabRef}
+                                            onClick={() => setActiveTab(tab.id)}
+                                            onMouseEnter={() => {
+                                                if (!tabRef?.current) return;
+                                                const { width } = tabRef.current.getBoundingClientRect();
+                                                setCursorPosition({
+                                                    left: tabRef.current.offsetLeft,
+                                                    width,
+                                                    opacity: 1,
+                                                });
+                                                setHoveredTab(tab.id);
+                                            }}
+                                            className={`relative z-10 px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors whitespace-nowrap ${isHovered
+                                                ? "text-white dark:text-black"
+                                                : "text-foreground"
+                                                }`}
+                                        >
+                                            {tab.label}
+                                        </button>
+                                    );
+                                })}
+
+                                {/* Animated Cursor */}
+                                <motion.div
+                                    animate={{
+                                        left: cursorPosition.left,
+                                        width: cursorPosition.width,
+                                        opacity: cursorPosition.opacity,
+                                    }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    className="absolute z-0 h-[34px] top-1.5 rounded-md bg-foreground shadow-sm"
+                                />
+                            </nav>
+                        </div>
                     </div>
 
                     {activeTab === "dashboard" && (

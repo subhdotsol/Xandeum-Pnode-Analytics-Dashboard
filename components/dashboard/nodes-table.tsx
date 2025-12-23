@@ -348,8 +348,8 @@ export function NodesTable({ nodes }: NodesTableProps) {
                     </div>
 
                     {/* Table */}
-                    <div className="rounded-md border border-border overflow-x-auto">
-                        <Table>
+                    <div className="rounded-md border border-border overflow-x-auto scrollbar-hide">
+                        <Table className="min-w-[800px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Status</TableHead>
@@ -507,8 +507,8 @@ export function NodesTable({ nodes }: NodesTableProps) {
                                 >
                                     <Star
                                         className={`w-5 h-5 transition-colors ${isInWatchlist(selectedNode.address)
-                                                ? "fill-yellow-500 text-yellow-500"
-                                                : "text-muted-foreground hover:text-foreground"
+                                            ? "fill-yellow-500 text-yellow-500"
+                                            : "text-muted-foreground hover:text-foreground"
                                             }`}
                                     />
                                 </button>
