@@ -47,7 +47,7 @@ Xandeum pNode Analytics is a comprehensive real-time monitoring dashboard and De
 
 🔗 **[View Live Dashboard](https://explorerxandeum.vercel.app/)**
 
-https://github.com/user-attachments/assets/d32fabd4-1faf-4fb1-8ee0-cfcc3d2b820e
+<video src="demo_compressed.mp4" width="320" height="240" controls></video>
 
 ---
 
