@@ -41,29 +41,39 @@ export async function handleAsk(ctx: TextContext) {
     const xandPrice = priceData.xandeum?.usd || 0;
     const exchangeRate = xandPrice > 0 ? (solPrice / xandPrice).toFixed(0) : "N/A";
     
-    // Calculate top 10 leaderboard with full details
+    // Fetch pod credits from API
+    let podCredits: Record<string, number> = {};
+    try {
+      const creditsRes = await fetch("https://podcredits.xandeum.network/api/pods-credits");
+      if (creditsRes.ok) {
+        const creditsData = await creditsRes.json();
+        for (const pod of creditsData.pods_credits || []) {
+          podCredits[pod.pod_id] = pod.credits;
+        }
+      }
+    } catch { /* ignore */ }
+    
+    // Get top 10 nodes by real credits
     const topNodes = pnodes
       .filter((n: any) => !n.address?.includes('127.0.0.1') && !n.pubkey?.includes('testpubkey'))
       .map((node: any) => {
         const now = Math.floor(Date.now() / 1000);
         const minutesAgo = (now - node.last_seen_timestamp) / 60;
-        const uptimeScore = minutesAgo < 5 ? 40 : minutesAgo < 15 ? 30 : minutesAgo < 60 ? 20 : minutesAgo < 360 ? 10 : 0;
-        const rpcScore = (node.rpc || node.gossip_rpc) ? 30 : 0;
-        const versionScore = node.version === analytics.versions.latest ? 30 : 0;
         return {
           pubkey: node.pubkey,
           address: node.address,
-          credits: uptimeScore + rpcScore + versionScore,
+          credits: node.pubkey ? (podCredits[node.pubkey] || 0) : 0,
           version: node.version,
           status: minutesAgo < 5 ? "healthy" : minutesAgo < 60 ? "degraded" : "offline",
         };
       })
+      .filter((n: any) => n.credits > 0)
       .sort((a: any, b: any) => b.credits - a.credits)
       .slice(0, 10);
 
     // Build top 10 leaderboard string
     const leaderboardStr = topNodes
-      .map((n: any, i: number) => `#${i + 1}: ${n.pubkey} @ ${n.address} - ${n.credits}/100 pts (${n.status})`)
+      .map((n: any, i: number) => `#${i + 1}: ${n.pubkey} @ ${n.address} - ${n.credits.toLocaleString()} credits (${n.status})`)
       .join("\n");
 
     // Version distribution string

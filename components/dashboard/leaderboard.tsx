@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo, useEffect, useCallback } from "react";
-import { Trophy, Medal, Crown, Cpu, Clock, HardDrive, TrendingUp, Eye, X, Copy, Check, MapPin, Loader2, Star } from "lucide-react";
+import { Trophy, Medal, Crown, Cpu, Clock, HardDrive, TrendingUp, Eye, X, Copy, Check, MapPin, Loader2, Star, Coins } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatBytes, formatUptime } from "@/lib/utils";
 import { useWatchlist } from "@/contexts/watchlist-context";
@@ -13,14 +13,11 @@ interface LeaderboardProps {
 
 interface NodeWithScore extends PNodeInfo {
     stats?: PNodeStats | null;
-    score: number;
-    uptimeScore: number;
-    cpuScore: number;
-    storageScore: number;
+    credits: number;
     rank?: number;
 }
 
-type SortCategory = "overall" | "uptime" | "cpu" | "storage";
+type SortCategory = "credits" | "uptime" | "cpu" | "storage";
 
 const RANK_ICONS = [Crown, Medal, Medal];
 const RANK_COLORS = ["text-yellow-500", "text-gray-400", "text-amber-600"];
@@ -48,11 +45,20 @@ function CopyableField({ label, value, mono = true }: { label: string; value: st
     );
 }
 
+// Format large numbers with commas
+function formatCredits(num: number): string {
+    return num.toLocaleString();
+}
+
 export function Leaderboard({ nodes }: LeaderboardProps) {
-    const [category, setCategory] = useState<SortCategory>("overall");
+    const [category, setCategory] = useState<SortCategory>("credits");
     const [nodeStats, setNodeStats] = useState<Map<string, PNodeStats>>(new Map());
+    const [podCredits, setPodCredits] = useState<Record<string, number>>({});
     const [loadingStats, setLoadingStats] = useState(false);
+    const [loadingCredits, setLoadingCredits] = useState(true);
     const [hasLoadedStats, setHasLoadedStats] = useState(false);
+    const [totalNetworkCredits, setTotalNetworkCredits] = useState(0);
+    const [maxCredits, setMaxCredits] = useState(0);
     const { isInWatchlist, toggleWatchlist } = useWatchlist();
 
     // Try to get prefetched stats
@@ -72,6 +78,28 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
     const [modalLoading, setModalLoading] = useState(false);
     const [geoData, setGeoData] = useState<{ country: string; city: string; regionName: string; isp: string } | null>(null);
 
+    // Fetch real pod credits from API
+    useEffect(() => {
+        async function fetchCredits() {
+            try {
+                const res = await fetch("/api/pods-credits");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.success && data.data) {
+                        setPodCredits(data.data.credits);
+                        setTotalNetworkCredits(data.data.totalCredits);
+                        setMaxCredits(data.data.maxCredits);
+                    }
+                }
+            } catch (error) {
+                console.error("Error fetching pod credits:", error);
+            } finally {
+                setLoadingCredits(false);
+            }
+        }
+        fetchCredits();
+    }, []);
+
     // Use prefetched stats or fetch
     useEffect(() => {
         if (prefetchedStats && prefetchedStats.size > 0) {
@@ -81,17 +109,15 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
         }
     }, [prefetchedStats]);
 
-    // Fetch stats for top nodes (if not prefetched)
-    const fetchStats = useCallback(async () => {
-        if (hasLoadedStats || loadingStats) return;
-        setLoadingStats(true);
-
-        const nodesToFetch = nodes.slice(0, 50);
+    // Fetch stats for specific nodes
+    const fetchStatsForNodes = useCallback(async (nodesToFetch: PNodeInfo[]) => {
         const newStats = new Map<string, PNodeStats>();
 
-        // Fetch ALL nodes in parallel for maximum speed
         await Promise.all(
             nodesToFetch.map(async (node) => {
+                // Skip if we already have stats for this node
+                if (nodeStats.has(node.address)) return;
+
                 try {
                     const res = await fetch(`/api/pnodes/${encodeURIComponent(node.address)}`);
                     if (res.ok) {
@@ -104,18 +130,46 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
             })
         );
 
-        // Update state once after all fetches complete
-        setNodeStats(newStats);
-        setLoadingStats(false);
-        setHasLoadedStats(true);
-    }, [nodes, hasLoadedStats, loadingStats]);
-
-    useEffect(() => {
-        // Only fetch if not prefetched
-        if (nodes.length > 0 && !hasLoadedStats && (!prefetchedStats || prefetchedStats.size === 0)) {
-            fetchStats();
+        if (newStats.size > 0) {
+            setNodeStats(prev => {
+                const merged = new Map(prev);
+                newStats.forEach((v, k) => merged.set(k, v));
+                return merged;
+            });
         }
-    }, [nodes, hasLoadedStats, fetchStats, prefetchedStats]);
+    }, [nodeStats]);
+
+    // Initial stats fetch for first 50 nodes
+    useEffect(() => {
+        if (nodes.length > 0 && !hasLoadedStats && (!prefetchedStats || prefetchedStats.size === 0)) {
+            setLoadingStats(true);
+            fetchStatsForNodes(nodes.slice(0, 50)).then(() => {
+                setLoadingStats(false);
+                setHasLoadedStats(true);
+            });
+        }
+    }, [nodes, hasLoadedStats, fetchStatsForNodes, prefetchedStats]);
+
+    // When credits load, fetch stats for top credit holders that don't have stats yet
+    const [creditsFetchDone, setCreditsFetchDone] = useState(false);
+    useEffect(() => {
+        if (!loadingCredits && Object.keys(podCredits).length > 0 && !creditsFetchDone && nodes.length > 0) {
+            setCreditsFetchDone(true);
+
+            // Get top 25 nodes by credits
+            const topCreditNodes = [...nodes]
+                .filter(n => n.pubkey && podCredits[n.pubkey])
+                .sort((a, b) => (podCredits[b.pubkey!] || 0) - (podCredits[a.pubkey!] || 0))
+                .slice(0, 25);
+
+            // Fetch stats for any that don't have stats yet
+            const needsStats = topCreditNodes.filter(n => !nodeStats.has(n.address));
+            if (needsStats.length > 0) {
+                setLoadingStats(true);
+                fetchStatsForNodes(needsStats).then(() => setLoadingStats(false));
+            }
+        }
+    }, [loadingCredits, podCredits, creditsFetchDone, nodes, nodeStats, fetchStatsForNodes]);
 
     // Open node modal
     const openNodeModal = async (node: NodeWithScore) => {
@@ -144,61 +198,56 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
         setModalLoading(false);
     };
 
-    // Calculate scores for each node
+    // Calculate scores for each node with real credits
     const rankedNodes = useMemo(() => {
         const nodesWithScores: NodeWithScore[] = nodes.map((node) => {
             const stats = nodeStats.get(node.address);
+            // Get real credits from API (match by pubkey)
+            const credits = node.pubkey ? (podCredits[node.pubkey] || 0) : 0;
 
-            const uptimeScore = stats?.uptime
-                ? Math.min(100, (stats.uptime / (30 * 24 * 60 * 60)) * 100)
-                : 0;
-
-            const cpuScore = stats?.cpu_percent !== undefined
-                ? Math.max(0, 100 - stats.cpu_percent)
-                : 0;
-
-            const storageScore = stats?.file_size
-                ? Math.min(100, (stats.file_size / (1024 * 1024 * 1024 * 100)) * 100)
-                : 0;
-
-            const score = (uptimeScore * 0.4) + (cpuScore * 0.3) + (storageScore * 0.3);
-
-            return { ...node, stats, score, uptimeScore, cpuScore, storageScore };
+            return { ...node, stats, credits };
         });
 
+        // Sort by credits (default) or other categories
         nodesWithScores.sort((a, b) => {
             switch (category) {
-                case "uptime": return b.uptimeScore - a.uptimeScore;
-                case "cpu": return b.cpuScore - a.cpuScore;
-                case "storage": return b.storageScore - a.storageScore;
-                default: return b.score - a.score;
+                case "uptime":
+                    const aUptime = a.stats?.uptime || 0;
+                    const bUptime = b.stats?.uptime || 0;
+                    return bUptime - aUptime;
+                case "cpu":
+                    const aCpu = a.stats?.cpu_percent !== undefined ? 100 - a.stats.cpu_percent : 0;
+                    const bCpu = b.stats?.cpu_percent !== undefined ? 100 - b.stats.cpu_percent : 0;
+                    return bCpu - aCpu;
+                case "storage":
+                    const aStorage = a.stats?.file_size || 0;
+                    const bStorage = b.stats?.file_size || 0;
+                    return bStorage - aStorage;
+                default: // credits
+                    return b.credits - a.credits;
             }
         });
 
         return nodesWithScores.map((node, index) => ({ ...node, rank: index + 1 }));
-    }, [nodes, nodeStats, category]);
+    }, [nodes, nodeStats, podCredits, category]);
 
     const categories = [
-        { id: "overall" as SortCategory, label: "All", icon: Trophy },
+        { id: "credits" as SortCategory, label: "Credits", icon: Coins },
         { id: "uptime" as SortCategory, label: "Uptime", icon: Clock },
         { id: "cpu" as SortCategory, label: "CPU", icon: Cpu },
         { id: "storage" as SortCategory, label: "Storage", icon: HardDrive },
     ];
 
-    const getScoreColor = (score: number) => {
-        if (score >= 80) return "text-green-500";
-        if (score >= 60) return "text-yellow-500";
-        if (score >= 40) return "text-orange-500";
-        return "text-red-500";
+    const getCreditsColor = (credits: number) => {
+        if (credits >= 50000) return "text-green-500";
+        if (credits >= 30000) return "text-yellow-500";
+        if (credits >= 10000) return "text-orange-500";
+        return "text-muted-foreground";
     };
 
-    const getScoreForCategory = (node: NodeWithScore) => {
-        switch (category) {
-            case "uptime": return node.uptimeScore;
-            case "cpu": return node.cpuScore;
-            case "storage": return node.storageScore;
-            default: return node.score;
-        }
+    const getCreditsPercentage = (credits: number) => {
+        if (maxCredits === 0) return 0;
+        return (credits / maxCredits) * 100;
     };
 
     return (
@@ -208,10 +257,10 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                 <div>
                     <h2 className="text-2xl font-semibold flex items-center gap-2">
                         <Trophy className="w-6 h-6 text-yellow-500" />
-                        Performance Leaderboard
+                        Pod Credits Leaderboard
                     </h2>
                     <p className="text-sm text-muted-foreground mt-1">
-                        Top performing nodes ranked by efficiency
+                        {loadingCredits ? "Loading credits..." : `${formatCredits(totalNetworkCredits)} total network credits`}
                     </p>
                 </div>
 
@@ -233,10 +282,10 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                 </div>
             </div>
 
-            {loadingStats && (
+            {(loadingStats || loadingCredits) && (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Loading node stats...
+                    {loadingCredits ? "Loading pod credits..." : "Loading node stats..."}
                 </div>
             )}
 
@@ -245,7 +294,6 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                 {rankedNodes.slice(0, 3).map((node, index) => {
                     const RankIcon = RANK_ICONS[index];
                     const rankColor = RANK_COLORS[index];
-                    const score = getScoreForCategory(node);
 
                     return (
                         <Card
@@ -259,13 +307,22 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                                         <RankIcon className={`w-5 h-5 ${rankColor}`} />
                                         <span className="text-xl font-bold">#{index + 1}</span>
                                     </div>
-                                    <span className={`text-xl font-bold ${getScoreColor(score)}`}>
-                                        {score.toFixed(0)}
-                                    </span>
+                                    <div className="text-right">
+                                        <span className={`text-xl font-bold ${getCreditsColor(node.credits)}`}>
+                                            {formatCredits(node.credits)}
+                                        </span>
+                                        <p className="text-xs text-muted-foreground">credits</p>
+                                    </div>
                                 </div>
-                                <p className="font-mono text-xs truncate mb-3" title={node.address}>
-                                    {node.address}
+                                <p className="font-mono text-xs truncate mb-3" title={node.pubkey || node.address}>
+                                    {node.pubkey ? `${node.pubkey.slice(0, 8)}...${node.pubkey.slice(-8)}` : node.address}
                                 </p>
+                                <div className="w-full bg-muted rounded-full h-1.5 mb-3">
+                                    <div
+                                        className="bg-gradient-to-r from-yellow-500 to-amber-500 h-1.5 rounded-full transition-all"
+                                        style={{ width: `${getCreditsPercentage(node.credits)}%` }}
+                                    />
+                                </div>
                                 <div className="grid grid-cols-3 gap-2 text-xs text-muted-foreground">
                                     <div className="text-center">
                                         <Clock className="w-3 h-3 mx-auto mb-1" />
@@ -297,8 +354,8 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                             <thead>
                                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
                                     <th className="py-2 px-2 w-12">#</th>
-                                    <th className="py-2 px-2">Address</th>
-                                    <th className="py-2 px-2 text-center">Score</th>
+                                    <th className="py-2 px-2">Pod ID</th>
+                                    <th className="py-2 px-2 text-right">Credits</th>
                                     <th className="py-2 px-2 text-center">Uptime</th>
                                     <th className="py-2 px-2 text-center">CPU</th>
                                     <th className="py-2 px-2 text-center">Storage</th>
@@ -307,68 +364,55 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {rankedNodes.slice(0, 25).map((node) => {
-                                    const score = getScoreForCategory(node);
-                                    return (
-                                        <tr key={node.address} className="border-b border-border last:border-0 hover:bg-muted/50 cursor-pointer" onClick={() => openNodeModal(node)}>
-                                            <td className="py-2 px-2">
-                                                <span className={`font-bold text-sm ${node.rank && node.rank <= 3 ? RANK_COLORS[node.rank - 1] : ''}`}>
-                                                    {node.rank}
-                                                </span>
-                                            </td>
-                                            <td className="py-2 px-2 font-mono text-xs">
-                                                {node.address}
-                                            </td>
-                                            <td className="py-2 px-2 text-center">
-                                                <span className={`font-bold text-sm ${getScoreColor(score)}`}>
-                                                    {score.toFixed(0)}
-                                                </span>
-                                            </td>
-                                            <td className="py-2 px-2 text-center text-xs text-muted-foreground">
-                                                {node.stats?.uptime ? formatUptime(node.stats.uptime) : "–"}
-                                            </td>
-                                            <td className="py-2 px-2 text-center text-xs text-muted-foreground">
-                                                {node.stats?.cpu_percent?.toFixed(1) || "–"}%
-                                            </td>
-                                            <td className="py-2 px-2 text-center text-xs text-muted-foreground">
-                                                {node.stats?.file_size ? formatBytes(node.stats.file_size) : "–"}
-                                            </td>
-                                            <td className="py-2 px-2 text-xs text-muted-foreground">
-                                                {node.version || "–"}
-                                            </td>
-                                            <td className="py-2 px-2">
-                                                <Eye className="w-3 h-3 text-muted-foreground" />
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
+                                {rankedNodes.slice(0, 25).map((node) => (
+                                    <tr key={node.address} className="border-b border-border last:border-0 hover:bg-muted/50 cursor-pointer" onClick={() => openNodeModal(node)}>
+                                        <td className="py-2 px-2">
+                                            <span className={`font-bold text-sm ${node.rank && node.rank <= 3 ? RANK_COLORS[node.rank - 1] : ''}`}>
+                                                {node.rank}
+                                            </span>
+                                        </td>
+                                        <td className="py-2 px-2 font-mono text-xs">
+                                            {node.pubkey ? `${node.pubkey.slice(0, 12)}...` : node.address}
+                                        </td>
+                                        <td className="py-2 px-2 text-right">
+                                            <span className={`font-bold text-sm ${getCreditsColor(node.credits)}`}>
+                                                {formatCredits(node.credits)}
+                                            </span>
+                                        </td>
+                                        <td className="py-2 px-2 text-center text-xs text-muted-foreground">
+                                            {node.stats?.uptime ? formatUptime(node.stats.uptime) : "–"}
+                                        </td>
+                                        <td className="py-2 px-2 text-center text-xs text-muted-foreground">
+                                            {node.stats?.cpu_percent?.toFixed(1) || "–"}%
+                                        </td>
+                                        <td className="py-2 px-2 text-center text-xs text-muted-foreground">
+                                            {node.stats?.file_size ? formatBytes(node.stats.file_size) : "–"}
+                                        </td>
+                                        <td className="py-2 px-2 text-xs text-muted-foreground">
+                                            {node.version || "–"}
+                                        </td>
+                                        <td className="py-2 px-2">
+                                            <Eye className="w-3 h-3 text-muted-foreground" />
+                                        </td>
+                                    </tr>
+                                ))}
                             </tbody>
                         </table>
                     </div>
                 </CardContent>
             </Card>
 
-            {/* Scoring Explanation */}
+            {/* Network Credits Info */}
             <Card className="border border-border bg-muted/30">
                 <CardContent className="p-4">
                     <h3 className="text-sm font-medium mb-2 flex items-center gap-2">
-                        <TrendingUp className="w-4 h-4" />
-                        Scoring Formula
+                        <Coins className="w-4 h-4 text-yellow-500" />
+                        Pod Credits
                     </h3>
-                    <div className="grid grid-cols-3 gap-3 text-xs text-muted-foreground">
-                        <div>
-                            <p className="font-medium text-foreground">Uptime (40%)</p>
-                            <p>30 days = 100 pts</p>
-                        </div>
-                        <div>
-                            <p className="font-medium text-foreground">CPU (30%)</p>
-                            <p>0% usage = 100 pts</p>
-                        </div>
-                        <div>
-                            <p className="font-medium text-foreground">Storage (30%)</p>
-                            <p>100GB = 100 pts</p>
-                        </div>
-                    </div>
+                    <p className="text-xs text-muted-foreground">
+                        Pod Credits are earned by participating in the Xandeum network. Credits reflect your node&apos;s
+                        contribution to the network through uptime, storage, and processing work.
+                    </p>
                 </CardContent>
             </Card>
 
@@ -397,18 +441,21 @@ export function Leaderboard({ nodes }: LeaderboardProps) {
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-4">
-                            {/* Rank Badge */}
-                            <div className="flex items-center gap-2">
+                            {/* Rank & Credits Badge */}
+                            <div className="flex items-center justify-between">
                                 <span className={`text-2xl font-bold ${selectedNode.rank && selectedNode.rank <= 3 ? RANK_COLORS[selectedNode.rank - 1] : ''}`}>
                                     Rank #{selectedNode.rank}
                                 </span>
-                                <span className={`text-xl font-bold ${getScoreColor(getScoreForCategory(selectedNode))}`}>
-                                    ({getScoreForCategory(selectedNode).toFixed(0)} pts)
-                                </span>
+                                <div className="text-right">
+                                    <span className={`text-2xl font-bold ${getCreditsColor(selectedNode.credits)}`}>
+                                        {formatCredits(selectedNode.credits)}
+                                    </span>
+                                    <p className="text-xs text-muted-foreground">pod credits</p>
+                                </div>
                             </div>
 
                             <CopyableField label="Address" value={selectedNode.address} />
-                            {selectedNode.pubkey && <CopyableField label="Public Key" value={selectedNode.pubkey} />}
+                            {selectedNode.pubkey && <CopyableField label="Pod ID (Public Key)" value={selectedNode.pubkey} />}
 
                             {/* Location */}
                             {modalLoading ? (

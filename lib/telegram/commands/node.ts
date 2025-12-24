@@ -5,6 +5,22 @@ import { analyzeNetwork } from "@/lib/network-analytics";
 
 type TextContext = NarrowedContext<Context<Update>, Update.MessageUpdate<Message.TextMessage>>;
 
+// Fetch real pod credits from API
+async function fetchPodCredits(): Promise<Record<string, number>> {
+  try {
+    const response = await fetch("https://podcredits.xandeum.network/api/pods-credits");
+    if (!response.ok) return {};
+    const data = await response.json();
+    const credits: Record<string, number> = {};
+    for (const pod of data.pods_credits || []) {
+      credits[pod.pod_id] = pod.credits;
+    }
+    return credits;
+  } catch {
+    return {};
+  }
+}
+
 export async function handleNode(ctx: TextContext) {
   try {
     const text = ctx.message.text;
@@ -23,7 +39,11 @@ export async function handleNode(ctx: TextContext) {
     
     await ctx.sendChatAction("typing");
     
-    const pnodes = await pnodeClient.getAllPNodes();
+    const [pnodes, podCredits] = await Promise.all([
+      pnodeClient.getAllPNodes(),
+      fetchPodCredits()
+    ]);
+    
     const analytics = analyzeNetwork(pnodes);
     
     // Find node by partial pubkey or IP address
@@ -38,14 +58,22 @@ export async function handleNode(ctx: TextContext) {
       return;
     }
     
-    // Calculate pod credits
+    // Get real pod credits
+    const credits = node.pubkey ? (podCredits[node.pubkey] || 0) : 0;
+    
+    // Calculate all pods ranking
+    const allPodsRanked = pnodes
+      .filter((n: any) => n.pubkey && podCredits[n.pubkey])
+      .map((n: any) => ({ pubkey: n.pubkey, credits: podCredits[n.pubkey] }))
+      .sort((a: any, b: any) => b.credits - a.credits);
+    
+    const rank = allPodsRanked.findIndex((p: any) => p.pubkey === node.pubkey) + 1;
+    const totalPods = allPodsRanked.length;
+    
+    // Status calculation
     const now = Math.floor(Date.now() / 1000);
     const minutesAgo = (now - node.last_seen_timestamp) / 60;
-    const uptimeScore = minutesAgo < 5 ? 40 : minutesAgo < 15 ? 30 : minutesAgo < 60 ? 20 : minutesAgo < 360 ? 10 : 0;
     const hasRpc = !!(node.rpc || node.gossip_rpc);
-    const rpcScore = hasRpc ? 30 : 0;
-    const versionScore = node.version === analytics.versions.latest ? 30 : 0;
-    const podCredits = uptimeScore + rpcScore + versionScore;
     
     // Status emoji
     const statusEmoji = minutesAgo < 5 ? "🟢" : minutesAgo < 60 ? "🟡" : "🔴";
@@ -61,10 +89,8 @@ export async function handleNode(ctx: TextContext) {
       `📦 Version: ${node.version}${node.version === analytics.versions.latest ? " ✅" : " ⚠️"}\n` +
       `🕐 Last Seen: ${lastSeenText}\n` +
       `📡 RPC: ${hasRpc ? "Enabled ✅" : "Disabled ❌"}\n\n` +
-      `⭐ Pod Credits: ${podCredits}/100\n` +
-      `  • Uptime: ${uptimeScore}/40\n` +
-      `  • RPC: ${rpcScore}/30\n` +
-      `  • Version: ${versionScore}/30`
+      `⭐ Pod Credits: ${credits.toLocaleString()}\n` +
+      (rank > 0 ? `🏆 Rank: #${rank} of ${totalPods} pods` : `📊 Not ranked (no credits yet)`)
     );
   } catch (error) {
     console.error("Node command error:", error);
