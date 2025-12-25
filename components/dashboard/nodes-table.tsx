@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye, Copy, Check, MapPin, Globe, Loader2, Star } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, X, Server, Cpu, HardDrive, Clock, Wifi, Eye, Copy, Check, MapPin, Globe, Loader2, Star, LayoutList, LayoutGrid } from "lucide-react";
 import {
     Table,
     TableBody,
@@ -35,7 +35,7 @@ interface NodeWithStats extends PNodeInfo {
     statsLoading?: boolean;
 }
 
-const PAGE_SIZES = [10, 25, 50, 100];
+const PAGE_SIZES = [10, 25, 50, 100, -1]; // -1 represents "All"
 
 // Click to Copy Component with animated popup
 function ClickToCopy({ value, display }: { value: string; display?: string }) {
@@ -109,6 +109,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
     const [loadingVisibleStats, setLoadingVisibleStats] = useState(false);
     const statsCache = useRef<Map<string, PNodeStats>>(new Map());
     const { isInWatchlist, toggleWatchlist } = useWatchlist();
+    const [viewMode, setViewMode] = useState<"list" | "grid">("list");
 
     useEffect(() => {
         setNodesWithStats(nodes.map(n => ({ ...n, stats: statsCache.current.get(n.address) || null, geo: null })));
@@ -156,9 +157,10 @@ export function NodesTable({ nodes }: NodesTableProps) {
     })();
 
     const totalNodes = filteredAndSortedNodes.length;
-    const totalPages = Math.ceil(totalNodes / pageSize);
-    const startIndex = (currentPage - 1) * pageSize;
-    const endIndex = Math.min(startIndex + pageSize, totalNodes);
+    const effectivePageSize = pageSize === -1 ? totalNodes : pageSize;
+    const totalPages = pageSize === -1 ? 1 : Math.ceil(totalNodes / pageSize);
+    const startIndex = (currentPage - 1) * effectivePageSize;
+    const endIndex = Math.min(startIndex + effectivePageSize, totalNodes);
     const displayedNodes = filteredAndSortedNodes.slice(startIndex, endIndex);
 
     // Fetch stats for visible nodes
@@ -325,7 +327,7 @@ export function NodesTable({ nodes }: NodesTableProps) {
                 </CardHeader>
                 <CardContent className="space-y-4">
                     {/* Filters */}
-                    <div className="flex gap-4 flex-wrap">
+                    <div className="flex gap-4 flex-wrap items-center">
                         <div className="relative flex-1 min-w-[200px]">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                             <Input
@@ -345,109 +347,265 @@ export function NodesTable({ nodes }: NodesTableProps) {
                             <option value="degraded">Degraded</option>
                             <option value="offline">Offline</option>
                         </select>
+
+                        {/* View Toggle */}
+                        <div className="flex items-center gap-1 p-1 rounded-lg bg-muted/50 border border-border">
+                            <button
+                                onClick={() => setViewMode("list")}
+                                className={`p-2 rounded-md transition-all ${viewMode === "list"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                    }`}
+                                title="List view"
+                            >
+                                <LayoutList className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => setViewMode("grid")}
+                                className={`p-2 rounded-md transition-all ${viewMode === "grid"
+                                    ? "bg-background text-foreground shadow-sm"
+                                    : "text-muted-foreground hover:text-foreground hover:bg-background/50"
+                                    }`}
+                                title="Grid view"
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
 
-                    {/* Table */}
-                    <div className="rounded-md border border-border overflow-x-auto scrollbar-hide">
-                        <Table className="min-w-[800px]">
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("address")}>
-                                        Address {sortField === "address" && (sortOrder === "asc" ? "↑" : "↓")}
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("version")}>
-                                        Version {sortField === "version" && (sortOrder === "asc" ? "↑" : "↓")}
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("cpu")}>
-                                        <div className="flex items-center gap-1">
-                                            <Cpu className="w-3 h-3" />
-                                            CPU {sortField === "cpu" && (sortOrder === "asc" ? "↑" : "↓")}
-                                        </div>
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("ram")}>
-                                        RAM {sortField === "ram" && (sortOrder === "asc" ? "↑" : "↓")}
-                                    </TableHead>
-                                    <TableHead>
-                                        <div className="flex items-center gap-1">
-                                            <HardDrive className="w-3 h-3" />
-                                            Storage
-                                        </div>
-                                    </TableHead>
-                                    <TableHead>
-                                        <div className="flex items-center gap-1">
-                                            <Clock className="w-3 h-3" />
-                                            Uptime
-                                        </div>
-                                    </TableHead>
-                                    <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("lastSeen")}>
-                                        Last Seen {sortField === "lastSeen" && (sortOrder === "asc" ? "↑" : "↓")}
-                                    </TableHead>
-                                    <TableHead>Public Key</TableHead>
-                                    <TableHead>Action</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {displayedNodes.length === 0 ? (
+                    {/* List View (Table) */}
+                    {viewMode === "list" && (
+                        <div className="rounded-md border border-border overflow-x-auto scrollbar-hide">
+                            <Table className="min-w-[800px]">
+                                <TableHeader>
                                     <TableRow>
-                                        <TableCell colSpan={10} className="text-center py-8">
-                                            <p className="text-muted-foreground">No nodes found</p>
-                                        </TableCell>
+                                        <TableHead>Status</TableHead>
+                                        <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("address")}>
+                                            Address {sortField === "address" && (sortOrder === "asc" ? "↑" : "↓")}
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("version")}>
+                                            Version {sortField === "version" && (sortOrder === "asc" ? "↑" : "↓")}
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("cpu")}>
+                                            <div className="flex items-center gap-1">
+                                                <Cpu className="w-3 h-3" />
+                                                CPU {sortField === "cpu" && (sortOrder === "asc" ? "↑" : "↓")}
+                                            </div>
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("ram")}>
+                                            RAM {sortField === "ram" && (sortOrder === "asc" ? "↑" : "↓")}
+                                        </TableHead>
+                                        <TableHead>
+                                            <div className="flex items-center gap-1">
+                                                <HardDrive className="w-3 h-3" />
+                                                Storage
+                                            </div>
+                                        </TableHead>
+                                        <TableHead>
+                                            <div className="flex items-center gap-1">
+                                                <Clock className="w-3 h-3" />
+                                                Uptime
+                                            </div>
+                                        </TableHead>
+                                        <TableHead className="cursor-pointer hover:text-foreground" onClick={() => handleSort("lastSeen")}>
+                                            Last Seen {sortField === "lastSeen" && (sortOrder === "asc" ? "↑" : "↓")}
+                                        </TableHead>
+                                        <TableHead>Public Key</TableHead>
+                                        <TableHead>Action</TableHead>
                                     </TableRow>
-                                ) : (
-                                    displayedNodes.map((node) => (
-                                        <TableRow key={node.address} className="hover:bg-muted/50 transition-colors">
-                                            <TableCell>{getHealthBadge(node.last_seen_timestamp)}</TableCell>
-                                            <TableCell>
-                                                <ClickToCopy value={node.address} />
-                                            </TableCell>
-                                            <TableCell className="font-mono text-sm">{node.version || "–"}</TableCell>
-                                            <TableCell className="text-sm">
-                                                {node.stats?.cpu_percent !== undefined ? (
-                                                    `${node.stats.cpu_percent.toFixed(1)}%`
-                                                ) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : "–"}
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                {node.stats ? formatRamPercent(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : "–"}
-                                            </TableCell>
-                                            <TableCell className="text-sm">
-                                                {node.stats ? formatStorage(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : "–"}
-                                            </TableCell>
-                                            <TableCell className="text-sm text-muted-foreground">
-                                                {node.stats ? formatNodeUptime(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : "–"}
-                                            </TableCell>
-                                            <TableCell className="text-xs text-muted-foreground">{getTimeAgo(node.last_seen_timestamp)}</TableCell>
-                                            <TableCell>
-                                                {node.pubkey ? (
-                                                    <ClickToCopy
-                                                        value={node.pubkey}
-                                                        display={`${node.pubkey.slice(0, 8)}...`}
-                                                    />
-                                                ) : "–"}
-                                            </TableCell>
-                                            <TableCell>
-                                                <button
-                                                    onClick={() => openNodeModal(node)}
-                                                    className="p-2 rounded-md hover:bg-muted transition-colors"
-                                                    title="View node details"
-                                                >
-                                                    <Eye className="w-4 h-4 text-muted-foreground hover:text-foreground" />
-                                                </button>
+                                </TableHeader>
+                                <TableBody>
+                                    {displayedNodes.length === 0 ? (
+                                        <TableRow>
+                                            <TableCell colSpan={10} className="text-center py-8">
+                                                <p className="text-muted-foreground">No nodes found</p>
                                             </TableCell>
                                         </TableRow>
-                                    ))
-                                )}
-                            </TableBody>
-                        </Table>
-                    </div>
+                                    ) : (
+                                        displayedNodes.map((node) => (
+                                            <TableRow key={node.address} className="hover:bg-muted/50 transition-colors">
+                                                <TableCell>{getHealthBadge(node.last_seen_timestamp)}</TableCell>
+                                                <TableCell>
+                                                    <ClickToCopy value={node.address} />
+                                                </TableCell>
+                                                <TableCell className="font-mono text-sm">{node.version || "–"}</TableCell>
+                                                <TableCell className="text-sm">
+                                                    {node.stats?.cpu_percent !== undefined ? (
+                                                        `${node.stats.cpu_percent.toFixed(1)}%`
+                                                    ) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : "–"}
+                                                </TableCell>
+                                                <TableCell className="text-sm">
+                                                    {node.stats ? formatRamPercent(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : "–"}
+                                                </TableCell>
+                                                <TableCell className="text-sm">
+                                                    {node.stats ? formatStorage(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : "–"}
+                                                </TableCell>
+                                                <TableCell className="text-sm text-muted-foreground">
+                                                    {node.stats ? formatNodeUptime(node.stats) : loadingVisibleStats && !statsCache.current.has(node.address) ? (
+                                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                                    ) : "–"}
+                                                </TableCell>
+                                                <TableCell className="text-xs text-muted-foreground">{getTimeAgo(node.last_seen_timestamp)}</TableCell>
+                                                <TableCell>
+                                                    {node.pubkey ? (
+                                                        <ClickToCopy
+                                                            value={node.pubkey}
+                                                            display={`${node.pubkey.slice(0, 8)}...`}
+                                                        />
+                                                    ) : "–"}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <button
+                                                        onClick={() => openNodeModal(node)}
+                                                        className="p-2 rounded-md hover:bg-muted transition-colors"
+                                                        title="View node details"
+                                                    >
+                                                        <Eye className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                                                    </button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))
+                                    )}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    )}
+
+                    {/* Grid View (Cards) */}
+                    {viewMode === "grid" && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {displayedNodes.length === 0 ? (
+                                <div className="col-span-full text-center py-12">
+                                    <p className="text-muted-foreground">No nodes found</p>
+                                </div>
+                            ) : (
+                                displayedNodes.map((node) => {
+                                    const isLoading = loadingVisibleStats && !statsCache.current.has(node.address);
+                                    const health = getNodeHealth(node.last_seen_timestamp);
+                                    const healthColors: Record<string, string> = {
+                                        healthy: "from-green-500/10 to-green-500/5 border-green-500/20",
+                                        degraded: "from-yellow-500/10 to-yellow-500/5 border-yellow-500/20",
+                                        offline: "from-red-500/10 to-red-500/5 border-red-500/20",
+                                    };
+                                    const dotColors: Record<string, string> = {
+                                        healthy: "bg-green-500",
+                                        degraded: "bg-yellow-500",
+                                        offline: "bg-red-500",
+                                    };
+
+                                    return (
+                                        <div
+                                            key={node.address}
+                                            className={`relative group rounded-xl border bg-gradient-to-br ${healthColors[health.status] || healthColors.offline} backdrop-blur-sm p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg hover:shadow-black/5`}
+                                        >
+                                            {/* Header with status and actions */}
+                                            <div className="flex items-start justify-between mb-3">
+                                                <div className="flex items-center gap-2">
+                                                    <div className={`w-2 h-2 rounded-full ${dotColors[health.status] || dotColors.offline} animate-pulse`} />
+                                                    <span className="text-xs font-medium text-muted-foreground capitalize">{health.status}</span>
+                                                </div>
+                                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button
+                                                        onClick={() => toggleWatchlist(node.address)}
+                                                        className="p-1.5 rounded-md hover:bg-background/50 transition-colors"
+                                                        title={isInWatchlist(node.address) ? "Remove from watchlist" : "Add to watchlist"}
+                                                    >
+                                                        <Star
+                                                            className={`w-4 h-4 transition-colors ${isInWatchlist(node.address)
+                                                                ? "fill-yellow-500 text-yellow-500"
+                                                                : "text-muted-foreground hover:text-foreground"
+                                                                }`}
+                                                        />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => openNodeModal(node)}
+                                                        className="p-1.5 rounded-md hover:bg-background/50 transition-colors"
+                                                        title="View details"
+                                                    >
+                                                        <Eye className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Address - Click to copy */}
+                                            <div className="mb-3">
+                                                <ClickToCopy value={node.address} display={node.address} />
+                                                <p className="text-xs text-muted-foreground mt-0.5">
+                                                    v{node.version || "–"} • {getTimeAgo(node.last_seen_timestamp)}
+                                                </p>
+                                            </div>
+
+                                            {/* Stats Grid */}
+                                            <div className="grid grid-cols-2 gap-2 text-xs">
+                                                <div className="flex items-center justify-between gap-1 p-2 rounded-lg bg-background/30">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Cpu className="w-3 h-3 text-muted-foreground shrink-0" />
+                                                        <span className="text-muted-foreground">CPU</span>
+                                                    </div>
+                                                    <span className="font-medium whitespace-nowrap">
+                                                        {isLoading ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        ) : node.stats?.cpu_percent !== undefined ? (
+                                                            `${node.stats.cpu_percent.toFixed(0)}%`
+                                                        ) : "–"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-1 p-2 rounded-lg bg-background/30">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Server className="w-3 h-3 text-muted-foreground shrink-0" />
+                                                        <span className="text-muted-foreground">RAM</span>
+                                                    </div>
+                                                    <span className="font-medium whitespace-nowrap">
+                                                        {isLoading ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        ) : node.stats ? formatRamPercent(node.stats) : "–"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-1 p-2 rounded-lg bg-background/30">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <HardDrive className="w-3 h-3 text-muted-foreground shrink-0" />
+                                                        <span className="text-muted-foreground hidden sm:inline">Disk</span>
+                                                    </div>
+                                                    <span className="font-medium whitespace-nowrap">
+                                                        {isLoading ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        ) : node.stats ? formatStorage(node.stats) : "–"}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center justify-between gap-1 p-2 rounded-lg bg-background/30">
+                                                    <div className="flex items-center gap-1.5">
+                                                        <Clock className="w-3 h-3 text-muted-foreground shrink-0" />
+                                                        <span className="text-muted-foreground hidden sm:inline">Up</span>
+                                                    </div>
+                                                    <span className="font-medium whitespace-nowrap">
+                                                        {isLoading ? (
+                                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                                        ) : node.stats ? formatNodeUptime(node.stats) : "–"}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* Pubkey footer - Click to copy */}
+                                            {node.pubkey && (
+                                                <div className="mt-3 pt-3 border-t border-border/50">
+                                                    <ClickToCopy
+                                                        value={node.pubkey}
+                                                        display={`${node.pubkey.slice(0, 12)}...${node.pubkey.slice(-6)}`}
+                                                    />
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })
+                            )}
+                        </div>
+                    )}
 
                     {/* Pagination */}
                     <div className="flex items-center justify-between flex-wrap gap-4">
@@ -459,7 +617,9 @@ export function NodesTable({ nodes }: NodesTableProps) {
                                 className="px-2 py-1 rounded-md bg-background border border-input text-sm"
                             >
                                 {PAGE_SIZES.map(size => (
-                                    <option key={size} value={size}>{size}</option>
+                                    <option key={size} value={size}>
+                                        {size === -1 ? "All" : size}
+                                    </option>
                                 ))}
                             </select>
                             <span>per page</span>
