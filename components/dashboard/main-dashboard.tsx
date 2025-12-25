@@ -643,7 +643,11 @@ export function MainDashboard({ analytics, pnodes, estimatedCountries, aggregate
                         </>
                     )}
 
-                    {activeTab === "nodes" && <NodesTable nodes={pnodes} />}
+                    {activeTab === "nodes" && (
+                        <div className="-mx-4 sm:-mx-6 lg:-mx-12 xl:-mx-24">
+                            <NodesTable nodes={pnodes} />
+                        </div>
+                    )}
 
                     {activeTab === "trading" && (
                         <motion.div
